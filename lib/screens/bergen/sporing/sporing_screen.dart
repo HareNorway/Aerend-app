@@ -1,5 +1,6 @@
 import '../../../services/lopet_utboks.dart';
 import '../lopet/lopet_data.dart';
+import '../poeng/poeng_kreditert.dart';
 import '../../../services/ntf/ntf_live_card.dart';
 import '../meg/varsler_innst.dart' show NtfSamtykke;
 import 'dart:async';
@@ -140,6 +141,9 @@ class _SporingScreenState extends State<SporingScreen> {
   String? _logo;
   int? _poeng;
   DateTime? _levertKl;
+
+  /// Design 21 Nov (D4): the «Poeng kreditert» check runs once per visit (the order's own once-memory is in prefs).
+  bool _krSjekket = false;
   bool _harness = false;
 
   OpsCustomerApi get _api => widget.api ?? OpsCustomerApi();
@@ -208,6 +212,8 @@ class _SporingScreenState extends State<SporingScreen> {
     try {
       final json = await _api.tracking(_id);
       if (!mounted || _forceOffline) return;
+      // Design 21 Nov plan Steps 5–6 (debug harness `sporingSpill`): a played session on the snapshot for the gate.
+      if (kDebugMode && HjemHarness.sporingSpill != null) json['game'] = HjemHarness.sporingSpill;
       final next = OpsTracking.fromJson(json);
       // Points plan Step 7: the order snapshot's Fjordløpet session drives every entry point (LopetPort).
       LopetPort.fraSporing(_id, next.raw['game']);
@@ -226,6 +232,12 @@ class _SporingScreenState extends State<SporingScreen> {
       if (changed) _onStageChange(next);
       unawaited(_hentKart(next));
       if (_lastStage == null && next.stage == 3) _etterLevert(next);
+      // Design 21 Nov plan Step 6 (D4): «Poeng kreditert», once per order, when the delivered order's runs earned
+      // points — only while this screen is on top, never from a push in the background.
+      if (next.isDelivered && !_krSjekket && (ModalRoute.of(context)?.isCurrent ?? true)) {
+        _krSjekket = true;
+        unawaited(PoengKreditert.kanskje(context, _id, next.raw['game'] is Map ? next.raw['game'] as Map : null));
+      }
       // Notifications plan Step 7 (D-10): the marketing question, once, after a delivered order.
       if (next.isDelivered && mounted) unawaited(NtfSamtykke.kanskje(context));
       // Notifications plan Step 10: the live card while the order is on its way; gone when it is done.
@@ -527,6 +539,13 @@ class _SporingScreenState extends State<SporingScreen> {
         // Two seconds after the screen settles, so a screenshot can catch it.
         await Future<void>.delayed(const Duration(milliseconds: 2000));
         if (mounted) _visSkifte(_t?.stage ?? 0);
+      }
+      // Design 21 Nov plan Step 6: the overlay's «Spill av» cases on the emulator (debug only).
+      if (HjemHarness.kreditert case final v?) {
+        HjemHarness.kreditert = null;
+        _krSjekket = true;
+        await Future<void>.delayed(const Duration(milliseconds: 1500));
+        if (mounted) unawaited(PoengKreditert.demo(context, v));
       }
       if (HjemHarness.sporingKvittering) {
         await Future<void>.delayed(const Duration(milliseconds: 1500));

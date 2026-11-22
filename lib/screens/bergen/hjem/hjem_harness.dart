@@ -212,6 +212,12 @@ abstract final class HjemHarness {
   /// shows the vervebillett slot. `levert` opens Levert for this order;
   /// `levertArk` opens `tips` / `vurder`.
   static int? sporing, levert;
+
+  /// Design 21 Nov plan Step 6: with `sporing`, play «Poeng kreditert» (`boye1` / `boye2` / `bryggen`).
+  static String? kreditert;
+
+  /// With `sporing`: this map replaces the snapshot's `game` (the Fjordløpet row and the overlay on test data).
+  static Map<String, dynamic>? sporingSpill;
   static String? sporingArk, sporingHjelp, levertArk;
   static bool sporingSkifte = false, sporingFersk = false;
 
@@ -546,6 +552,8 @@ abstract final class HjemHarness {
         hurtigBestilt = null;
         hurtigScroll = null;
         sporing = levert = null;
+        kreditert = null;
+        sporingSpill = null;
         sporingArk = sporingHjelp = levertArk = null;
         sporingSkifte = sporingFersk = liveApne = sporingKvittering = false;
         sporingKode = null;
@@ -763,6 +771,8 @@ abstract final class HjemHarness {
       hurtigBestilt = m['hurtigBestilt'] as int?;
       hurtigScroll = (m['hurtigScroll'] as num?)?.toDouble();
       sporing = m['sporing'] as int?;
+      kreditert = m['kreditert'] as String?;
+      sporingSpill = (m['sporingSpill'] as Map?)?.cast<String, dynamic>();
       levert = m['levert'] as int?;
       sporingArk = m['sporingArk'] as String?;
       sporingHjelp = m['sporingHjelp'] as String?;

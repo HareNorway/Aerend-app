@@ -8744,6 +8744,59 @@ class AppLocalizationsNo extends AppLocalizations {
   }
 
   @override
+  String get lop_kr_kicker => 'FJORDLØPET · ÆRENDET ER LEVERT';
+
+  @override
+  String get lop_kr_tittel => 'Godt seilt!';
+
+  @override
+  String get lop_kr_under => 'Poengene for seilasen går inn på kontoen din';
+
+  @override
+  String get lop_kr_enhet => 'ÆREND-POENG';
+
+  @override
+  String lop_kr_nadd(Object p0) {
+    return '$p0 nådd';
+  }
+
+  @override
+  String lop_kr_beste(Object p0) {
+    return 'Beste seilas · $p0 m';
+  }
+
+  @override
+  String get lop_kr_seilas => 'Seilasen';
+
+  @override
+  String get lop_kr_rekord => 'Ny rekord';
+
+  @override
+  String get lop_kr_rekord_under => 'Du slo din egen beste denne uken';
+
+  @override
+  String get lop_kr_saldo => 'DINE ÆREND-POENG';
+
+  @override
+  String lop_kr_nytt_nivaa(Object p0) {
+    return 'Nytt nivå · $p0';
+  }
+
+  @override
+  String lop_kr_poeng_til(Object p0, Object p1) {
+    return '$p0 poeng til $p1';
+  }
+
+  @override
+  String get lop_kr_hoyeste => 'Høyeste nivå';
+
+  @override
+  String get lop_kr_fortsett => 'Fortsett';
+
+  @override
+  String get lop_kr_se_poengene => 'Se poengene dine';
+
+  @override
   String lop_levert_2(Object p0) {
     return 'Fjordløpet: du seilte $p0 m';
   }

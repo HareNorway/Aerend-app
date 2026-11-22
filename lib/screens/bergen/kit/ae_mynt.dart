@@ -34,6 +34,10 @@ class AeMynt extends StatelessWidget {
 
   static const Color ink = Color(0xFF74500F);
 
+  /// Paints the coin's disc (no Æ) [size] wide with its top-left at the origin: a pool of flying coins on one painter
+  /// (Design 21 Nov Step 6, «Poeng kreditert»).
+  static void male(Canvas c, double size) => _MyntMaler(size: size, glow: false).paint(c, Size.square(size));
+
   @override
   Widget build(BuildContext context) {
     final body = SizedBox(

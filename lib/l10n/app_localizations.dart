@@ -15476,6 +15476,96 @@ abstract class AppLocalizations {
   /// **'Fjordløpet: you reached {p0}'**
   String lop_levert(Object p0);
 
+  /// No description provided for @lop_kr_kicker.
+  ///
+  /// In en, this message translates to:
+  /// **'FJORDLØPET · YOUR ÆREND IS DELIVERED'**
+  String get lop_kr_kicker;
+
+  /// No description provided for @lop_kr_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'Well sailed!'**
+  String get lop_kr_tittel;
+
+  /// No description provided for @lop_kr_under.
+  ///
+  /// In en, this message translates to:
+  /// **'The points for the run go into your account'**
+  String get lop_kr_under;
+
+  /// No description provided for @lop_kr_enhet.
+  ///
+  /// In en, this message translates to:
+  /// **'ÆREND POINTS'**
+  String get lop_kr_enhet;
+
+  /// No description provided for @lop_kr_nadd.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} reached'**
+  String lop_kr_nadd(Object p0);
+
+  /// No description provided for @lop_kr_beste.
+  ///
+  /// In en, this message translates to:
+  /// **'Best run · {p0} m'**
+  String lop_kr_beste(Object p0);
+
+  /// No description provided for @lop_kr_seilas.
+  ///
+  /// In en, this message translates to:
+  /// **'The run'**
+  String get lop_kr_seilas;
+
+  /// No description provided for @lop_kr_rekord.
+  ///
+  /// In en, this message translates to:
+  /// **'New record'**
+  String get lop_kr_rekord;
+
+  /// No description provided for @lop_kr_rekord_under.
+  ///
+  /// In en, this message translates to:
+  /// **'You beat your own best this week'**
+  String get lop_kr_rekord_under;
+
+  /// No description provided for @lop_kr_saldo.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR ÆREND POINTS'**
+  String get lop_kr_saldo;
+
+  /// No description provided for @lop_kr_nytt_nivaa.
+  ///
+  /// In en, this message translates to:
+  /// **'New level · {p0}'**
+  String lop_kr_nytt_nivaa(Object p0);
+
+  /// No description provided for @lop_kr_poeng_til.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} points to {p1}'**
+  String lop_kr_poeng_til(Object p0, Object p1);
+
+  /// No description provided for @lop_kr_hoyeste.
+  ///
+  /// In en, this message translates to:
+  /// **'Top level'**
+  String get lop_kr_hoyeste;
+
+  /// No description provided for @lop_kr_fortsett.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get lop_kr_fortsett;
+
+  /// No description provided for @lop_kr_se_poengene.
+  ///
+  /// In en, this message translates to:
+  /// **'See your points'**
+  String get lop_kr_se_poengene;
+
   /// No description provided for @lop_levert_2.
   ///
   /// In en, this message translates to:

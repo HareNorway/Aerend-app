@@ -8738,6 +8738,59 @@ class AppLocalizationsSv extends AppLocalizations {
   }
 
   @override
+  String get lop_kr_kicker => 'FJORDLØPET · YOUR ÆREND IS DELIVERED';
+
+  @override
+  String get lop_kr_tittel => 'Well sailed!';
+
+  @override
+  String get lop_kr_under => 'The points for the run go into your account';
+
+  @override
+  String get lop_kr_enhet => 'ÆREND POINTS';
+
+  @override
+  String lop_kr_nadd(Object p0) {
+    return '$p0 reached';
+  }
+
+  @override
+  String lop_kr_beste(Object p0) {
+    return 'Best run · $p0 m';
+  }
+
+  @override
+  String get lop_kr_seilas => 'The run';
+
+  @override
+  String get lop_kr_rekord => 'New record';
+
+  @override
+  String get lop_kr_rekord_under => 'You beat your own best this week';
+
+  @override
+  String get lop_kr_saldo => 'YOUR ÆREND POINTS';
+
+  @override
+  String lop_kr_nytt_nivaa(Object p0) {
+    return 'New level · $p0';
+  }
+
+  @override
+  String lop_kr_poeng_til(Object p0, Object p1) {
+    return '$p0 points to $p1';
+  }
+
+  @override
+  String get lop_kr_hoyeste => 'Top level';
+
+  @override
+  String get lop_kr_fortsett => 'Continue';
+
+  @override
+  String get lop_kr_se_poengene => 'See your points';
+
+  @override
   String lop_levert_2(Object p0) {
     return 'Fjordløpet: you sailed $p0 m';
   }
