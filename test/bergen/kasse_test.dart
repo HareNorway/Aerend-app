@@ -17,6 +17,7 @@ import 'package:aerend_customer/screens/bergen/kasse/kurv_screen.dart';
 import 'package:aerend_customer/screens/common/manageAddress/manage_address_dl.dart';
 import 'package:aerend_customer/screens/deliveryService/checkout/checkout_dl.dart';
 import 'package:aerend_customer/services/customer/client_flags.dart';
+import 'package:aerend_customer/utils/utils.dart' show languages, prefSetString, prefUserName, prefContactNumber;
 
 import '../layout/reduced_motion_harness.dart';
 
@@ -341,7 +342,141 @@ void main() {
     expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_total'))).data, '149');
   });
 
-  testWidgets('Flere valg opens the tips card and a tip adds to the total', (tester) async {
+
+  // ── Design 21 Nov plan Step 2 (A2): the collapsible rows ────────────────────────────────────────────────────────
+
+  Future<void> _tilRad(WidgetTester tester, String key) async {
+    await tester.dragUntilVisible(find.byKey(Key(key)), find.byType(ListView).first, const Offset(0, -200));
+    await Scrollable.ensureVisible(tester.element(find.byKey(Key(key))), alignment: .1);
+    await tester.pump();
+  }
+
+  testWidgets('A2: the door row — closed hint, open panel, chips write the note (the exclusive pair), Enter saves', (tester) async {
+    _frame(tester);
+    final api = _FakeKasse(
+      // Over the preview's 150 kr minimum, so the slider places the order.
+      state: KurvState(lines: [_line(1, 'Burger', 200)], storeId: 7),
+      previewPojo: _preview(),
+      addressList: [_address(5)],
+      placeResponse: {'status': 1, 'order_id': 4472, 'total_pay': 239},
+    );
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())));
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+
+    await _tilRad(tester, 'a1_kasse_rad_beskjed');
+    final chips = KasseCopy.a1_kasse_dor_chips;
+    // Closed: the hint line and «Legg til»; the panel takes no height; the receipt has no door card any more.
+    expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_dor_under'))).data, KasseCopy.a1_kasse_dor_under);
+    expect(find.text(languages.add), findsOneWidget);
+    expect(find.byKey(const Key('a1_kasse_dor')).hitTestable(), findsNothing);
+    expect(find.byKey(const Key('a1_kasse_dor_kort'), skipOffstage: false), findsNothing);
+    expect(find.byKey(const Key('a1_kasse_tips'), skipOffstage: false), findsOneWidget, reason: 'tips always on delivery');
+
+    await tester.tap(find.byKey(const Key('a1_kasse_rad_beskjed')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text(languages.done), findsOneWidget);
+    expect(find.byKey(const Key('a1_kasse_dor')).hitTestable(), findsOneWidget);
+    await Scrollable.ensureVisible(tester.element(find.byKey(const Key('a1_kasse_dor_chip_3'))), alignment: .3);
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('a1_kasse_dor_chip_0')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('a1_kasse_dor_chip_1')));
+    await tester.pump();
+    expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_dor_under'))).data, '${chips[0]} · ${chips[1]}');
+    // «Ikke ring på» pushes «Ring på» out.
+    await tester.tap(find.byKey(const Key('a1_kasse_dor_chip_2')));
+    await tester.pump();
+    expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_dor_under'))).data, '${chips[0]} · ${chips[2]}');
+    // Tapping a chip that is on removes it.
+    await tester.tap(find.byKey(const Key('a1_kasse_dor_chip_0')));
+    await tester.pump();
+    expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_dor_under'))).data, chips[2]);
+
+    // Typing, then Enter: saved, the row closes, «Endre» on the pill, the toast.
+    await tester.enterText(find.byKey(const Key('a1_kasse_dor')), '${chips[2]} · 3. etasje ');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_dor_under'))).data, '${chips[2]} · 3. etasje');
+    expect(find.text(KasseCopy.a1_kasse_dor_lagret), findsOneWidget);
+    expect(find.byKey(const Key('a1_kasse_dor')).hitTestable(), findsNothing);
+    expect(find.descendant(of: find.byKey(const Key('a1_kasse_dor_knapp')), matching: find.text(KasseCopy.a1_kasse_endre)), findsOneWidget);
+
+    // The note rides with the order, plain (no «DØREN» prefix any more). (The toast sits over the pay bar first.)
+    await tester.pump(const Duration(seconds: 5));
+    await _dragToPay(tester);
+    await tester.pump();
+    expect(api.lastPlace?['note'], '${chips[2]} · 3. etasje');
+  });
+
+  testWidgets('A2: on pickup the store row is «Beskjed og hentetid», opens with Hentetid and the chips, Enter saves; no door row, no tips', (tester) async {
+    _frame(tester);
+    final api = _FakeKasse(
+      state: KurvState(lines: [_line(1, 'Burger', 149)], storeId: 7),
+      previewPojo: _preview(),
+      addressList: [_address(5)],
+    );
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())));
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('a1_kasse_henting')));
+    await tester.pump();
+
+    await _tilRad(tester, 'a1_kasse_rad_butikk');
+    expect(find.byKey(const Key('a1_kasse_rad_beskjed'), skipOffstage: false), findsNothing);
+    expect(find.byKey(const Key('a1_kasse_tips'), skipOffstage: false), findsNothing);
+    expect(find.text(KasseCopy.a1_kasse_bk_tittel_hent), findsOneWidget);
+    final under = tester.widget<Text>(find.byKey(const Key('a1_kasse_bk_under'))).data!;
+    expect(under, startsWith(KasseCopy.a1_kasse_bk_under_tom_hent('').trim().split(' ').first), reason: '«Klar 18:20 · bestikk, poser og annet»');
+    expect(find.byKey(const Key('a1_kasse_hentetid_0')).hitTestable(), findsNothing);
+
+    await tester.tap(find.byKey(const Key('a1_kasse_rad_butikk')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await Scrollable.ensureVisible(tester.element(find.byKey(const Key('a1_kasse_hentetid_0'))), alignment: .5);
+    await tester.pump();
+    expect(find.byKey(const Key('a1_kasse_hentetid_0')).hitTestable(), findsOneWidget);
+    await tester.tap(find.byKey(const Key('a1_kasse_bk_chip_0')));
+    await tester.pump();
+    final chip0 = KasseCopy.a1_kasse_hent_chips[0];
+    expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_bk_under'))).data, startsWith('$chip0 · '));
+    expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_bk_under'))).data, contains(KasseCopy.a1_kasse_bk_klar('').trim()));
+
+    await tester.enterText(find.byKey(const Key('a1_kasse_bk_felt')), 'Uten løk');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text(KasseCopy.a1_kasse_bk_lagret('Burger King')), findsOneWidget);
+    expect(find.byKey(const Key('a1_kasse_hentetid_0')).hitTestable(), findsNothing, reason: 'the row closed');
+    expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_bk_under'))).data, contains('«Uten løk»'));
+  });
+
+  testWidgets('A2: the address row reads «type · street, flat» over «name · phone»', (tester) async {
+    _frame(tester);
+    await prefSetString(prefUserName, 'Didrik Hansen');
+    await prefSetString(prefContactNumber, '+4741234567');
+    addTearDown(() async {
+      await prefSetString(prefUserName, '');
+      await prefSetString(prefContactNumber, '');
+    });
+    final api = _FakeKasse(
+      state: KurvState(lines: [_line(1, 'Burger', 149)], storeId: 7),
+      previewPojo: _preview(),
+      addressList: [_address(5)],
+    );
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())));
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+    expect(find.textContaining('Nygårdsgaten 5, 3. etasje'), findsOneWidget);
+    expect(find.text('Didrik · 412 34 567'), findsOneWidget);
+  });
+
+  testWidgets('the tips card is always there on delivery (Design 21 Nov A2) and a tip adds to the total', (tester) async {
     _frame(tester);
     final api = _FakeKasse(
       state: KurvState(lines: [_line(1, 'Burger', 100)], storeId: 7),
@@ -353,15 +488,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    await tester.dragUntilVisible(
-      find.byKey(const Key('a1_kasse_flere')),
-      find.byType(ListView).first,
-      const Offset(0, -200),
-    );
-    await tester.tap(find.byKey(const Key('a1_kasse_flere')));
-    // Bug-10: «Flere valg» folds open (320 ms) before its cards take taps.
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byKey(const Key('a1_kasse_flere'), skipOffstage: false), findsNothing, reason: 'no «Flere valg» since Design 21 Nov');
     await tester.dragUntilVisible(
       find.byKey(const Key('a1_kasse_tips_25')),
       find.byType(ListView).first,
@@ -509,13 +636,13 @@ void main() {
     await tester.pump();
     await tester.pump();
 
+    // Design 21 Nov (A2): the code switch lives in the «Beskjed til budet» row's panel.
     await tester.dragUntilVisible(
-      find.byKey(const Key('a1_kasse_flere')),
+      find.byKey(const Key('a1_kasse_rad_beskjed')),
       find.byType(ListView).first,
       const Offset(0, -200),
     );
-    await tester.tap(find.byKey(const Key('a1_kasse_flere')));
-    // Bug-10: «Flere valg» folds open (320 ms) before its cards take taps.
+    await tester.tap(find.byKey(const Key('a1_kasse_rad_beskjed')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     await tester.dragUntilVisible(
@@ -523,8 +650,8 @@ void main() {
       find.byType(ListView).first,
       const Offset(0, -200),
     );
-    // Clear the floating slider.
-    await tester.drag(find.byType(ListView).first, const Offset(0, -200));
+    // Clear of the floating slider.
+    await Scrollable.ensureVisible(tester.element(find.byKey(const Key('a1_kasse_kode_switch'))), alignment: .4);
     await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(find.byKey(const Key('a1_kasse_kode_switch')));
     await tester.pump();

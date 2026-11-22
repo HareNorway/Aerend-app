@@ -3832,12 +3832,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ops_kasse_beskjed_butikk => 'A note for the shop';
 
   @override
-  String get ops_kasse_beskjed_hint => 'The gate is open …';
-
-  @override
-  String get ops_kasse_flere_valg => 'More options';
-
-  @override
   String get ops_kasse_hentetid => 'Pickup time';
 
   @override
@@ -3880,12 +3874,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ops_kasse_angret => 'Removed from the basket';
-
-  @override
-  String get ops_kasse_doren => 'THE DOOR · FOR THE COURIER';
-
-  @override
-  String get ops_kasse_doren_hint => 'Floor, doorbell, entrance, code …';
 
   @override
   String get ops_kasse_tolk => 'Interpret';
@@ -6341,14 +6329,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get ops_kasse_flere_under_lev =>
-      'A note to the shop, tips and a door note';
-
-  @override
-  String get ops_kasse_flere_under_hent =>
-      'A note to the store and pickup time';
-
-  @override
   String get ops_kasse_hent_chip_bestikk => 'No cutlery';
 
   @override
@@ -6383,6 +6363,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ops_kasse_dor_del => 'Share the door note with your couriers';
+
+  @override
+  String get ops_kasse_dor_under =>
+      'Intercom, floor or where to leave the food';
+
+  @override
+  String get ops_kasse_dor_felt_label =>
+      'A note for the courier about the door';
+
+  @override
+  String get ops_kasse_dor_chip_porten => 'The gate is open';
+
+  @override
+  String get ops_kasse_dor_chip_ring => 'Ring the bell';
+
+  @override
+  String get ops_kasse_dor_chip_ikke_ring => 'Don\'t ring';
+
+  @override
+  String get ops_kasse_dor_chip_legg => 'Leave at the door';
+
+  @override
+  String get ops_kasse_dor_lagret => 'Saved · the courier sees your note';
+
+  @override
+  String get ops_kasse_dor_ingen => 'No note for the courier';
+
+  @override
+  String ops_kasse_bk_lagret(String butikk) {
+    return 'Saved · $butikk sees your note';
+  }
+
+  @override
+  String get ops_kasse_bk_ingen => 'No note for the store';
+
+  @override
+  String get ops_kasse_bk_tittel_hent => 'Note and pickup time';
+
+  @override
+  String get ops_kasse_bk_under_tom_lev => 'Cutlery, sauce, allergies and more';
+
+  @override
+  String ops_kasse_bk_under_tom_hent(String tid) {
+    return 'Ready $tid · cutlery, bags and more';
+  }
+
+  @override
+  String ops_kasse_bk_klar(String tid) {
+    return 'ready $tid';
+  }
 
   @override
   String get ops_kasse_dor_delt =>
@@ -8009,7 +8039,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onb_cm_adresse =>
-      'I turn your note into clear door instructions — a code is saved only if you want.';
+      'Write how the courier finds you, or tap a suggestion under the field.';
 
   @override
   String get onb_cm_kode =>

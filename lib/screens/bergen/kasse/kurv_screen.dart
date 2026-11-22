@@ -48,6 +48,7 @@ import '../aegil/aegil_agenter.dart' show GiftPending;
 import '../meg/a3_services.dart';
 import 'kurv_kvittering.dart';
 import 'kurv_beskjed.dart';
+import 'kurv_rader.dart';
 import 'kurv_parts.dart';
 import 'kurv_seilas.dart';
 import 'package:aerend_customer/utils/route_names.dart';
@@ -65,9 +66,8 @@ import '../../../data/points/points_models.dart';
 ///
 /// Seilas · kassen (the rowing header, [KurvSeilas]), the teal panel with
 /// Levering / Henting ([KurvModus]), the lines ([KurvLinje]) and «Legg til noe
-/// mer», the Endre rows (address / time / payment, and «Beskjed til budet»
-/// once Flere valg is open), Flere valg ([KurvFlere]) revealing the tips card
-/// (delivery) or the «Beskjed til butikken» card (pickup) on `stigOpp`, the
+/// mer», the Endre rows (address / time / payment), the collapsible «Beskjed til budet» and «Beskjed til butikken»
+/// rows ([KurvDorRad], [KurvButikkRad] — Design 21 Nov plan Step 2) and the tips card on `stigOpp` (delivery), the
 /// SAMMENDRAG receipt with the dotted rows, the door note with Tolk (agil-3's
 /// C4 — pushes `kAegilRoute` with `intent=door`), the share and «Kode ved
 /// levering» toggles, the perforation and the teal Å BETALE NÅ box, the
@@ -153,13 +153,9 @@ import '../../../data/points/points_models.dart';
 /// #1B4A57 11.5px 800 −.01em · chevron 11/3.2 · 0 0 0 1px white .95 · 0 1.5px
 /// 0 #D2DDE0 · 0 3px 0 rgba(60,90,100,.3) · 0 7px 10px −6px rgba(15,45,55,.55)
 /// · translateY(2px)`; pickup: «Se fullt kart» with the map icon `13/2`;
-/// «Beskjed til budet» row (Flere valg open, delivery): tile `32 r11
-/// rgba(242,109,61,.14)` icon `15/1.9 #B9441A` → [KurvEndreRad],
-/// [KurvEndrePill].
-///
-/// **Flere valg** — `mt 12; r18; padding 12 14; glass; 0 14px 22px −14px`;
-/// `12.5px 800` + line `10.5px 700 white .55`; chevron `14/3 #5CE0B8
-/// rotate 0/180 .28s cubic-bezier(.3,1.2,.5,1)` → [KurvFlere].
+/// «Beskjed til budet» row (delivery): the orange tile `36 r13 160deg #F68450 → #E65A28`, the pill «Legg til /
+/// Endre / Ferdig» with the down chevron, and the panel (`grid-template-rows 0fr → 1fr .36s`) → [KurvDorRad]; the
+/// «Beskjed til butikken» row with the round 34 chevron key → [KurvButikkRad] (Design 21 Nov, A2).
 ///
 /// **Tips / Beskjed til butikken** — frosted `mt 10; r22; padding 12 14;
 /// rgba(255,255,255,.62) blur 26 sat 1.4; border white .9; inset 0 1.5px 0
@@ -290,7 +286,9 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
 
   /// Onboarding Step 7: tips «Eget beløp» (text as typed, '' = the chips rule).
   final TextEditingController _tipEget = TextEditingController();
-  bool _more = false;
+  // Design 21 Nov plan Step 2 (A2): the two collapsible rows («Beskjed til budet», «Beskjed til butikken»).
+  bool _dorAapen = false;
+  bool _butikkAapen = false;
   bool _codeAtDoor = false;
   bool _doorShared = false;
   bool _departing = false;
@@ -308,7 +306,6 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   /// «Tilbud i kveld» for the empty basket: the discounted products of the
   /// `hare-swipe` feed (the same deals as Hjem's).
   List<SwipeCardModel> _tilbud = const [];
-  final TextEditingController _note = TextEditingController();
   // Payments plan Step 3 (payments spec v1.3 §2.1; NEW UI without a design): Bedriftskvittering — a company name and
   // org.nr printed on the receipt. Remembered on the phone for the next order.
   final TextEditingController _firmaNavn = TextEditingController(text: prefGetString('kasse_firma_navn'));
@@ -376,7 +373,9 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     BergenFaneBytte.aktiv.addListener(_faneVist);
     _load();
     if (kDebugMode) {
-      if (HjemHarness.kurvFlere) _more = true;
+      if (HjemHarness.kurvFlere) _dorAapen = true;
+      if (HjemHarness.kurvDor case final t?) _door.text = t;
+      if (HjemHarness.kurvButikk) _butikkAapen = true;
       if (HjemHarness.kurvHenting) _pickup = true;
       if (HjemHarness.kurvTipsEget case final t?) {
         _tipEget.text = KasseValg.tipsEget(t);
@@ -424,6 +423,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     OnbTips.instance.sett('kurvRute', null);
     if (!widget.embedded) OnbRunde.kurvRuterOppe--;
     OnbTips.instance.sett('dor', null);
+    OnbTips.instance.sett('dorAapen', null);
     // Not during unmount: listeners may not rebuild while the tree is locked.
     if (widget.embedded) {
       WidgetsBinding.instance.addPostFrameCallback((_) => kurvSkjulerNav.value = false);
@@ -432,7 +432,6 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     _quoteTimer?.cancel();
     BergenFaneBytte.aktiv.removeListener(_faneVist);
     WidgetsBinding.instance.removeObserver(this);
-    _note.dispose();
     _firmaNavn.dispose();
     _firmaOrg.dispose();
     _door.dispose();
@@ -693,13 +692,36 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
 
   void _dorEndret() => OnbTips.instance.sett('dor', _door.text);
 
-  /// The harness's `onbTips: adresse`: «Flere valg» open with a door note.
+  /// The harness's `onbTips: adresse` and the tip's own action: the door row open (empty, so the coach mark shows).
   void _kurvFlere() {
     if (!mounted) return;
-    setState(() {
-      _more = true;
-      if (_door.text.isEmpty) _door.text = 'Ring på hos Eide, 3. etasje';
-    });
+    _settDorAapen(true);
+  }
+
+  /// Design 21 Nov (A2): the door row's state also feeds the coach mark, which shows only while the row is open and
+  /// empty («Skriv hvordan budet finner frem …»).
+  void _settDorAapen(bool v) {
+    setState(() => _dorAapen = v);
+    OnbTips.instance.sett('dorAapen', v);
+  }
+
+  /// Enter, «Ferdig» or «Lagre» on the door row: trim, close, say it (`kDorLagre`).
+  void _lagreDor() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final tx = _door.text.trim();
+    if (tx != _door.text) _door.text = tx;
+    _settDorAapen(false);
+    showBergenToast(context, tx.isNotEmpty ? KasseCopy.a1_kasse_dor_lagret : KasseCopy.a1_kasse_dor_ingen);
+  }
+
+  /// Enter or the chevron on the store row: trim, close, say it (`hentLagre`).
+  void _lagreButikk(String butikk) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final ctrl = _pickup ? _pickupNote : _levNote;
+    final tx = ctrl.text.trim();
+    if (tx != ctrl.text) ctrl.text = tx;
+    setState(() => _butikkAapen = false);
+    showBergenToast(context, tx.isNotEmpty ? KasseCopy.a1_kasse_bk_lagret(butikk) : KasseCopy.a1_kasse_bk_ingen);
   }
 
   Future<void> _openLevering() async {
@@ -800,8 +822,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
 
   String get _fullNote {
     final parts = <String>[
-      if (_note.text.trim().isNotEmpty) _note.text.trim(),
-      if (_door.text.trim().isNotEmpty) '${KasseCopy.a1_kasse_doren}: ${_door.text.trim()}',
+      // Design 21 Nov (A2): the one courier note (the chips and the text, « · » between) — delivery only.
+      if (!_pickup && _door.text.trim().isNotEmpty) _door.text.trim(),
       if (_pickup && _pickupChips.isNotEmpty) _pickupChips.join(' · '),
       if (_pickup && _pickupNote.text.trim().isNotEmpty) _pickupNote.text.trim(),
       // Onboarding Step 7 (D8): the store note travels on delivery orders too.
@@ -1109,50 +1131,6 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     if (mounted) setState(() {});
   }
 
-  // ── the note editor («Beskjed til budet» · Endre) ──────────────────────
-
-  Future<void> _editNote() async {
-    await showBergenSheet<void>(
-      context,
-      onDark: true,
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(ctx).bottom),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(KasseCopy.a1_kasse_beskjed_bud, style: bDisplay(ctx, 16, letterSpacingEm: -.02, color: ctx.aeM(Colors.white, ArkTone.lys.tittel))),
-            SizedBox(height: 10 * ctx.bs),
-            // Lys plan: as the design's light inputs (`.mkc3`; caret `.mk12` mint-tekst).
-            TextField(
-              key: const Key('a1_kasse_beskjed'),
-              controller: _note,
-              autofocus: true,
-              maxLines: 3,
-              minLines: 1,
-              cursorColor: ctx.lys ? LysPalett.mintTekst : null,
-              style: bText(ctx, 13, weight: FontWeight.w600, color: ctx.aeM(Colors.white, LysPalett.tittel)),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: ctx.aeM(rgba(255, 255, 255, .1), LysPalett.dis),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14 * ctx.bs),
-                  borderSide: BorderSide(color: ctx.aeM(rgba(255, 255, 255, .2), LysPalett.kantFarge)),
-                ),
-                hintText: KasseCopy.a1_kasse_beskjed_hint,
-                hintStyle: bText(ctx, 13, weight: FontWeight.w600, color: ctx.aeM(rgba(255, 255, 255, .5), const Color(0xFF9A9188))),
-              ),
-              onSubmitted: (_) => Navigator.of(ctx).pop(),
-            ),
-            SizedBox(height: 12 * ctx.bs),
-            BergenCta3d(label: KasseCopy.a1_kasse_bruk_dette, onPressed: () => Navigator.of(ctx).pop()),
-          ],
-        ),
-      ),
-    );
-    if (mounted) setState(() {});
-  }
-
   // ── build ──────────────────────────────────────────────────────────────
 
   double _delivery() => _pickup ? 0.0 : (_preview?.deliveryCost ?? 0);
@@ -1355,8 +1333,10 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     final total = _total(cart);
     final aegil = cart.aegilLines;
     final storeName = _preview?.storeName ?? '';
-    final flereUnder = _pickup ? KasseCopy.a1_kasse_flere_under_hent : KasseCopy.a1_kasse_flere_under_lev;
-    final doorVisible = _more && !_pickup;
+    // Design 21 Nov (A2): the address row's line is the recipient and phone («Didrik · 412 34 567»).
+    final fornavn = prefGetString(prefUserName).trim().split(RegExp(r'\s+')).first;
+    final tlf = KasseValg.tlf(prefGetString(prefContactNumber));
+    final mottaker = [if (fornavn.isNotEmpty) fornavn, if (tlf.isNotEmpty) tlf].join(' · ');
     final antall = cart.lines.fold<int>(0, (a, l) => a + l.quantity);
     final mot = _motInteresse(cart);
     final terskel = _gratisOver;
@@ -1404,15 +1384,19 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                       ].join(' · ').ifEmpty(KasseCopy.a1_kasse_hent_tittel)
                     : address == null
                     ? KasseCopy.a1_kasse_adr_velg
-                    // «Hjem · Torggaten 9»: the API's type (home/work/…) as the sheet names it.
-                    : [if (address.type.isNotEmpty) adrMerke(address.type), address.address.split(',').first].join(' · '),
+                    // «Hjem · Nygårdsgaten 5, 3. etasje»: the API's type (home/work/…) as the sheet names it, the
+                    // street and the flat.
+                    : [
+                        if (address.type.isNotEmpty) adrMerke(address.type),
+                        [address.address.split(',').first, if (KasseValg.flatNo(address.flatNo) case final f?) f].join(', '),
+                      ].join(' · '),
                 line: _pickup
                     ? KasseCopy.a1_kasse_hent_selv
                     : (address == null
                           ? KasseCopy.a1_kasse_adr_tittel
-                          : (address.landmark.isNotEmpty
-                                ? '«${address.landmark}»'
-                                : address.flatNo.ifEmpty(KasseCopy.a1_kasse_adr_tittel))),
+                          : mottaker.isNotEmpty
+                          ? mottaker
+                          : (address.landmark.isNotEmpty ? '«${address.landmark}»' : KasseCopy.a1_kasse_adr_tittel)),
                 action: _pickup ? KasseCopy.a1_kasse_se_kart : KasseCopy.a1_kasse_endre,
                 actionIcon: _pickup ? KurvIcons.map : null,
                 onTap: _pickup
@@ -1440,73 +1424,41 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                 action: KasseCopy.a1_kasse_endre,
                 onTap: _openBetaling,
               ),
-              if (doorVisible)
-                KurvEndreRad(
-                  keyName: 'a1_kasse_rad_beskjed',
-                  icon: KurvIcons.door,
-                  orange: true,
-                  title: KasseCopy.a1_kasse_beskjed_bud,
-                  line: _note.text.trim().isEmpty
-                      ? KasseCopy.a1_kasse_beskjed_hint.replaceAll(' …', '')
-                      : _note.text.trim(),
-                  action: KasseCopy.a1_kasse_endre,
-                  onTap: _editNote,
+              // Design 21 Nov plan Step 2 (A2): «Beskjed til budet» (delivery) and «Beskjed til butikken» as
+              // collapsible rows; the tips card follows, always.
+              if (!_pickup)
+                KurvDorRad(
+                  aapen: _dorAapen,
+                  onAapen: _settDorAapen,
+                  controller: _door,
+                  onEndret: () => setState(() {}),
+                  onLagre: _lagreDor,
+                  delt: _doorShared,
+                  onDelt: _delDorProfil,
+                  kode: _codeAtDoor,
+                  onKode: () => setState(() => _codeAtDoor = !_codeAtDoor),
+                  // v3 §11.4.6 (Customer Step 11): a code order is never left at the door — without a receiver it goes back to the store.
+                  kodeLinje: _codeAtDoor ? KasseCopy.cus_kasse_kode_retur : (total >= 300 ? KasseCopy.a1_kasse_kode_over('300') : KasseCopy.a1_kasse_kode_under),
                 ),
               // Customer Step 9 (C1): the gift picked with Ægil rides with this store's order.
               if (GiftPending.current case final g? when g.storeId == cart.storeId)
                 KvGave(navn: g.name, til: g.toLabel, kort: g.cardText),
-              OnbMaal(id: 'flere', radius: 22, child: KurvFlere(open: _more, line: flereUnder, onTap: () => setState(() => _more = !_more))),
+              _butikkRad(context, slot, storeName),
             ],
           ),
         ),
-        // Onboarding Step 7: «Beskjed til butikken» for both modes (#18), tips
-        // with «Eget beløp» on delivery (#19).
-        // Bug-10 (TestFlight feedback 2026-11-14, «has not smooth transitions»): «Flere valg» used to drop its cards in
-        // and out in one frame; now they fold open and shut (size + fade, 320 ms), and the receipt follows its new rows
-        // (a tip) the same way. Reduce Motion: at once.
-        AnimatedSize(
-          duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 320),
-          curve: Curves.easeOutCubic,
-          alignment: Alignment.topCenter,
-          child: AnimatedSwitcher(
-            duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 220),
-            switchInCurve: Curves.easeOut,
-            switchOutCurve: Curves.easeIn,
-            layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
-            child: !_more
-                ? const SizedBox(key: ValueKey('flere-lukket'), width: double.infinity)
-                : Column(
-                    key: const ValueKey('flere-apen'),
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SizedBox(height: 10 * s),
-                      _beskjedKort(context, slot, storeName),
-                      // Payments plan Step 3 (payments spec v1.3 §2.1): Bedriftskvittering — company name and org.nr on the receipt.
-                      SizedBox(height: 10 * s),
-                      KurvEndreRad(
-                        keyName: 'a1_kasse_rad_bedrift',
-                        icon: KurvIcons.card,
-                        title: KasseCopy.a1_kasse_bedrift,
-                        line: _harFirma ? '${_firmaNavn.text.trim()} · $_orgnr'.replaceFirst(RegExp(r'^ · '), '') : KasseCopy.a1_kasse_bedrift_line,
-                        action: KasseCopy.a1_kasse_endre,
-                        onTap: _editFirma,
-                      ),
-                      if (!_pickup) ...[
-                        SizedBox(height: 10 * s),
-                        KurvTips(
-                          tip: _tip,
-                          onTip: (t) => setState(() {
-                            _tip = t;
-                            _tipEget.clear();
-                          }),
-                          egetController: _tipEget,
-                          onEget: (v) => setState(() => _tip = int.tryParse(v) ?? 0),
-                        ),
-                      ],
-                    ],
-                  ),
+        if (!_pickup) ...[
+          SizedBox(height: 10 * s),
+          KurvTips(
+            tip: _tip,
+            onTip: (t) => setState(() {
+              _tip = t;
+              _tipEget.clear();
+            }),
+            egetController: _tipEget,
+            onEget: (v) => setState(() => _tip = int.tryParse(v) ?? 0),
           ),
-        ),
+        ],
         AnimatedSize(
           duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 260),
           curve: Curves.easeOutCubic,
@@ -1633,19 +1585,6 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                   if (ok) await _load();
                 },
               ),
-            if (doorVisible)
-              OnbMaal(
-                id: 'dor',
-                radius: 18,
-                child: KvDor(
-                controller: _door,
-                delt: _doorShared,
-                onDelt: _delDorProfil,
-                kode: _codeAtDoor,
-                onKode: () => setState(() => _codeAtDoor = !_codeAtDoor),
-                // v3 §11.4.6 (Customer Step 11): a code order is never left at the door — without a receiver it goes back to the store.
-                kodeLinje: _codeAtDoor ? KasseCopy.cus_kasse_kode_retur : (total >= 300 ? KasseCopy.a1_kasse_kode_over('300') : KasseCopy.a1_kasse_kode_under),
-              )),
           ],
         ),
         ),
@@ -1666,9 +1605,9 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// «Beskjed til butikken» for both modes, Hentetid on pickup (Onboarding
-  /// Step 7, design L7087–7110): separate chips and text per mode.
-  Widget _beskjedKort(BuildContext context, KasseSlot slot, String storeName) {
+  /// «Beskjed til butikken» / «Beskjed og hentetid» (Design 21 Nov A2; the chips and texts of Onboarding Step 7 per
+  /// mode), with the Bedriftskvittering row at the foot of its panel.
+  Widget _butikkRad(BuildContext context, KasseSlot slot, String storeName) {
     final hent = _pickup;
     final valgte = hent ? _pickupChips : _levChips;
     final ctrl = hent ? _pickupNote : _levNote;
@@ -1681,7 +1620,9 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     } else {
       kvitt = n == 0 ? null : KasseCopy.a1_kasse_lev_kvitt_n(n, navn);
     }
-    return KurvBeskjedKort(
+    return KurvButikkRad(
+      aapen: _butikkAapen,
+      onAapen: (v) => setState(() => _butikkAapen = v),
       hent: hent,
       butikk: navn,
       chips: chips,
@@ -1691,11 +1632,22 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       }),
       controller: ctrl,
       onEndret: () => setState(() {}),
+      onLagre: () => _lagreButikk(navn),
       allergiPaa: !hent && valgte.contains(KasseCopy.a1_kasse_lev_chip_allergi),
       kvittering: kvitt,
+      tidLabel: slot.label,
       tider: [for (final sl in _slots.take(3)) KurvHentetid(sl.id, sl.label)],
       tidId: slot.id,
       onTid: (t) => setState(() => _slot = _slots.firstWhere((sl) => sl.id == t.id, orElse: () => slot)),
+      // Payments plan Step 3 (payments spec v1.3 §2.1): Bedriftskvittering — company name and org.nr on the receipt.
+      bunn: KurvEndreRad(
+        keyName: 'a1_kasse_rad_bedrift',
+        icon: KurvIcons.card,
+        title: KasseCopy.a1_kasse_bedrift,
+        line: _harFirma ? '${_firmaNavn.text.trim()} · $_orgnr'.replaceFirst(RegExp(r'^ · '), '') : KasseCopy.a1_kasse_bedrift_line,
+        action: KasseCopy.a1_kasse_endre,
+        onTap: _editFirma,
+      ),
     );
   }
 }

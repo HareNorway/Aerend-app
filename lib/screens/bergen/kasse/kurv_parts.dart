@@ -132,10 +132,20 @@ abstract final class KurvIcons {
     c.drawLine(const Offset(3.5, 10), const Offset(20.5, 10), p);
   }
 
+  /// Design 21 Nov (A2): the door — the frame on the floor line and the knob (`M6 21V4.5…M3.5 21h17M14.5 12.5h.01`).
   static void door(Canvas c, Paint p) {
-    c.drawRect(const Rect.fromLTWH(4, 6, 16, 10), p);
-    c.drawLine(const Offset(8, 20), const Offset(16, 20), p);
-    c.drawLine(const Offset(12, 16), const Offset(12, 20), p);
+    c.drawPath(
+      Path()
+        ..moveTo(6, 21)
+        ..lineTo(6, 4.5)
+        ..arcToPoint(const Offset(7.5, 3), radius: const Radius.circular(1.5))
+        ..lineTo(16.5, 3)
+        ..arcToPoint(const Offset(18, 4.5), radius: const Radius.circular(1.5))
+        ..lineTo(18, 21),
+      p,
+    );
+    c.drawLine(const Offset(3.5, 21), const Offset(20.5, 21), p);
+    c.drawLine(const Offset(14.5, 12.5), const Offset(14.6, 12.5), p);
   }
 
   static void map(Canvas c, Paint p) {
@@ -1241,11 +1251,15 @@ BoxDecoration kurvMintGlass(double s, {BoxShape shape = BoxShape.rectangle, bool
 /// «Endre ›» (L6230): `min-height 34; 0 12`, mint 11.5px 800 −.01em with the
 /// `11/3.2` chevron; «Se fullt kart» carries the map icon instead.
 class KurvEndrePill extends StatelessWidget {
-  const KurvEndrePill({super.key, required this.label, required this.onTap, this.icon});
+  const KurvEndrePill({super.key, required this.label, required this.onTap, this.icon, this.ned = false, this.aapen = false});
 
   final String label;
   final VoidCallback onTap;
   final KurvDraw? icon;
+
+  /// Design 21 Nov (A2): a down chevron that turns up while the row is open (the door row's «Legg til» / «Ferdig»).
+  final bool ned;
+  final bool aapen;
 
   @override
   Widget build(BuildContext context) {
@@ -1287,7 +1301,15 @@ class KurvEndrePill extends StatelessWidget {
                 ),
                 if (icon == null) ...[
                   SizedBox(width: 4 * s),
-                  KurvIcon(11 * s, KurvIcons.chevron, color: ikon, width: 3.2),
+                  if (ned)
+                    AnimatedRotation(
+                      turns: aapen ? .5 : 0,
+                      duration: BergenTokens.motion(context, const Duration(milliseconds: 280)),
+                      curve: const Cubic(.3, 1.2, .5, 1),
+                      child: KurvIcon(11 * s, KurvIcons.chevronDown, color: ikon, width: 3.2),
+                    )
+                  else
+                    KurvIcon(11 * s, KurvIcons.chevron, color: ikon, width: 3.2),
                 ],
               ],
             ),
@@ -1430,83 +1452,6 @@ class KurvEndreRad extends StatelessWidget {
           SizedBox(width: 8 * s),
           KurvEndrePill(label: action, onTap: onTap, icon: actionIcon),
         ],
-      ),
-    );
-  }
-}
-
-/// «Flere valg» as the last row (L6264): the sliders tile, title + line, and
-/// the round 34 mint key whose chevron turns 180° (`.28s cubic-bezier(.3,1.2,
-/// .5,1)`).
-class KurvFlere extends StatelessWidget {
-  const KurvFlere({super.key, required this.open, required this.line, required this.onTap});
-
-  final bool open;
-  final String line;
-  final VoidCallback onTap;
-
-  static void sliders(Canvas c, Paint p) {
-    c.drawLine(const Offset(4, 7), const Offset(14, 7), p);
-    c.drawLine(const Offset(18, 7), const Offset(20, 7), p);
-    c.drawLine(const Offset(4, 17), const Offset(8, 17), p);
-    c.drawLine(const Offset(12, 17), const Offset(20, 17), p);
-    c.drawCircle(const Offset(16, 7), 2, p);
-    c.drawCircle(const Offset(10, 17), 2, p);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    return GestureDetector(
-      key: const Key('a1_kasse_flere'),
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 12 * s),
-        decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: context.aeM(rgba(255, 255, 255, .1), LysPalett.skille))),
-        ),
-        child: Row(
-          children: [
-            const KurvRadFlis(icon: sliders),
-            SizedBox(width: 11 * s),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    KasseCopy.a1_kasse_flere_valg,
-                    style: bText(context, 13, weight: FontWeight.w800, letterSpacingEm: -.01, color: context.aeM(Colors.white, LysPalett.tittel)),
-                  ),
-                  SizedBox(height: 1 * s),
-                  Text(
-                    line,
-                    style: bText(context, 11, weight: FontWeight.w600, color: context.aeM(rgba(255, 255, 255, .62), LysPalett.sekundar)),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              width: 34 * s,
-              height: 34 * s,
-              alignment: Alignment.center,
-              decoration: kurvMintGlass(s, shape: BoxShape.circle, lys: context.lys),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  const SizedBox.expand(),
-                  bergenInsetTop(radius: 17 * s, height: 1.5 * s, alpha: context.aeM(.32, 0)),
-                  AnimatedRotation(
-                    turns: open ? .5 : 0,
-                    duration: BergenTokens.motion(context, const Duration(milliseconds: 280)),
-                    curve: const Cubic(.3, 1.2, .5, 1),
-                    child: KurvIcon(14 * s, KurvIcons.chevronDown, color: context.aeM(const Color(0xFF5CE0B8), kurvLysIkon), width: 3),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

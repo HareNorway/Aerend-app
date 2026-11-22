@@ -3845,12 +3845,6 @@ class AppLocalizationsNo extends AppLocalizations {
   String get ops_kasse_beskjed_butikk => 'Beskjed til butikken';
 
   @override
-  String get ops_kasse_beskjed_hint => 'Porten står åpen …';
-
-  @override
-  String get ops_kasse_flere_valg => 'Flere valg';
-
-  @override
   String get ops_kasse_hentetid => 'Hentetid';
 
   @override
@@ -3894,12 +3888,6 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get ops_kasse_angret => 'Fjernet fra kurven';
-
-  @override
-  String get ops_kasse_doren => 'DØREN · FOR BUDET';
-
-  @override
-  String get ops_kasse_doren_hint => 'Etasje, ring på, inngang, kode …';
 
   @override
   String get ops_kasse_tolk => 'Tolk';
@@ -6352,13 +6340,6 @@ class AppLocalizationsNo extends AppLocalizations {
   }
 
   @override
-  String get ops_kasse_flere_under_lev =>
-      'Beskjed til butikken, tips og dørbeskjed';
-
-  @override
-  String get ops_kasse_flere_under_hent => 'Beskjed til butikken og hentetid';
-
-  @override
   String get ops_kasse_hent_chip_bestikk => 'Ingen bestikk';
 
   @override
@@ -6393,6 +6374,55 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get ops_kasse_dor_del => 'Del dørnotatet med budene dine';
+
+  @override
+  String get ops_kasse_dor_under =>
+      'Porttelefon, etasje eller hvor maten skal stå';
+
+  @override
+  String get ops_kasse_dor_felt_label => 'Beskjed til budet om døren';
+
+  @override
+  String get ops_kasse_dor_chip_porten => 'Porten står åpen';
+
+  @override
+  String get ops_kasse_dor_chip_ring => 'Ring på';
+
+  @override
+  String get ops_kasse_dor_chip_ikke_ring => 'Ikke ring på';
+
+  @override
+  String get ops_kasse_dor_chip_legg => 'Legg igjen ved døra';
+
+  @override
+  String get ops_kasse_dor_lagret => 'Lagret · budet ser beskjeden din';
+
+  @override
+  String get ops_kasse_dor_ingen => 'Ingen beskjed til budet';
+
+  @override
+  String ops_kasse_bk_lagret(String butikk) {
+    return 'Lagret · $butikk ser beskjeden din';
+  }
+
+  @override
+  String get ops_kasse_bk_ingen => 'Ingen beskjed til butikken';
+
+  @override
+  String get ops_kasse_bk_tittel_hent => 'Beskjed og hentetid';
+
+  @override
+  String get ops_kasse_bk_under_tom_lev => 'Bestikk, saus, allergi og annet';
+
+  @override
+  String ops_kasse_bk_under_tom_hent(String tid) {
+    return 'Klar $tid · bestikk, poser og annet';
+  }
+
+  @override
+  String ops_kasse_bk_klar(String tid) {
+    return 'klar $tid';
+  }
 
   @override
   String get ops_kasse_dor_delt =>
@@ -8021,7 +8051,7 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get onb_cm_adresse =>
-      'Jeg gjør om notatet til tydelige dørinstrukser — kode lagres bare om du vil.';
+      'Skriv hvordan budet finner frem, eller trykk på et forslag under feltet.';
 
   @override
   String get onb_cm_kode => 'Koden er din og budets. Vis den ved døren.';

@@ -91,8 +91,6 @@ abstract final class KasseCopy {
   static String get a1_kasse_kort => languages.ops_kasse_kort;
   static String get a1_kasse_beskjed_bud => languages.ops_kasse_beskjed_bud;
   static String get a1_kasse_beskjed_butikk => languages.ops_kasse_beskjed_butikk;
-  static String get a1_kasse_beskjed_hint => languages.ops_kasse_beskjed_hint;
-  static String get a1_kasse_flere_valg => languages.ops_kasse_flere_valg;
   static String get a1_kasse_hentetid => languages.ops_kasse_hentetid;
   static String get a1_kasse_hentetid_line => languages.ops_kasse_hentetid_line;
 
@@ -111,8 +109,6 @@ abstract final class KasseCopy {
   static String a1_kasse_aegil_linjer(String navn, String sum) => languages.ops_kasse_aegil_linjer(navn, sum);
   static String get a1_kasse_angre => languages.ops_kasse_angre;
   static String get a1_kasse_angret => languages.ops_kasse_angret;
-  static String get a1_kasse_doren => languages.ops_kasse_doren;
-  static String get a1_kasse_doren_hint => languages.ops_kasse_doren_hint;
   static String get a1_kasse_tolk => languages.ops_kasse_tolk;
   static String get a1_kasse_kode => languages.ops_kasse_kode;
   static String get a1_kasse_kode_line => languages.ops_kasse_kode_line;
@@ -201,8 +197,6 @@ abstract final class KasseCopy {
   static String get a1_kasse_dra_betal => languages.ops_kasse_dra_betal;
   static String get a1_kasse_slipp_betal => languages.ops_kasse_slipp_betal;
   static String a1_kasse_dra_betal_label(String kr) => languages.ops_kasse_dra_betal_label(kr);
-  static String get a1_kasse_flere_under_lev => languages.ops_kasse_flere_under_lev;
-  static String get a1_kasse_flere_under_hent => languages.ops_kasse_flere_under_hent;
   static List<String> get a1_kasse_hent_chips => [
     languages.ops_kasse_hent_chip_bestikk,
     languages.ops_kasse_hent_chip_servietter,
@@ -231,6 +225,29 @@ abstract final class KasseCopy {
   static String a1_kasse_hent_kvitt_klar(String tid, String navn) => languages.ops_kasse_hent_kvitt_klar(tid, navn);
   static String a1_kasse_hent_kvitt_n(int n, String tid) => languages.ops_kasse_hent_kvitt_n(n, tid);
   static String get a1_kasse_dor_del => languages.ops_kasse_dor_del;
+
+  // Design 21 Nov plan Step 2 (A2): the collapsible «Beskjed til budet» / «Beskjed til butikken» rows.
+  static String get a1_kasse_dor_under => languages.ops_kasse_dor_under;
+  static String get a1_kasse_dor_felt_label => languages.ops_kasse_dor_felt_label;
+  static List<String> get a1_kasse_dor_chips => [
+    languages.ops_kasse_dor_chip_porten,
+    languages.ops_kasse_dor_chip_ring,
+    languages.ops_kasse_dor_chip_ikke_ring,
+    languages.ops_kasse_dor_chip_legg,
+  ];
+  /// «Ring på» and «Ikke ring på» push each other out of the note.
+  static Map<String, String> get a1_kasse_dor_chips_mot => {
+    languages.ops_kasse_dor_chip_ring: languages.ops_kasse_dor_chip_ikke_ring,
+    languages.ops_kasse_dor_chip_ikke_ring: languages.ops_kasse_dor_chip_ring,
+  };
+  static String get a1_kasse_dor_lagret => languages.ops_kasse_dor_lagret;
+  static String get a1_kasse_dor_ingen => languages.ops_kasse_dor_ingen;
+  static String a1_kasse_bk_lagret(String butikk) => languages.ops_kasse_bk_lagret(butikk);
+  static String get a1_kasse_bk_ingen => languages.ops_kasse_bk_ingen;
+  static String get a1_kasse_bk_tittel_hent => languages.ops_kasse_bk_tittel_hent;
+  static String get a1_kasse_bk_under_tom_lev => languages.ops_kasse_bk_under_tom_lev;
+  static String a1_kasse_bk_under_tom_hent(String tid) => languages.ops_kasse_bk_under_tom_hent(tid);
+  static String a1_kasse_bk_klar(String tid) => languages.ops_kasse_bk_klar(tid);
   static String get a1_kasse_dor_delt => languages.ops_kasse_dor_delt;
   static String get a1_kasse_dor_ikke_delt => languages.ops_kasse_dor_ikke_delt;
   static String a1_kasse_kode_over(String kr) => languages.ops_kasse_kode_over(kr);

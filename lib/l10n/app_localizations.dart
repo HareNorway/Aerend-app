@@ -7268,18 +7268,6 @@ abstract class AppLocalizations {
   /// **'A note for the shop'**
   String get ops_kasse_beskjed_butikk;
 
-  /// No description provided for @ops_kasse_beskjed_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'The gate is open …'**
-  String get ops_kasse_beskjed_hint;
-
-  /// No description provided for @ops_kasse_flere_valg.
-  ///
-  /// In en, this message translates to:
-  /// **'More options'**
-  String get ops_kasse_flere_valg;
-
   /// No description provided for @ops_kasse_hentetid.
   ///
   /// In en, this message translates to:
@@ -7363,18 +7351,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removed from the basket'**
   String get ops_kasse_angret;
-
-  /// No description provided for @ops_kasse_doren.
-  ///
-  /// In en, this message translates to:
-  /// **'THE DOOR · FOR THE COURIER'**
-  String get ops_kasse_doren;
-
-  /// No description provided for @ops_kasse_doren_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Floor, doorbell, entrance, code …'**
-  String get ops_kasse_doren_hint;
 
   /// No description provided for @ops_kasse_tolk.
   ///
@@ -11600,18 +11576,6 @@ abstract class AppLocalizations {
   /// **'Drag to pay {kr} kroner'**
   String ops_kasse_dra_betal_label(String kr);
 
-  /// No description provided for @ops_kasse_flere_under_lev.
-  ///
-  /// In en, this message translates to:
-  /// **'A note to the shop, tips and a door note'**
-  String get ops_kasse_flere_under_lev;
-
-  /// No description provided for @ops_kasse_flere_under_hent.
-  ///
-  /// In en, this message translates to:
-  /// **'A note to the store and pickup time'**
-  String get ops_kasse_flere_under_hent;
-
   /// No description provided for @ops_kasse_hent_chip_bestikk.
   ///
   /// In en, this message translates to:
@@ -11659,6 +11623,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share the door note with your couriers'**
   String get ops_kasse_dor_del;
+
+  /// No description provided for @ops_kasse_dor_under.
+  ///
+  /// In en, this message translates to:
+  /// **'Intercom, floor or where to leave the food'**
+  String get ops_kasse_dor_under;
+
+  /// No description provided for @ops_kasse_dor_felt_label.
+  ///
+  /// In en, this message translates to:
+  /// **'A note for the courier about the door'**
+  String get ops_kasse_dor_felt_label;
+
+  /// No description provided for @ops_kasse_dor_chip_porten.
+  ///
+  /// In en, this message translates to:
+  /// **'The gate is open'**
+  String get ops_kasse_dor_chip_porten;
+
+  /// No description provided for @ops_kasse_dor_chip_ring.
+  ///
+  /// In en, this message translates to:
+  /// **'Ring the bell'**
+  String get ops_kasse_dor_chip_ring;
+
+  /// No description provided for @ops_kasse_dor_chip_ikke_ring.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t ring'**
+  String get ops_kasse_dor_chip_ikke_ring;
+
+  /// No description provided for @ops_kasse_dor_chip_legg.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave at the door'**
+  String get ops_kasse_dor_chip_legg;
+
+  /// No description provided for @ops_kasse_dor_lagret.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved · the courier sees your note'**
+  String get ops_kasse_dor_lagret;
+
+  /// No description provided for @ops_kasse_dor_ingen.
+  ///
+  /// In en, this message translates to:
+  /// **'No note for the courier'**
+  String get ops_kasse_dor_ingen;
+
+  /// No description provided for @ops_kasse_bk_lagret.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved · {butikk} sees your note'**
+  String ops_kasse_bk_lagret(String butikk);
+
+  /// No description provided for @ops_kasse_bk_ingen.
+  ///
+  /// In en, this message translates to:
+  /// **'No note for the store'**
+  String get ops_kasse_bk_ingen;
+
+  /// No description provided for @ops_kasse_bk_tittel_hent.
+  ///
+  /// In en, this message translates to:
+  /// **'Note and pickup time'**
+  String get ops_kasse_bk_tittel_hent;
+
+  /// No description provided for @ops_kasse_bk_under_tom_lev.
+  ///
+  /// In en, this message translates to:
+  /// **'Cutlery, sauce, allergies and more'**
+  String get ops_kasse_bk_under_tom_lev;
+
+  /// No description provided for @ops_kasse_bk_under_tom_hent.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready {tid} · cutlery, bags and more'**
+  String ops_kasse_bk_under_tom_hent(String tid);
+
+  /// No description provided for @ops_kasse_bk_klar.
+  ///
+  /// In en, this message translates to:
+  /// **'ready {tid}'**
+  String ops_kasse_bk_klar(String tid);
 
   /// No description provided for @ops_kasse_dor_delt.
   ///
@@ -14255,7 +14303,7 @@ abstract class AppLocalizations {
   /// No description provided for @onb_cm_adresse.
   ///
   /// In en, this message translates to:
-  /// **'I turn your note into clear door instructions — a code is saved only if you want.'**
+  /// **'Write how the courier finds you, or tap a suggestion under the field.'**
   String get onb_cm_adresse;
 
   /// No description provided for @onb_cm_kode.

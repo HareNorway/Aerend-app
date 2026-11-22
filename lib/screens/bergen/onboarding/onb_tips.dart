@@ -111,7 +111,8 @@ class OnbTips extends ChangeNotifier {
     OnbTip('nytt', pose: OnbTipPose.wave, handling: true, skjerm: 'hjem', naar: (t) => t.skjerm == 'hjem' && OnbStatus.instance.nyVersjon),
     OnbTip('bio', pose: OnbTipPose.think, handling: true, skjerm: 'agent', naar: (t) => t.agent && OnbRunde.bioPaa && !OnbStatus.instance.sett.contains('bio')),
     OnbTip('kamera', pose: OnbTipPose.point, skjerm: 'agent', naar: (t) => t.agent && OnbMaalRegistry.har('kamera')),
-    OnbTip('adresse', pose: OnbTipPose.think, mal: 'dor', skjerm: 'kurv', naar: (t) => t.kurv && (t.les('dor') as String? ?? '').length > 3),
+    // Design 21 Nov (A2): only while the door row is open and still empty («Skriv hvordan budet finner frem …»).
+    OnbTip('adresse', pose: OnbTipPose.think, mal: 'dor', skjerm: 'kurv', naar: (t) => t.kurv && t.les('dorAapen') == true && (t.les('dor') as String? ?? '').trim().isEmpty),
     OnbTip('fleks', pose: OnbTipPose.nod, mal: 'lev', flagg: 'pricing.flex_window', skjerm: 'kurv', naar: (t) => t.kurv),
     OnbTip('gebyr', pose: OnbTipPose.point, mal: 'lev', handling: true, skjerm: 'kurv', naar: (t) => t.kurv),
     OnbTip('kode', pose: OnbTipPose.point, mal: 'leveringskode', skjerm: 'sporing', naar: (t) => t.sporingStadie >= 2),

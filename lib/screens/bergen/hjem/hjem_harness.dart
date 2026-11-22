@@ -162,10 +162,12 @@ abstract final class HjemHarness {
   /// Empty the basket (through the app's own cart API) before `butikkLegg`.
   static bool kurvTom = false;
 
-  /// Scroll the Kurv panel this far (design px); `kurvFlere` opens Flere valg,
-  /// `kurvHenting` picks Henting.
+  /// Scroll the Kurv panel this far (design px); `kurvFlere` opens the «Beskjed til budet» row (Design 21 Nov),
+  /// `kurvDor` presets its note, `kurvButikk` opens the «Beskjed til butikken» row, `kurvHenting` picks Henting.
   static double? kurvScroll;
   static bool kurvFlere = false;
+  static String? kurvDor;
+  static bool kurvButikk = false;
   static bool kurvHenting = false;
 
   /// Onboarding Step 7: tips «Eget beløp» preset (digits, e.g. "35").
@@ -531,6 +533,8 @@ abstract final class HjemHarness {
         kurvTom = false;
         kurvScroll = null;
         kurvFlere = false;
+        kurvDor = null;
+        kurvButikk = false;
         kurvTipsEget = null;
         kurvHenting = false;
         kurvKart = false;
@@ -739,6 +743,8 @@ abstract final class HjemHarness {
       kurvTom = m['kurvTom'] == true;
       kurvScroll = (m['kurvScroll'] as num?)?.toDouble();
       kurvFlere = m['kurvFlere'] == true;
+      kurvDor = m['kurvDor']?.toString();
+      kurvButikk = m['kurvButikk'] == true;
       kurvHenting = m['kurvHenting'] == true;
       kurvTipsEget = m['kurvTipsEget']?.toString();
       kurvKart = m['kurvKart'] == true;

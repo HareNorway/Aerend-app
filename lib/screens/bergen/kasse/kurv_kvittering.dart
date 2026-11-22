@@ -498,171 +498,16 @@ class KvNotat extends StatelessWidget {
 /// the two switches (share with couriers, code at the door). The «Tolk»
 /// button is gone (Onboarding Step 7, D8): the door text is interpreted on
 /// save, silently.
-class KvDor extends StatelessWidget {
-  const KvDor({
-    super.key,
-    required this.controller,
-    required this.delt,
-    required this.onDelt,
-    required this.kode,
-    required this.onKode,
-    required this.kodeLinje,
-  });
-
-  final TextEditingController controller;
-  final bool delt;
-  final VoidCallback onDelt;
-  final bool kode;
-  final VoidCallback onKode;
-  final String kodeLinje;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    return Container(
-      key: const Key('a1_kasse_dor_kort'),
-      margin: EdgeInsets.only(top: 12 * s),
-      padding: EdgeInsets.fromLTRB(13 * s, 12 * s, 13 * s, 6 * s),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18 * s),
-        color: Colors.white,
-        border: Border.all(color: rgba(35, 32, 29, .05)),
-        boxShadow: [
-          BoxShadow(
-            color: rgba(90, 60, 30, .55),
-            offset: Offset(0, 12 * s),
-            blurRadius: onbBlur(22 * s),
-            spreadRadius: -18 * s,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            KasseCopy.a1_kasse_doren,
-            style: bText(context, 10.5, weight: FontWeight.w800, letterSpacingEm: .1, color: const Color(0xFF8C847C)),
-          ),
-          Container(
-            height: 46 * s,
-            margin: EdgeInsets.only(top: 8 * s),
-            padding: EdgeInsets.fromLTRB(14 * s, 4 * s, 4 * s, 4 * s),
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color(0xFFF4F1EA)),
-            foregroundDecoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(999),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [rgba(35, 32, 29, .14), rgba(35, 32, 29, 0), rgba(255, 255, 255, 0), rgba(255, 255, 255, .9)],
-                stops: const [0, .1, .96, 1],
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    key: const Key('a1_kasse_dor'),
-                    controller: controller,
-                    cursorColor: const Color(0xFFE65A28),
-                    style: bText(context, 12.5, color: const Color(0xFF23201D)),
-                    decoration: InputDecoration(
-                      isCollapsed: true,
-                      filled: false,
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
-                      hintText: KasseCopy.a1_kasse_dor_hint,
-                      hintStyle: bText(context, 12.5, color: rgba(35, 32, 29, .4)),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          _bryterRad(
-            context,
-            s,
-            KasseCopy.a1_kasse_dor_del,
-            null,
-            delt,
-            onDelt,
-            const Key('a1_kasse_dor_del'),
-            48,
-            false,
-          ),
-          _bryterRad(
-            context,
-            s,
-            KasseCopy.a1_kasse_kode,
-            kodeLinje,
-            kode,
-            onKode,
-            const Key('a1_kasse_kode_switch'),
-            56,
-            true,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _bryterRad(
-    BuildContext context,
-    double s,
-    String tittel,
-    String? linje,
-    bool on,
-    VoidCallback onTap,
-    Key key,
-    double h,
-    bool strek,
-  ) => GestureDetector(
-    behavior: HitTestBehavior.opaque,
-    onTap: onTap,
-    child: Container(
-      constraints: BoxConstraints(minHeight: h * s),
-      margin: EdgeInsets.only(top: strek ? 0 : 6 * s),
-      decoration: BoxDecoration(
-        border: strek ? Border(top: BorderSide(color: rgba(35, 32, 29, .07))) : null,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  tittel,
-                  style: bText(context, 12.5, weight: FontWeight.w800, color: const Color(0xFF23201D)),
-                ),
-                if (linje != null)
-                  Padding(
-                    padding: EdgeInsets.only(top: 1 * s),
-                    child: Text(
-                      linje,
-                      style: bText(context, 11, weight: FontWeight.w600, height: 1.35, color: const Color(0xFF6E6862)),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          SizedBox(width: 12 * s),
-          KvBryter(key: key, on: on, onTap: onTap),
-        ],
-      ),
-    ),
-  );
-}
-
 /// The 48×28 switch: mint when on, the white thumb springing over with its
 /// check (`.42s cubic-bezier(.34,1.56,.64,1)`).
 class KvBryter extends StatelessWidget {
-  const KvBryter({super.key, required this.on, required this.onTap});
+  const KvBryter({super.key, required this.on, required this.onTap, this.avFarge});
 
   final bool on;
   final VoidCallback onTap;
+
+  /// The track while off: the paper's `rgba(35,32,29,.14)`, or the dark panels' `rgba(255,255,255,.16)`.
+  final Color? avFarge;
 
   @override
   Widget build(BuildContext context) {
@@ -677,7 +522,7 @@ class KvBryter extends StatelessWidget {
           borderRadius: BorderRadius.circular(999),
           gradient: on
               ? cssLinear(180, const [Color(0xFF5CE0B8), Color(0xFF2FB893)])
-              : LinearGradient(colors: [rgba(35, 32, 29, .14), rgba(35, 32, 29, .14)]),
+              : LinearGradient(colors: [avFarge ?? rgba(35, 32, 29, .14), avFarge ?? rgba(35, 32, 29, .14)]),
         ),
         child: Stack(
           children: [
