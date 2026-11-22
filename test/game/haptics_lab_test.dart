@@ -44,4 +44,20 @@ void main() {
     await t.pump();
     expect(k.played.last, 'h02.3');
   });
+
+  testWidgets('the lab uses the shared instance and never releases it (the game keeps its patterns)', (t) async {
+    final k = FakeKanal(HaptikkTier.rich);
+    final h = GameHaptics(kanal: k, klokke: () => 0, ios: false);
+    await h.prepare();
+    GameHaptics.felles = h;
+    addTearDown(() => GameHaptics.felles = null);
+    await t.pumpWidget(const MaterialApp(home: HaptikkLab()));
+    await t.pumpAndSettle();
+    await t.tap(find.byKey(const Key('haptikk-lab-regler')));
+    await t.pump();
+    expect(h.utenRegler, isTrue);
+    await t.pumpWidget(const MaterialApp(home: SizedBox()));
+    expect(k.calls, isNot(contains('release')));
+    expect(h.utenRegler, isFalse, reason: 'the rules are back on for the game');
+  });
 }

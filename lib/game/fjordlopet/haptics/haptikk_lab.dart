@@ -15,7 +15,8 @@ import 'haptikk_moenster.dart';
 class HaptikkLab extends StatefulWidget {
   const HaptikkLab({super.key, this.haptics});
 
-  /// A [GameHaptics] to use (tests); the lab makes its own otherwise.
+  /// A [GameHaptics] to use (tests); otherwise the app's shared one ([GameHaptics.felles]) — a second instance would
+  /// release the native patterns the game still uses when the lab closes.
   final GameHaptics? haptics;
 
   static const String rute = '/bergen/lopet/haptikk';
@@ -54,7 +55,7 @@ const Map<HaptikkId, String> kHaptikkLabNavn = {
 };
 
 class _HaptikkLabState extends State<HaptikkLab> {
-  late final GameHaptics _h = widget.haptics ?? GameHaptics();
+  late final GameHaptics _h = widget.haptics ?? GameHaptics.felles;
   bool _klar = false;
   int _kasse = 1;
   double _meter = 30;
@@ -72,7 +73,11 @@ class _HaptikkLabState extends State<HaptikkLab> {
   @override
   void dispose() {
     _innseiling?.cancel();
-    if (widget.haptics == null) unawaited(_h.dispose());
+    // The shared instance goes back to the game as it was: rules on, a fresh row and pulse.
+    _h
+      ..utenRegler = false
+      ..stop()
+      ..newRun();
     super.dispose();
   }
 
@@ -116,7 +121,10 @@ class _HaptikkLabState extends State<HaptikkLab> {
               ButtonSegment(value: HaptikkNivaaValg.off, label: Text('Av')),
             ],
             selected: {_h.nivaa},
-            onSelectionChanged: (v) => setState(() => _h.setLevel(v.first)),
+            onSelectionChanged: (v) {
+              setState(() => _h.setLevel(v.first));
+              GameHaptics.lagreNivaa(v.first); // the same setting as the game's «Vibrasjon»
+            },
           ),
           SwitchListTile(
             key: const Key('haptikk-lab-regler'),
