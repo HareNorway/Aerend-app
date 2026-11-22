@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
+import '../../common/home/bergen/bergen_nav.dart' show BergenTab;
+import '../../common/homeMainV1/home_main_v1.dart' show HomeMainV1State;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -386,7 +388,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
       unawaited(_tilKassen());
       return;
     }
-    if (k == 'kasse') return Navigator.of(context).pop(HurtigScreen.tilKurv);
+    if (k == 'kasse') return _tilKurvFanen();
   }
 
   String _modTekst(String m) => switch (m) {
@@ -566,7 +568,14 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     _rullNed(tilMelding: m.id);
     showBergenToast(context, HurtigCopy.liggerIKassen(n, U.butikk));
     await Future.delayed(const Duration(milliseconds: 900));
-    if (mounted) Navigator.of(context).pop(HurtigScreen.tilKurv);
+    if (mounted) _tilKurvFanen();
+  }
+
+  /// Back to the shell on the Kurv tab, whichever way Hurtig was opened (the Hjem card also switches on the result).
+  void _tilKurvFanen() {
+    final shell = HomeMainV1State.current;
+    Navigator.of(context).pop(HurtigScreen.tilKurv);
+    shell?.switchToTab(BergenTab.cart.index);
   }
 
   void _folg(_Ordre o) {

@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'css_decoration.dart';
 
 import '../../../theme/bergen_tokens.dart';
 import '../../../theme/lys/lys_palett.dart';
@@ -182,7 +183,8 @@ class AeRadioKort extends StatelessWidget {
           curve: Curves.easeOut,
           constraints: BoxConstraints(minHeight: 64 * s),
           padding: EdgeInsets.fromLTRB(10 * s, 10 * s, 14 * s, 10 * s),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20 * s), color: bg, gradient: grad, border: Border.all(color: bd), boxShadow: shadow),
+          // CSS shadows: around the card, never under its translucent fill.
+          decoration: CssDecoration(borderRadius: BorderRadius.circular(20 * s), color: bg, gradient: grad, border: Border.all(color: bd), boxShadow: shadow),
           child: Row(
             children: [
               if (flis != null) ...[flis!, SizedBox(width: 12 * s)],
