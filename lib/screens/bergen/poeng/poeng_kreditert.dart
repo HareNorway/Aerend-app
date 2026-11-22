@@ -81,8 +81,16 @@ class PoengKreditert extends StatefulWidget {
     };
     PointsBalance? b;
     try {
-      b = await A3Services.points().balance().timeout(const Duration(seconds: 4));
+      b = await A3Services.points().balance().timeout(const Duration(seconds: 8));
     } catch (_) {}
+    // Debug only: the design's demo balance when points/me does not answer (the slow local server), so the card can
+    // be checked against the design. Never in a release build.
+    b ??= const PointsBalance(available: 1249, earned12m: 3609, tier: 2, tierName: 'Gull', nextTierName: 'Platina', pointsToNextTier: 2391, tiers: [
+      TierStep(index: 0, name: 'Bronse', threshold: 0),
+      TierStep(index: 1, name: 'Sølv', threshold: 1000),
+      TierStep(index: 2, name: 'Gull', threshold: 3000),
+      TierStep(index: 3, name: 'Platina', threshold: 6000),
+    ]);
     if (!context.mounted) return;
     await vis(context, KrData.fra(rader, b));
   }
