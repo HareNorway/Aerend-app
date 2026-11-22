@@ -25,7 +25,8 @@ import '../../../services/lopet_utboks.dart';
 import 'lopet_copy.dart';
 import 'lopet_liste.dart';
 import 'lopet_kai.dart';
-import '../kit/ae_primitiver.dart' show AeKnappPille;
+import '../kit/ae_primitiver.dart' show AeKnappPille, AeKollaps;
+import '../kit/ae_mynt.dart' show AeMynt;
 import 'lopet_data.dart';
 
 enum _Fase { start, spill, pause, slutt }
@@ -121,6 +122,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
 
   /// Design 21 Nov plan Step 7: how many places win from Premiehylla (the ladder's voucher prizes), for the tile.
   int? _toppVinner;
+
+  /// Design 21 Nov plan Step 8: the end card's «Mer om seilasen» fold.
+  bool _merOm = false;
   bool _premieHentet = false;
   String _sluttGrunn = 'kollisjon'; // kollisjon | ved_dora
   int _sluttPoeng = 0;
@@ -1000,112 +1004,280 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     );
   }
 
+  /// Design 21 Nov plan Step 8 (design `Fjordløpet · Pause`): the cause's title and line («Seilasen venter på deg ·
+  /// Båten ligger stille til du er klar.», «… · Du var borte et øyeblikk …», «Du har en melding fra budet · Les den i
+  /// sporingen, eller seil videre.»), «Fortsett om 3 · 2 · 1», the sound switch (moved here from the quay), «Fortsett».
   Widget _pauseLag() {
-    final tekst = switch (_pauseGrunn) {
-      'trenger' => LopetCopy.trengerDeg,
-      _ => LopetCopy.pause,
-    };
+    final (tittel, under) = LopetCopy.pauseTekst(_pauseGrunn);
     return Container(
       key: const Key('lopet-pause'),
       color: const Color(0xCC071C25),
       alignment: Alignment.center,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(_teller != null ? LopetCopy.fortsettOm(_teller!) : tekst, key: const Key('lopet-pause-tekst'),
-              style: BergenTokens.display(24, weight: FontWeight.w800, color: Colors.white)),
-          const SizedBox(height: 18),
-          if (_teller == null) ...[
-            _Knapp(key: const Key('lopet-fortsett'), tekst: LopetCopy.fortsett, onTap: _fortsett),
-            const SizedBox(height: 10),
-            TextButton(onPressed: _tilSporing, child: Text(LopetCopy.tilSporing, style: BergenTokens.text(13, weight: FontWeight.w700, color: const Color(0xFF7FF0CB)))),
+      padding: const EdgeInsets.symmetric(horizontal: 22),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(26),
+          gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF235C6A), Color(0xFF173F4A)]),
+          border: Border.all(color: Colors.white.withValues(alpha: .16)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(_teller != null ? LopetCopy.fortsettOm(_teller!) : tittel, key: const Key('lopet-pause-tekst'), textAlign: TextAlign.center,
+                style: BergenTokens.display(22, weight: FontWeight.w800, color: Colors.white)),
+            if (_teller == null) ...[
+              const SizedBox(height: 6),
+              Text(under, key: const Key('lopet-pause-under'), textAlign: TextAlign.center, style: BergenTokens.text(14, weight: FontWeight.w600, color: Colors.white.withValues(alpha: .75))),
+              const SizedBox(height: 16),
+              Semantics(
+                toggled: _lyd,
+                label: LopetCopy.lyd,
+                child: GestureDetector(
+                  key: const Key('lopet-lyd'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    setState(() => _settLyd(!_lyd));
+                    _api.sound(_lyd);
+                  },
+                  child: Container(
+                    height: 48,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: Colors.white.withValues(alpha: .07), border: Border.all(color: Colors.white.withValues(alpha: .12))),
+                    child: Row(children: [
+                      Icon(_lyd ? Icons.volume_up_rounded : Icons.volume_off_rounded, color: Colors.white.withValues(alpha: .85), size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(child: Text(LopetCopy.lydTekst(_lyd), style: BergenTokens.text(14, weight: FontWeight.w800, color: Colors.white))),
+                      Switch.adaptive(value: _lyd, activeTrackColor: const Color(0xFF5CE0B8), onChanged: (v) {
+                        setState(() => _settLyd(v));
+                        _api.sound(v);
+                      }),
+                    ]),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              AeKnappPille(key: const Key('lopet-fortsett'), label: LopetCopy.fortsett, onPressed: _fortsett),
+              const SizedBox(height: 4),
+              TextButton(onPressed: _tilSporing, child: Text(LopetCopy.tilSporing, style: BergenTokens.text(13.5, weight: FontWeight.w800, color: const Color(0xFF7FF0CB)))),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
 
+  /// The badge this run finished (counted on the phone; the server says the same when the run is verified): the
+  /// first one, its name, what it unlocks or its stars.
+  (String, String)? _nyttMerke(LopetState s, FjordResult r) {
+    int plus(String m) => switch (m) { 'crates' => r.crates, 'near_misses' => r.nearMisses, 'metres' => r.distanceM, _ => 0 };
+    final nye = [for (final b in s.badges) if (!b.done && b.progress + plus(b.metric) >= b.target && plus(b.metric) > 0) b];
+    if (nye.isEmpty) return null;
+    final b = nye.first;
+    final eid = s.cosmetics.where((c) => c.item == b.unlocks).firstOrNull;
+    final pynt = s.katalog.where((v) => v.item == b.unlocks).firstOrNull?.name ?? eid?.name ?? '';
+    return eid == null ? (LopetCopy.nyttMerke(b.name), LopetCopy.laaserOpp(pynt)) : (LopetCopy.nyStjerne(b.name), LopetCopy.stjerner(eid.stars + 1));
+  }
+
+  /// Design 21 Nov plan Step 8 (design `Fjordløpet · Slutt på seilas`): the metres counting up, what ended it (or
+  /// the record, or «Budet er ved døra · du rakk 316 m»), the nearest goal in its mint pill, the order's points with
+  /// the coin, the «Nytt merke» card, «Seil igjen · 2 igjen» with «Til kaien» / «Til sporing», and «Mer om seilasen»:
+  /// the numbers (Kasser, Tid, Nære på, Vest), the week's badges as rings, Sjøkortet stopped where the run ended, the
+  /// ladder link. Lines 1–5 stay in the spec's order and fit the smallest screen (T24).
   Widget _slutt() {
     final r = _res!;
     final s = _s;
     final igjen = _igjen;
     final vedDora = _sluttGrunn == 'ved_dora' || _stengt;
     final cause = r.endCause;
+    final rolig = MediaQuery.disableAnimationsOf(context);
+    final kort = MediaQuery.sizeOf(context).height < 720;
     final linje2 = _sluttRekord
         ? LopetCopy.nyRekord
-        : _sluttGrunn == 'kollisjon' && cause != null
-            ? LopetCopy.aarsak('${cause['obstacle']}', s?.landmarkName(cause['landmark'] as String?), r.distanceM)
-            : vedDora
-                ? null // said once, in the button area
+        : vedDora
+            ? LopetCopy.doraRakk(r.distanceM)
+            : _sluttGrunn == 'kollisjon' && cause != null
+                ? LopetCopy.aarsak('${cause['obstacle']}', s?.landmarkName(cause['landmark'] as String?), r.distanceM)
                 : (_sluttFraRekord != null ? LopetCopy.fraRekorden(_sluttFraRekord!) : null);
     final linje3 = _sluttMaalServer ?? _maalTekst(_sluttMaal);
+    final merke = s == null ? null : _nyttMerke(s, r);
+    final plass = s?.ladderTop.where((x) => x.me).firstOrNull?.place ?? (s?.rival == null ? null : s!.rival!.place + 1);
+    int plus(String m) => switch (m) { 'crates' => r.crates, 'near_misses' => r.nearMisses, 'metres' => r.distanceM, _ => 0 };
     return ListView(
       key: const Key('lopet-slutt'),
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+      padding: EdgeInsets.fromLTRB(20, kort ? 8 : 20, 20, 28),
       children: [
-        // 1 · the distance
-        Text('${r.distanceM} m', key: const Key('lopet-slutt-meter'), textAlign: TextAlign.center, style: BergenTokens.display(48, weight: FontWeight.w800, color: Colors.white)),
-        // 2 · what ended it, and where — or the record
+        // 1 · the distance, counting up
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: rolig ? r.distanceM.toDouble() : 0, end: r.distanceM.toDouble()),
+          duration: Duration(milliseconds: rolig ? 0 : 560),
+          curve: Curves.easeOutCubic,
+          builder: (_, v, __) => Text('${v.round()} m', key: const Key('lopet-slutt-meter'), textAlign: TextAlign.center,
+              style: BergenTokens.display(kort ? 44 : 64, weight: FontWeight.w800, color: Colors.white, letterSpacingEm: -0.04)),
+        ),
+        // 2 · what ended it, and where — or the record, or the door
         if (linje2 != null)
           Text(linje2, key: const Key('lopet-slutt-aarsak'), textAlign: TextAlign.center,
-              style: BergenTokens.text(14.5, weight: FontWeight.w800, color: _sluttRekord ? const Color(0xFFF7D57E) : Colors.white70)),
-        const SizedBox(height: 10),
+              style: BergenTokens.text(15, weight: FontWeight.w800, color: _sluttRekord ? const Color(0xFFF7D57E) : Colors.white)),
+        const SizedBox(height: 12),
         // 3 · the nearest goal, one only
         if (linje3 != null)
-          Text(linje3, key: const Key('lopet-slutt-maal'), textAlign: TextAlign.center, style: BergenTokens.text(15, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))),
+          Center(
+            child: Container(
+              key: const Key('lopet-slutt-maal'),
+              padding: const EdgeInsets.fromLTRB(16, 10, 18, 10),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: const Color.fromRGBO(127, 240, 203, .1), border: Border.all(color: const Color.fromRGBO(127, 240, 203, .45))),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                const Icon(Icons.flag_outlined, size: 18, color: Color(0xFF7FF0CB)),
+                const SizedBox(width: 10),
+                Flexible(child: Text(linje3, textAlign: TextAlign.center, style: BergenTokens.display(15, weight: FontWeight.w800, color: const Color(0xFFDDFBF0)))),
+              ]),
+            ),
+          ),
         // 4 · the order's points so far, and when they are paid
         if (_sluttPoeng > 0) ...[
-          const SizedBox(height: 8),
-          Text(LopetCopy.poengVedLevering(_sluttPoeng), key: const Key('lopet-slutt-poeng'), textAlign: TextAlign.center,
-              style: BergenTokens.text(15, weight: FontWeight.w800, color: const Color(0xFFF7D57E))),
+          const SizedBox(height: 10),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            const AeMynt(size: 22, flip: false),
+            const SizedBox(width: 8),
+            Flexible(child: Text(LopetCopy.poengVedLevering(_sluttPoeng), key: const Key('lopet-slutt-poeng'), textAlign: TextAlign.center,
+                style: BergenTokens.text(14.5, weight: FontWeight.w800, color: const Color(0xFFF7D57E)))),
+          ]),
         ],
-        const SizedBox(height: 18),
+        if (merke != null && !kort) ...[
+          const SizedBox(height: 12),
+          Container(
+            key: const Key('lopet-slutt-merke'),
+            padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: const Color.fromRGBO(242, 193, 78, .1), border: Border.all(color: const Color.fromRGBO(242, 193, 78, .5))),
+            child: Row(children: [
+              const AeMynt(size: 40, flip: false, mark: false, child: Icon(Icons.military_tech_rounded, size: 20, color: AeMynt.ink)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(merke.$1, style: BergenTokens.display(15, weight: FontWeight.w800, color: const Color(0xFFFFE3A3))),
+                  Text(merke.$2, style: BergenTokens.text(12.5, weight: FontWeight.w700, color: Colors.white.withValues(alpha: .82))),
+                ]),
+              ),
+            ]),
+          ),
+        ],
+        SizedBox(height: kort ? 10 : 18),
         // 5 · the button within reach of the thumb
         if (vedDora)
-          _Melding(key: const Key('lopet-slutt-dora'), tekst: LopetCopy.vedDora, knapp: LopetCopy.tilSporing, onTap: _tilSporing)
+          Column(key: const Key('lopet-slutt-dora'), children: [
+            AeKnappPille(label: LopetCopy.tilSporing, onPressed: _tilSporing),
+          ])
         else if (s != null && s.noNewRun)
           _Melding(tekst: LopetCopy.snartFremme, knapp: LopetCopy.tilSporing, onTap: _tilSporing)
         else if (igjen > 0)
-          _Knapp(key: const Key('lopet-seil-igjen'), tekst: LopetCopy.seilIgjen(igjen), onTap: _settSeil)
+          AeKnappPille(key: const Key('lopet-seil-igjen'), label: LopetCopy.seilIgjen(igjen), leading: const Icon(Icons.refresh_rounded, color: Colors.white, size: 20), onPressed: _settSeil)
         else
           _Melding(key: const Key('lopet-slutt-neste'), tekst: LopetCopy.nesteSeilas, knapp: LopetCopy.tilSporing, onTap: _tilSporing),
-        // Below, on scrolling: statistics, gates, badges, the chart where the run ended, the ladder.
-        const SizedBox(height: 28),
-        Wrap(
-          alignment: WrapAlignment.spaceEvenly,
-          spacing: 18,
-          runSpacing: 10,
-          children: [
-            _Tall(etikett: LopetCopy.kasser, verdi: '${r.crates}'),
-            _Tall(etikett: LopetCopy.naerePaaTall, verdi: '${r.nearMisses}'),
-            _Tall(etikett: LopetCopy.vestBruk, verdi: '${r.vestUses}'),
-          ],
+        if (!vedDora)
+          Wrap(alignment: WrapAlignment.center, spacing: 24, children: [
+            TextButton(key: const Key('lopet-til-kaien'), onPressed: () => setState(() => _fase = _Fase.start), child: Text(LopetCopy.tilKaien, style: BergenTokens.text(14, weight: FontWeight.w800, color: Colors.white))),
+            TextButton(onPressed: _tilSporing, child: Text(LopetCopy.tilSporing, style: BergenTokens.text(14, weight: FontWeight.w800, color: Colors.white))),
+          ]),
+        // Below: «Mer om seilasen».
+        Center(
+          child: TextButton(
+            key: const Key('lopet-mer-om'),
+            onPressed: () => setState(() => _merOm = !_merOm),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Text(LopetCopy.merOm, style: BergenTokens.text(13.5, weight: FontWeight.w700, color: Colors.white.withValues(alpha: .75))),
+              const SizedBox(width: 6),
+              AnimatedRotation(turns: _merOm ? .5 : 0, duration: const Duration(milliseconds: 260), child: Icon(Icons.expand_more_rounded, size: 18, color: Colors.white.withValues(alpha: .75))),
+            ]),
+          ),
         ),
-        const SizedBox(height: 14),
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (var k = 0; k < (s?.milestones.length ?? 0) && k < 3; k++)
-              _Chip(tekst: LopetCopy.porter[k], farge: r.gates.contains(s!.milestones[k]) ? const Color(0xFFF2C14E) : Colors.white24),
-          ],
-        ),
-        if (s != null && s.badges.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          _Merker(badges: s.badges, plus: (m) => switch (m) { 'crates' => r.crates, 'near_misses' => r.nearMisses, 'metres' => r.distanceM, _ => 0 }),
-        ],
-        if (s != null) ...[
-          const SizedBox(height: 16),
-          Center(child: _Sjokort(s: s, besteM: [LopetLager.beste(s.week) ?? 0, s.personalBestM ?? 0, r.distanceM].reduce((a, b) => a > b ? a : b), merkeM: r.distanceM)),
-        ],
-        TextButton(
-          onPressed: () => LopetListe.vis(context),
-          child: Text(LopetCopy.ukeliste, style: BergenTokens.text(13, weight: FontWeight.w700, color: const Color(0xFFF7D57E))),
+        AeKollaps(
+          aapen: _merOm,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            const SizedBox(height: 4),
+            Row(children: [
+              Expanded(child: _Stat(ikon: Icons.grid_view_rounded, tall: '${r.crates}', etikett: LopetCopy.kasser)),
+              const SizedBox(width: 10),
+              Expanded(child: _Stat(ikon: Icons.timer_outlined, tall: LopetCopy.sek((r.ticks / 60).round()), etikett: LopetCopy.tid)),
+            ]),
+            const SizedBox(height: 10),
+            Row(children: [
+              Expanded(child: _Stat(ikon: Icons.bolt_rounded, tall: '${r.nearMisses}', etikett: LopetCopy.naerePaaTall)),
+              const SizedBox(width: 10),
+              Expanded(child: _Stat(ikon: Icons.support_rounded, tall: '${r.vestUses}', etikett: LopetCopy.vestBruk)),
+            ]),
+            if (s != null && s.badges.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                key: const Key('lopet-merker'),
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                decoration: lopetKort(),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  Row(children: [
+                    Expanded(child: Text(LopetCopy.merkerUke, style: BergenTokens.text(12, weight: FontWeight.w800, color: Colors.white.withValues(alpha: .75)).copyWith(letterSpacing: 1.1))),
+                    Text(LopetCopy.listeAv(s.badges.where((b) => b.done || b.progress + plus(b.metric) >= b.target).length, s.badges.length), style: BergenTokens.text(12.5, weight: FontWeight.w800, color: const Color(0xFFF7D57E))),
+                  ]),
+                  const SizedBox(height: 12),
+                  Row(children: [for (final b in s.badges.take(3)) Expanded(child: LopetMerkeRing(b: b, pluss: plus(b.metric)))]),
+                ]),
+              ),
+            ],
+            if (s != null) ...[
+              const SizedBox(height: 12),
+              LopetKaiSjokort(s: s, besteM: [LopetLager.beste(s.week) ?? 0, s.personalBestM ?? 0, r.distanceM].reduce((a, b) => a > b ? a : b), stoppM: r.distanceM),
+              const SizedBox(height: 12),
+              GestureDetector(
+                key: const Key('lopet-slutt-liste'),
+                behavior: HitTestBehavior.opaque,
+                onTap: () => LopetListe.vis(context, s: s),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                  decoration: lopetKort(),
+                  child: Row(children: [
+                    const Icon(Icons.emoji_events_outlined, color: Color(0xFFF2C14E), size: 22),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(plass == null ? LopetCopy.ukeliste : LopetCopy.nrPaaListen(plass), style: BergenTokens.display(15, weight: FontWeight.w800, color: Colors.white)),
+                        if (s.rival != null)
+                          Text(LopetCopy.seilerForan(s.rival!.name, (s.rival!.distanceM - r.distanceM).clamp(1, 1 << 30)), style: BergenTokens.text(12.5, weight: FontWeight.w700, color: Colors.white.withValues(alpha: .8))),
+                      ]),
+                    ),
+                    Text(LopetCopy.seListen, style: BergenTokens.text(13.5, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))),
+                    const Icon(Icons.chevron_right_rounded, color: Color(0xFF7FF0CB)),
+                  ]),
+                ),
+              ),
+            ],
+          ]),
         ),
       ],
     );
   }
+}
+
+class _Stat extends StatelessWidget {
+  const _Stat({required this.ikon, required this.tall, required this.etikett});
+  final IconData ikon;
+  final String tall;
+  final String etikett;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+    decoration: lopetKort(r: 18),
+    child: Row(children: [
+      Container(width: 36, height: 36, decoration: BoxDecoration(borderRadius: BorderRadius.circular(11), color: Colors.white.withValues(alpha: .08)), child: Icon(ikon, size: 18, color: const Color(0xFFF7D57E))),
+      const SizedBox(width: 10),
+      Expanded(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(tall, style: BergenTokens.display(18, weight: FontWeight.w800, color: Colors.white)),
+          Text(etikett, maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.text(12, weight: FontWeight.w700, color: Colors.white.withValues(alpha: .7))),
+        ]),
+      ),
+    ]),
+  );
 }
 
 /// The redningsvest meter (spec §4.4): one field per crate or near miss, a life ring when full.
@@ -1134,40 +1306,6 @@ class _Maaler extends StatelessWidget {
             ],
           );
         },
-      );
-}
-
-/// The week's three badges with progress (spec §5.7); [plus] adds what the last run brought.
-class _Merker extends StatelessWidget {
-  const _Merker({required this.badges, this.plus});
-
-  final List<LopetBadge> badges;
-  final int Function(String metric)? plus;
-
-  @override
-  Widget build(BuildContext context) => Column(
-        key: const Key('lopet-merker'),
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(LopetCopy.merker, style: BergenTokens.text(12, weight: FontWeight.w800, color: Colors.white60)),
-          const SizedBox(height: 6),
-          for (final b in badges)
-            Builder(builder: (_) {
-              final p = (b.progress + (plus?.call(b.metric) ?? 0)).clamp(0, b.target);
-              final done = b.done || p >= b.target;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Row(
-                  children: [
-                    Icon(done ? Icons.military_tech_rounded : Icons.radio_button_unchecked_rounded, size: 18, color: done ? const Color(0xFFF2C14E) : Colors.white38),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text(b.name, style: BergenTokens.text(13, weight: FontWeight.w700, color: Colors.white))),
-                    Text('$p / ${b.target}', style: BergenTokens.text(12.5, weight: FontWeight.w700, color: Colors.white70)),
-                  ],
-                ),
-              );
-            }),
-        ],
       );
 }
 
@@ -1223,32 +1361,6 @@ class _Stripe extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Sjøkortet (game spec §5.2): this week's course drawn up to the customer's best distance; the rest is fog.
-class _Sjokort extends StatelessWidget {
-  const _Sjokort({required this.s, required this.besteM, this.merkeM});
-
-  final LopetState s;
-  final int besteM;
-
-  /// Where the last run ended (the end screen), or null.
-  final int? merkeM;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => LopetSjokortStor.vis(context, s, besteM),
-      child: Container(
-        key: const Key('lopet-sjokort'),
-        width: 96,
-        height: 230,
-        decoration: BoxDecoration(color: const Color(0xFF123F50), borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.white24)),
-        clipBehavior: Clip.antiAlias,
-        child: CustomPaint(painter: LopetSjokortMaler(s: s, besteM: besteM, merker: [if (merkeM != null) merkeM!])),
       ),
     );
   }
@@ -1361,22 +1473,6 @@ class LopetSjokortMaler extends CustomPainter {
   bool shouldRepaint(LopetSjokortMaler old) => old.besteM != besteM || old.merker.length != merker.length;
 }
 
-class _Tall extends StatelessWidget {
-  const _Tall({required this.etikett, required this.verdi});
-
-  final String etikett;
-  final String verdi;
-
-  @override
-  Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(etikett, style: BergenTokens.text(11.5, weight: FontWeight.w700, color: Colors.white60)),
-          Text(verdi, style: BergenTokens.display(22, weight: FontWeight.w800, color: Colors.white)),
-        ],
-      );
-}
-
 class _Chip extends StatelessWidget {
   const _Chip({super.key, required this.tekst, required this.farge});
 
@@ -1388,23 +1484,6 @@ class _Chip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(color: farge.withValues(alpha: .18), borderRadius: BorderRadius.circular(99), border: Border.all(color: farge.withValues(alpha: .7))),
         child: Text(tekst, style: BergenTokens.text(12, weight: FontWeight.w800, color: Colors.white)),
-      );
-}
-
-class _Knapp extends StatelessWidget {
-  const _Knapp({super.key, required this.tekst, required this.onTap});
-
-  final String tekst;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-        height: 56,
-        child: FilledButton(
-          onPressed: onTap,
-          style: FilledButton.styleFrom(backgroundColor: const Color(0xFFE8682F), shape: const StadiumBorder()),
-          child: Text(tekst, style: BergenTokens.text(16, weight: FontWeight.w800, color: Colors.white)),
-        ),
       );
 }
 

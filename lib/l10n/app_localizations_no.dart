@@ -8744,6 +8744,88 @@ class AppLocalizationsNo extends AppLocalizations {
   }
 
   @override
+  String get lop_p_bruker => 'Seilasen venter på deg';
+
+  @override
+  String get lop_p_bruker_under => 'Båten ligger stille til du er klar.';
+
+  @override
+  String get lop_p_bakgrunn_under =>
+      'Du var borte et øyeblikk. Båten ligger stille.';
+
+  @override
+  String get lop_p_melding => 'Du har en melding fra budet';
+
+  @override
+  String get lop_p_melding_under => 'Les den i sporingen, eller seil videre.';
+
+  @override
+  String get lop_p_lyd_paa => 'Lyd på';
+
+  @override
+  String get lop_p_lyd_av => 'Lyd av';
+
+  @override
+  String lop_s_dora(Object p0) {
+    return 'Budet er ved døra · du rakk $p0 m';
+  }
+
+  @override
+  String lop_s_nytt_merke(Object p0) {
+    return 'Nytt merke: $p0';
+  }
+
+  @override
+  String lop_s_ny_stjerne(Object p0) {
+    return 'Ny stjerne: $p0';
+  }
+
+  @override
+  String lop_s_laaser_opp(Object p0) {
+    return 'Låser opp $p0 · velg den på kaien';
+  }
+
+  @override
+  String lop_s_stjerner(Object p0) {
+    return '$p0 stjerner på merket';
+  }
+
+  @override
+  String get lop_s_til_kaien => 'Til kaien';
+
+  @override
+  String get lop_s_mer => 'Mer om seilasen';
+
+  @override
+  String get lop_s_tid => 'Tid';
+
+  @override
+  String lop_s_sek(Object p0) {
+    return '$p0 s';
+  }
+
+  @override
+  String get lop_s_merker_uke => 'MERKER DENNE UKEN';
+
+  @override
+  String lop_s_stoppet(Object p0) {
+    return 'STOPPET VED $p0 M';
+  }
+
+  @override
+  String lop_s_nr(Object p0) {
+    return 'Nr. $p0 på ukelisten';
+  }
+
+  @override
+  String get lop_s_se_liste => 'Se ukelisten';
+
+  @override
+  String lop_s_foran(Object p0, Object p1) {
+    return '$p0 er $p1 m foran deg';
+  }
+
+  @override
   String get lop_kai_pynt => 'Pynt';
 
   @override

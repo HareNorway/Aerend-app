@@ -8738,6 +8738,88 @@ class AppLocalizationsSv extends AppLocalizations {
   }
 
   @override
+  String get lop_p_bruker => 'The run is waiting for you';
+
+  @override
+  String get lop_p_bruker_under => 'The boat lies still until you are ready.';
+
+  @override
+  String get lop_p_bakgrunn_under =>
+      'You were away for a moment. The boat lies still.';
+
+  @override
+  String get lop_p_melding => 'You have a message from the courier';
+
+  @override
+  String get lop_p_melding_under => 'Read it in tracking, or sail on.';
+
+  @override
+  String get lop_p_lyd_paa => 'Sound on';
+
+  @override
+  String get lop_p_lyd_av => 'Sound off';
+
+  @override
+  String lop_s_dora(Object p0) {
+    return 'The courier is at the door · you reached $p0 m';
+  }
+
+  @override
+  String lop_s_nytt_merke(Object p0) {
+    return 'New badge: $p0';
+  }
+
+  @override
+  String lop_s_ny_stjerne(Object p0) {
+    return 'New star: $p0';
+  }
+
+  @override
+  String lop_s_laaser_opp(Object p0) {
+    return 'Unlocks $p0 · choose it at the quay';
+  }
+
+  @override
+  String lop_s_stjerner(Object p0) {
+    return '$p0 stars on the badge';
+  }
+
+  @override
+  String get lop_s_til_kaien => 'To the quay';
+
+  @override
+  String get lop_s_mer => 'More about the run';
+
+  @override
+  String get lop_s_tid => 'Time';
+
+  @override
+  String lop_s_sek(Object p0) {
+    return '$p0 s';
+  }
+
+  @override
+  String get lop_s_merker_uke => 'BADGES THIS WEEK';
+
+  @override
+  String lop_s_stoppet(Object p0) {
+    return 'STOPPED AT $p0 M';
+  }
+
+  @override
+  String lop_s_nr(Object p0) {
+    return 'No. $p0 this week';
+  }
+
+  @override
+  String get lop_s_se_liste => 'See the list';
+
+  @override
+  String lop_s_foran(Object p0, Object p1) {
+    return '$p0 is $p1 m ahead of you';
+  }
+
+  @override
   String get lop_kai_pynt => 'Decorate';
 
   @override

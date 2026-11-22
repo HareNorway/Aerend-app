@@ -15476,6 +15476,132 @@ abstract class AppLocalizations {
   /// **'Fjordløpet: you reached {p0}'**
   String lop_levert(Object p0);
 
+  /// No description provided for @lop_p_bruker.
+  ///
+  /// In en, this message translates to:
+  /// **'The run is waiting for you'**
+  String get lop_p_bruker;
+
+  /// No description provided for @lop_p_bruker_under.
+  ///
+  /// In en, this message translates to:
+  /// **'The boat lies still until you are ready.'**
+  String get lop_p_bruker_under;
+
+  /// No description provided for @lop_p_bakgrunn_under.
+  ///
+  /// In en, this message translates to:
+  /// **'You were away for a moment. The boat lies still.'**
+  String get lop_p_bakgrunn_under;
+
+  /// No description provided for @lop_p_melding.
+  ///
+  /// In en, this message translates to:
+  /// **'You have a message from the courier'**
+  String get lop_p_melding;
+
+  /// No description provided for @lop_p_melding_under.
+  ///
+  /// In en, this message translates to:
+  /// **'Read it in tracking, or sail on.'**
+  String get lop_p_melding_under;
+
+  /// No description provided for @lop_p_lyd_paa.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound on'**
+  String get lop_p_lyd_paa;
+
+  /// No description provided for @lop_p_lyd_av.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound off'**
+  String get lop_p_lyd_av;
+
+  /// No description provided for @lop_s_dora.
+  ///
+  /// In en, this message translates to:
+  /// **'The courier is at the door · you reached {p0} m'**
+  String lop_s_dora(Object p0);
+
+  /// No description provided for @lop_s_nytt_merke.
+  ///
+  /// In en, this message translates to:
+  /// **'New badge: {p0}'**
+  String lop_s_nytt_merke(Object p0);
+
+  /// No description provided for @lop_s_ny_stjerne.
+  ///
+  /// In en, this message translates to:
+  /// **'New star: {p0}'**
+  String lop_s_ny_stjerne(Object p0);
+
+  /// No description provided for @lop_s_laaser_opp.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocks {p0} · choose it at the quay'**
+  String lop_s_laaser_opp(Object p0);
+
+  /// No description provided for @lop_s_stjerner.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} stars on the badge'**
+  String lop_s_stjerner(Object p0);
+
+  /// No description provided for @lop_s_til_kaien.
+  ///
+  /// In en, this message translates to:
+  /// **'To the quay'**
+  String get lop_s_til_kaien;
+
+  /// No description provided for @lop_s_mer.
+  ///
+  /// In en, this message translates to:
+  /// **'More about the run'**
+  String get lop_s_mer;
+
+  /// No description provided for @lop_s_tid.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get lop_s_tid;
+
+  /// No description provided for @lop_s_sek.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} s'**
+  String lop_s_sek(Object p0);
+
+  /// No description provided for @lop_s_merker_uke.
+  ///
+  /// In en, this message translates to:
+  /// **'BADGES THIS WEEK'**
+  String get lop_s_merker_uke;
+
+  /// No description provided for @lop_s_stoppet.
+  ///
+  /// In en, this message translates to:
+  /// **'STOPPED AT {p0} M'**
+  String lop_s_stoppet(Object p0);
+
+  /// No description provided for @lop_s_nr.
+  ///
+  /// In en, this message translates to:
+  /// **'No. {p0} this week'**
+  String lop_s_nr(Object p0);
+
+  /// No description provided for @lop_s_se_liste.
+  ///
+  /// In en, this message translates to:
+  /// **'See the list'**
+  String get lop_s_se_liste;
+
+  /// No description provided for @lop_s_foran.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} is {p1} m ahead of you'**
+  String lop_s_foran(Object p0, Object p1);
+
   /// No description provided for @lop_kai_pynt.
   ///
   /// In en, this message translates to:

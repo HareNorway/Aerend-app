@@ -89,9 +89,12 @@ class LopetLosgrad extends StatelessWidget {
 }
 
 class LopetKaiSjokort extends StatelessWidget {
-  const LopetKaiSjokort({super.key, required this.s, required this.besteM});
+  const LopetKaiSjokort({super.key, required this.s, required this.besteM, this.stoppM});
   final LopetState s;
   final int besteM;
+
+  /// The end card (Design 21 Nov Step 8): where this run stopped — «STOPPET VED 317 M» and the cross on the chart.
+  final int? stoppM;
 
   static const int _visM = 1200;
 
@@ -100,7 +103,7 @@ class LopetKaiSjokort extends StatelessWidget {
     final ms = s.milestones;
     final pts = [s.rewards['buoy1'], s.rewards['buoy2'], s.rewards['quay']].map((v) => (v as num?)?.toInt() ?? 0).toList();
     return GestureDetector(
-      key: const Key('lopet-sjokort'),
+      key: stoppM == null ? const Key('lopet-sjokort') : const Key('lopet-slutt-sjokort'),
       behavior: HitTestBehavior.opaque,
       onTap: () => LopetSjokortStor.vis(context, s, besteM),
       child: Container(
@@ -114,7 +117,7 @@ class LopetKaiSjokort extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(child: Text(LopetCopy.sjokort.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis, style: _kicker(const Color.fromRGBO(255, 255, 255, .78)))),
               const SizedBox(width: 8),
-              Flexible(child: Text(besteM > 0 ? LopetCopy.seilt(besteM) : LopetCopy.altTake, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.right, style: _kicker(const Color.fromRGBO(255, 255, 255, .78)))),
+              Flexible(child: Text(stoppM != null ? LopetCopy.stoppet(stoppM!) : besteM > 0 ? LopetCopy.seilt(besteM) : LopetCopy.altTake, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.right, style: _kicker(const Color.fromRGBO(255, 255, 255, .78)))),
               const SizedBox(width: 8),
               const Icon(Icons.open_in_full_rounded, size: 15, color: _mint),
             ]),
@@ -133,7 +136,7 @@ class LopetKaiSjokort extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         child: DecoratedBox(
                           decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF2E5A55), Color(0xFF1F4A4E)])),
-                          child: RotatedBox(quarterTurns: 3, child: CustomPaint(painter: LopetSjokortMaler(s: s, besteM: besteM, visM: _visM))),
+                          child: RotatedBox(quarterTurns: 3, child: CustomPaint(painter: LopetSjokortMaler(s: s, besteM: besteM, visM: _visM, merker: [if (stoppM != null) stoppM!]))),
                         ),
                       ),
                     ),

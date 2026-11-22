@@ -127,7 +127,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.byKey(const Key('lopet-slutt')), findsOneWidget, reason: 'ended at once');
     expect(find.byKey(const Key('lopet-slutt-dora')), findsOneWidget);
-    expect(find.text(LopetCopy.vedDora), findsOneWidget);
+    // Design 21 Nov plan Step 8: «Budet er ved døra · du rakk 316 m».
+    expect(find.textContaining(LopetCopy.vedDora), findsOneWidget);
+    // The number counts up (560 ms) before it is read.
+    await tester.pump(const Duration(milliseconds: 700));
     final m = int.parse((tester.widget<Text>(find.byKey(const Key('lopet-slutt-meter'))).data ?? '0 m').split(' ').first);
     expect(m, greaterThan(20), reason: 'the distance reached counts');
     expect(LopetLager.utboks().single['token'], 'rt_a');
@@ -164,7 +167,8 @@ void main() {
     // A courier message pauses too.
     LopetSignaler.send(LopetSignal.trengerDeg);
     await tester.pump();
-    expect(find.text(LopetCopy.trengerDeg), findsOneWidget);
+    // Design 21 Nov plan Step 8: the message cause — «Du har en melding fra budet».
+    expect(find.text(LopetCopy.pauseTekst('trenger').$1), findsOneWidget);
   });
 
   testWidgets('the window closed: no game, a way back to Sporing', (tester) async {

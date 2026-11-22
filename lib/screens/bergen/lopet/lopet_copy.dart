@@ -175,6 +175,28 @@ abstract final class LopetCopy {
   static String get pyntStandard => languages.lop_pynt_standard;
   static String pyntTa(String merke) => languages.lop_pynt_ta(merke);
 
+  // Design 21 Nov plan Step 8: the pause by cause, the end card.
+  static (String, String) pauseTekst(String? grunn) => switch (grunn) {
+        'bakgrunn' => (languages.lop_p_bruker, languages.lop_p_bakgrunn_under),
+        'trenger' => (languages.lop_p_melding, languages.lop_p_melding_under),
+        _ => (languages.lop_p_bruker, languages.lop_p_bruker_under),
+      };
+  static String lydTekst(bool paa) => paa ? languages.lop_p_lyd_paa : languages.lop_p_lyd_av;
+  static String doraRakk(int m) => languages.lop_s_dora(tallTekst(m));
+  static String nyttMerke(String navn) => languages.lop_s_nytt_merke(navn);
+  static String nyStjerne(String navn) => languages.lop_s_ny_stjerne(navn);
+  static String laaserOpp(String pynt) => languages.lop_s_laaser_opp(pynt.isEmpty ? pynt : pynt[0].toLowerCase() + pynt.substring(1));
+  static String stjerner(int n) => languages.lop_s_stjerner(n);
+  static String get tilKaien => languages.lop_s_til_kaien;
+  static String get merOm => languages.lop_s_mer;
+  static String get tid => languages.lop_s_tid;
+  static String sek(int s) => languages.lop_s_sek(s);
+  static String get merkerUke => languages.lop_s_merker_uke;
+  static String stoppet(int m) => languages.lop_s_stoppet(tallTekst(m));
+  static String nrPaaListen(int n) => languages.lop_s_nr(n);
+  static String get seListen => languages.lop_s_se_liste;
+  static String seilerForan(String navn, int m) => languages.lop_s_foran(navn, tallTekst(m));
+
   /// «13 760»: thousands with a narrow space, as the design writes metres.
   static String tallTekst(int n) {
     final s = n.abs().toString();

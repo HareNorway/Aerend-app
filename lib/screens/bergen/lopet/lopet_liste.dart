@@ -109,7 +109,7 @@ class _Ark extends StatelessWidget {
                 Text(LopetCopy.listeAv(tatt, badges.length), style: BergenTokens.text(12.5, weight: FontWeight.w800, color: const Color(0xFFF7D57E))),
               ]),
               const SizedBox(height: 12),
-              Row(children: [for (final b in badges.take(3)) Expanded(child: _MerkeRing(b: b))]),
+              Row(children: [for (final b in badges.take(3)) Expanded(child: LopetMerkeRing(b: b))]),
             ],
           ),
           const SizedBox(height: 12),
@@ -157,9 +157,12 @@ class _Boks extends StatelessWidget {
 }
 
 /// A badge as the design's ring: progress in mint (gold when taken), the icon, the name and «22 / 40 kasser».
-class _MerkeRing extends StatelessWidget {
-  const _MerkeRing({required this.b});
+class LopetMerkeRing extends StatelessWidget {
+  const LopetMerkeRing({super.key, required this.b, this.pluss = 0});
   final LopetBadge b;
+
+  /// What the last run added (the end card), not yet on the server.
+  final int pluss;
 
   IconData get _ikon => switch (b.metric) {
         'crates' => Icons.grid_view_rounded,
@@ -172,8 +175,10 @@ class _MerkeRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final f = b.done ? 1.0 : (b.progress / (b.target == 0 ? 1 : b.target)).clamp(0.0, 1.0);
-    final farge = b.done ? const Color(0xFFF2C14E) : const Color(0xFF5CE0B8);
+    final p = (b.progress + pluss).clamp(0, b.target);
+    final ferdig = b.done || p >= b.target;
+    final f = ferdig ? 1.0 : (p / (b.target == 0 ? 1 : b.target)).clamp(0.0, 1.0);
+    final farge = ferdig ? const Color(0xFFF2C14E) : const Color(0xFF5CE0B8);
     return Column(children: [
       SizedBox(
         width: 58,
@@ -190,8 +195,8 @@ class _MerkeRing extends StatelessWidget {
       ),
       const SizedBox(height: 8),
       Text(b.name, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.text(13, weight: FontWeight.w800, color: Colors.white)),
-      Text(b.done ? LopetCopy.listeTatt : LopetCopy.merkeUnder(b.metric, b.progress, b.target), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
-          style: BergenTokens.text(11.5, weight: FontWeight.w700, color: b.done ? const Color(0xFFFFE3A3) : Colors.white.withValues(alpha: .7))),
+      Text(ferdig ? LopetCopy.listeTatt : LopetCopy.merkeUnder(b.metric, p, b.target), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
+          style: BergenTokens.text(11.5, weight: FontWeight.w700, color: ferdig ? const Color(0xFFFFE3A3) : Colors.white.withValues(alpha: .7))),
     ]);
   }
 }
