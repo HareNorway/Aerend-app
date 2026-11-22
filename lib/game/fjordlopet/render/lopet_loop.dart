@@ -51,6 +51,10 @@ class FjordLoop extends ChangeNotifier {
   /// Feedback events (FjordSim.ev* bits) since the screen last took them.
   int events = 0;
 
+  /// Haptics plan Step 1 (spec §6 «on the same tick, only the higher plays»): called once for every tick that had
+  /// events, with that tick and its bits — a frame may run several ticks, and the haptics decide per tick.
+  void Function(int tick, int events)? onTickEvents;
+
   // HUD values, each changes only when the number shown changes.
   final ValueNotifier<int> metres = ValueNotifier<int>(0);
   final ValueNotifier<int> meter = ValueNotifier<int>(0);
@@ -109,9 +113,11 @@ class FjordLoop extends ChangeNotifier {
     }
     _pending.clear();
     uPrev = sim.u;
+    final t = sim.tick;
     sim.stepTick(_dirs);
     uNow = sim.u;
     events |= sim.events;
+    if (sim.events != 0) onTickEvents?.call(t, sim.events);
     final g = ghost;
     if (g != null && !g.done && g.tick < ghostTicks) {
       _dirs.clear();

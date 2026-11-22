@@ -138,6 +138,10 @@ class FjordSim {
   /// Events of the last tick, for feedback (haptics, sounds, flashes): a bitmask of the `ev*` constants.
   static const int evCrate = 1, evNearMiss = 2, evMeterFull = 4, evVest = 8, evHit = 16;
 
+  /// Haptics plan Step 1 (DH1): a lane change the player started was carried out on this tick (presentation only —
+  /// events are not part of the result, the replay or the golden runs; the wake's push does not set it).
+  static const int evLane = 32;
+
   /// The next tick to simulate.
   int tick = 0;
 
@@ -249,15 +253,16 @@ class FjordSim {
     return lo;
   }
 
-  void _change(int t, int dir) {
+  bool _change(int t, int dir) {
     final to = chTo + dir;
-    if (to < 0 || to > 2) return;
+    if (to < 0 || to > 2) return false;
     chFrom = chTo;
     chTo = to;
     chStart = t;
     _switches
       ..add(t + mid)
       ..add(chFrom);
+    return true;
   }
 
   void _fill() {
@@ -326,7 +331,7 @@ class FjordSim {
     events = 0;
     // (1) a held input, once a new change may start
     if (held != 0 && !_changing(t)) {
-      _change(t, held);
+      if (_change(t, held)) events |= evLane;
       held = 0;
     }
     // (2) inputs
@@ -339,8 +344,8 @@ class FjordSim {
       }
       if (_changing(t)) {
         held = dir;
-      } else {
-        _change(t, dir);
+      } else if (_change(t, dir)) {
+        events |= evLane;
       }
     }
     // (3) the wake pushes if nobody steered against it
