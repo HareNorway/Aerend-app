@@ -573,13 +573,14 @@ class _PyntFlis extends StatelessWidget {
                 opacity: laast ? .5 : 1,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(ikon, size: 26, color: valgt ? _gullLys : Colors.white),
+                    Center(child: Icon(ikon, size: 26, color: valgt ? _gullLys : Colors.white)),
                     const SizedBox(height: 6),
                     Text(navn, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: BergenTokens.text(13, weight: FontWeight.w800, color: Colors.white)),
                     const SizedBox(height: 2),
                     Text(under, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.text(11.5, weight: FontWeight.w700, color: valgt ? _gullLys : const Color.fromRGBO(255, 255, 255, .62))),
-                    if (stjerner > 1) Text('★' * (stjerner - 1), style: BergenTokens.text(11, weight: FontWeight.w800, color: _gull)),
+                    if (stjerner > 1) Text('★' * (stjerner - 1), textAlign: TextAlign.center, style: BergenTokens.text(11, weight: FontWeight.w800, color: _gull)),
                   ],
                 ),
               ),
