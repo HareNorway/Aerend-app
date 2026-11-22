@@ -5395,9 +5395,9 @@
   "lop_her_gikk_det_galt": "This is where it went wrong",
   "lop_kart_lukk": "Close",
   "lop_vest_full": "A full life vest on the first run",
-  "lop_levert": "This week's course: you reached {p0}",
+  "lop_levert": "Fjordløpet: you reached {p0}",
   "@lop_levert": {"placeholders": {"p0": {"type": "Object"}}},
-  "lop_levert_2": "This week's course: {p0} m",
+  "lop_levert_2": "Fjordløpet: you sailed {p0} m",
   "@lop_levert_2": {"placeholders": {"p0": {"type": "Object"}}},
   "lop_levert_3": "points"
 }

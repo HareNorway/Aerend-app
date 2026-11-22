@@ -8740,12 +8740,12 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String lop_levert(Object p0) {
-    return 'Ukens led: du nådde $p0';
+    return 'Fjordløpet: du nådde $p0';
   }
 
   @override
   String lop_levert_2(Object p0) {
-    return 'Ukens led: $p0 m';
+    return 'Fjordløpet: du seilte $p0 m';
   }
 
   @override

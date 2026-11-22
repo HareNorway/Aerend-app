@@ -2806,7 +2806,7 @@
   "lop_her_gikk_det_galt": "Her gikk det galt",
   "lop_kart_lukk": "Lukk",
   "lop_vest_full": "Full redningsvest på første seilas",
-  "lop_levert": "Ukens led: du nådde {p0}",
-  "lop_levert_2": "Ukens led: {p0} m",
+  "lop_levert": "Fjordløpet: du nådde {p0}",
+  "lop_levert_2": "Fjordløpet: du seilte {p0} m",
   "lop_levert_3": "poeng"
 }

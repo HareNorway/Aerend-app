@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:aerend_customer/screens/bergen/lopet/lopet_copy.dart';
+import 'package:aerend_customer/screens/bergen/kit/ae_mynt.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:aerend_customer/data/ops/tracking_models.dart';
@@ -87,6 +89,7 @@ Map<String, dynamic> payload({
   Map<String, dynamic>? code,
   bool unseen = false,
   String? deliveredAt,
+  Map<String, dynamic>? game,
 }) {
   final partner = actor == 'partner';
   return {
@@ -129,6 +132,7 @@ Map<String, dynamic> payload({
     'events_since': 4471,
     'delivery_address': 'Nygårdsgaten 5',
     if (deliveredAt != null) 'delivered_at': deliveredAt,
+    if (game != null) 'game': game,
   };
 }
 
@@ -734,5 +738,38 @@ void main() {
     // The header's stage pill stays its own size between the keys (it may give way for long names, never stretch).
     final livePill = tester.getRect(find.byWidgetPredicate((w) => w.runtimeType.toString() == '_LivePill'));
     expect(livePill.width, lessThan(200), reason: 'stage pill $livePill');
+  });
+
+  // Design 21 Nov plan Step 5 (A4).
+  testWidgets('Levert: the Fjordløpet row sits under Sammendrag · Detaljer and over «Avslutt», with the coin and «Fjordløpet: …»', (tester) async {
+    _frame(tester);
+    final p = payload(
+      state: 'delivered',
+      stage: 3,
+      label: 'Levert',
+      deliveredAt: DateTime.now().toIso8601String(),
+      game: {'open': false, 'runs_left': 0, 'best_m': 540, 'gate': 1, 'points': 9, 'place': 4, 'losgrad': 'Lettmatros', 'goal': null},
+    );
+    await tester.pumpWidget(_app(SporingScreen(key: UniqueKey(), orderId: 4471, api: _FakeApi(payload: p), preloaded: OpsTracking.fromJson(p), poll: false, showMap: false)));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    final rad = find.byKey(const Key('a1_sporing_lopet_levert'));
+    expect(rad, findsOneWidget);
+    expect(find.descendant(of: rad, matching: find.byType(AeMynt)), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('a1_sporing_lopet_tekst'))).data, LopetCopy.levert(LopetCopy.porter[1], 540, 9));
+    expect(tester.widget<Text>(find.byKey(const Key('a1_sporing_lopet_tekst'))).data, startsWith('Fjordløpet: '));
+    final r = tester.getRect(rad), keys = tester.getRect(find.byKey(const Key('a1_sporing_detaljer'))), avslutt = tester.getRect(find.byKey(const Key('a1_sporing_avslutt')));
+    expect(r.top, greaterThan(keys.bottom));
+    expect(r.bottom, lessThan(avslutt.top));
+    expect(r.height, greaterThanOrEqualTo(54));
+  });
+
+  testWidgets('Levert without a run: no Fjordløpet row', (tester) async {
+    _frame(tester);
+    final p = payload(state: 'delivered', stage: 3, label: 'Levert', deliveredAt: DateTime.now().toIso8601String(), game: {'open': false, 'runs_left': 0, 'best_m': null, 'gate': null, 'points': 0});
+    await tester.pumpWidget(_app(SporingScreen(key: UniqueKey(), orderId: 4471, api: _FakeApi(payload: p), preloaded: OpsTracking.fromJson(p), poll: false, showMap: false)));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    expect(find.byKey(const Key('a1_sporing_lopet_levert')), findsNothing);
   });
 }

@@ -21,6 +21,7 @@ import 'takk_ark.dart' show CusTakkCopy;
 import '../aegil/aegil_bits.dart' show AeGevir;
 import '../hjem/hjem_harness.dart' show HjemHarness;
 import '../aegil/aegil_verktoy.dart' show AeVerktoyCopy;
+import '../kit/ae_mynt.dart' show AeMynt;
 import '../kit/bergen_perf.dart';
 import '../kasse/fee_breakdown_sheet.dart';
 import '../onboarding/onb_maal.dart';
@@ -282,12 +283,6 @@ class SpPanel extends StatelessWidget {
               ] else ...[
                 _Veileder(tracking: t, linje: linje, navn: navn, poeng: poengNeste),
                 const SizedBox(height: 14),
-                // Points plan Step 8 (game spec §8): Levert's Fjordløpet row — what the order's runs came to, and the
-                // next run with the next order. Never opens the game.
-                if (t.stage >= 3 && t.raw['game'] is Map && (t.raw['game'] as Map)['best_m'] != null) ...[
-                  _LopetLevert(game: t.raw['game'] as Map),
-                  const SizedBox(height: 14),
-                ],
               ],
               // Cancelled (the API answers stage 0): no stage is under way.
               _Stadier(key: const Key('a1_sporing_stepper'), steg: t.isCancelled ? -1 : s, navn: navn, henting: hent),
@@ -319,6 +314,13 @@ class SpPanel extends StatelessWidget {
               ),
               const SizedBox(height: 11),
               if (s == 3) ...[
+                // Design 21 Nov plan Step 5 (A4, game spec §8): the «Fjordløpet: du nådde Bøye 2 · +9 poeng» row under the
+                // two keys — what the order's runs came to (the gold coin, the nearest goal and the week's place under
+                // it), then «Avslutt bestillingen». Never opens the game.
+                if (t.raw['game'] is Map && (t.raw['game'] as Map)['best_m'] != null) ...[
+                  _LopetLevert(game: t.raw['game'] as Map),
+                  const SizedBox(height: 10),
+                ],
                 if (issue case final i?) ...[IssueSakRad(issue: i, onIkkeLost: onIkkeLost), const SizedBox(height: 8)],
                 // Bug-8b (TestFlight feedback 2026-11-14): the delivered panel grew past the design («Noe galt», «Takk»)
                 // and covered the house. «Noe galt» is one line here (its sheet says the rest), and «Takk» shares the
@@ -2172,7 +2174,9 @@ class _Effekter extends StatelessWidget {
   );
 }
 
-/// Points plan Step 8: «Ukens led: du nådde Bøye 2 · +6 poeng» / «Neste seilas ved neste bestilling».
+/// Design 21 Nov (A4, `Sporing · Fjordløpet-poeng`): the dark pill row with the gold coin and «Fjordløpet: du nådde
+/// Bøye 2 · +9 poeng» / «Fjordløpet: du seilte 316 m»; the spec's nearest goal and the week's place keep a second
+/// line under it (spec §8 wins over the one-line design).
 class _LopetLevert extends StatelessWidget {
   const _LopetLevert({required this.game});
 
@@ -2182,30 +2186,37 @@ class _LopetLevert extends StatelessWidget {
   Widget build(BuildContext context) {
     final gate = (game['gate'] as num?)?.toInt();
     final port = gate != null && gate >= 0 && gate < LopetCopy.porter.length ? LopetCopy.porter[gate] : null;
+    final under = [
+      if (LopetCopy.maalFra(game['goal']) case final m?) m,
+      LopetCopy.plassLosgrad((game['place'] as num?)?.toInt(), '${game['losgrad'] ?? ''}'),
+      LopetCopy.nesteSeilas,
+    ].where((t) => t.isNotEmpty).join(' · ');
     return Container(
       key: const Key('a1_sporing_lopet_levert'),
-      padding: const EdgeInsets.fromLTRB(14, 11, 14, 11),
-      decoration: BoxDecoration(color: rgba(255, 255, 255, .08), borderRadius: BorderRadius.circular(16), border: Border.all(color: rgba(255, 255, 255, .16))),
+      constraints: const BoxConstraints(minHeight: 54),
+      padding: const EdgeInsets.fromLTRB(12, 9, 16, 9),
+      decoration: CssDecoration(
+        color: rgba(8, 30, 40, .45),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: rgba(255, 255, 255, .12)),
+        boxShadow: [BoxShadow(color: rgba(255, 255, 255, .08), offset: const Offset(0, 1), blurStyle: BlurStyle.inner)],
+      ),
       child: Row(
         children: [
-          const Icon(Icons.sailing_rounded, color: Color(0xFFF7D57E), size: 20),
-          const SizedBox(width: 10),
+          const AeMynt(size: 30, glow: true),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(LopetCopy.levert(port, (game['best_m'] as num).toInt(), (game['points'] as num?)?.toInt() ?? 0),
-                    style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)),
-                // Fjordløpet v1.3 plan Step 7 (spec §8): the nearest goal («Seiler 30 er 12 m foran deg»).
-                if (LopetCopy.maalFra(game['goal']) != null) ...[
+                    key: const Key('a1_sporing_lopet_tekst'),
+                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: -.14, height: 1.25)),
+                if (under.isNotEmpty) ...[
                   const SizedBox(height: 2),
-                  Text(LopetCopy.maalFra(game['goal'])!, key: const Key('a1_sporing_lopet_maal'),
-                      style: const TextStyle(color: Color(0xFF7FF0CB), fontSize: 12, fontWeight: FontWeight.w800)),
+                  Text(under, key: const Key('a1_sporing_lopet_maal'), style: TextStyle(color: rgba(255, 255, 255, .7), fontSize: 11.5, fontWeight: FontWeight.w600)),
                 ],
-                const SizedBox(height: 2),
-                // Points plan Step 12: the week's place and the losgrad, then «Neste seilas …» (never opens the game).
-                Text([LopetCopy.plassLosgrad((game['place'] as num?)?.toInt(), '${game['losgrad'] ?? ''}'), LopetCopy.nesteSeilas].where((t) => t.isNotEmpty).join(' · '),
-                    style: TextStyle(color: rgba(255, 255, 255, .7), fontSize: 11.5, fontWeight: FontWeight.w600)),
               ],
             ),
           ),

@@ -8749,12 +8749,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String lop_levert(Object p0) {
-    return 'This week\'s course: you reached $p0';
+    return 'Fjordløpet: you reached $p0';
   }
 
   @override
   String lop_levert_2(Object p0) {
-    return 'This week\'s course: $p0 m';
+    return 'Fjordløpet: you sailed $p0 m';
   }
 
   @override

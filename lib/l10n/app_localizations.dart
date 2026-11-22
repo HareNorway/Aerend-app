@@ -15473,13 +15473,13 @@ abstract class AppLocalizations {
   /// No description provided for @lop_levert.
   ///
   /// In en, this message translates to:
-  /// **'This week\'s course: you reached {p0}'**
+  /// **'Fjordløpet: you reached {p0}'**
   String lop_levert(Object p0);
 
   /// No description provided for @lop_levert_2.
   ///
   /// In en, this message translates to:
-  /// **'This week\'s course: {p0} m'**
+  /// **'Fjordløpet: you sailed {p0} m'**
   String lop_levert_2(Object p0);
 
   /// No description provided for @lop_levert_3.
