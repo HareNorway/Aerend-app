@@ -127,4 +127,62 @@ abstract final class LopetCopy {
     final hva = port != null ? languages.lop_levert(port) : languages.lop_levert_2(m);
     return poeng > 0 ? '$hva · +$poeng ${languages.lop_levert_3}' : hva;
   }
+
+  // Design 21 Nov plan Step 7: the quay, the Ukeliste sheet and the Pynt sheet.
+  static String kaiUke(String week) => languages.lop_kai_uke(week.contains('W') ? int.tryParse(week.split('W').last) ?? week : week);
+  static String gradNeste(int m, String navn) => languages.lop_kai_grad_neste(tallTekst(m), navn);
+  static String get gradHoyeste => languages.lop_kai_grad_hoyeste;
+  static String get pyntKort => languages.lop_kai_pynt;
+  static String seilt(int m) => languages.lop_kai_seilt(tallTekst(m));
+  static String get altTake => languages.lop_kai_alt_take;
+  static String get take => languages.lop_kai_take;
+  static String get nesteMaal => languages.lop_kai_neste_maal;
+  static String igjen(int m) => languages.lop_kai_igjen(tallTekst(m));
+  static String get ingenForan => languages.lop_kai_ingen_foran;
+  static String poeng(int p) => languages.lop_kai_poeng(p);
+  static String get forstePlass => languages.lop_kai_forste;
+  static String get leder => languages.lop_kai_leder;
+  static String get hold => languages.lop_kai_hold;
+  static String get ukelisten => languages.lop_kai_ukelisten;
+  static String get plass => languages.lop_kai_plass;
+  static String get ikkePaa => languages.lop_kai_ikke_paa;
+  static String foran(String navn, int m) => languages.lop_kai_foran(navn, tallTekst(m));
+  static String bak(String navn, int m) => languages.lop_kai_bak(navn, tallTekst(m));
+  static String get premieplass => languages.lop_kai_premieplass;
+  static String get toppTi => languages.lop_kai_topp_ti;
+  static String tilToppTi(int m) => languages.lop_kai_til_topp_ti(tallTekst(m));
+  static String toppVinner(int n) => languages.lop_kai_topp_vinner(n);
+  static String get kaiVest => languages.lop_kai_vest;
+  static String get vilkaarLenke => languages.lop_kai_vilkaar;
+  static String get listePremier => languages.lop_liste_premier;
+  static String listePlass(int fra, int til) => fra == til ? languages.lop_liste_plass_en(fra) : til == fra + 1 ? languages.lop_liste_plass_to(fra, til) : languages.lop_liste_plass_til(fra, til);
+  static String listeHylle(String hylle) => languages.lop_liste_hylle(hylle);
+  static String listePoeng(int p) => languages.lop_liste_poeng(tallTekst(p));
+  static String get listeMerker => languages.lop_liste_merker;
+  static String listeAv(int n, int av) => languages.lop_liste_av(n, av);
+  static String get listeTatt => languages.lop_liste_tatt;
+  static String listeRival(int m) => languages.lop_liste_rival(tallTekst(m));
+  static String merkeUnder(String metric, int p, int target) => switch (metric) {
+        'crates' => languages.lop_merke_crates(p, target),
+        'near_misses' => languages.lop_merke_near(p, target),
+        'metres' => languages.lop_merke_metres(tallTekst(p), tallTekst(target)),
+        'records' => languages.lop_merke_records(p, target),
+        'buoy1_no_vest' => languages.lop_merke_torr,
+        _ => languages.lop_merke_rad(p, target),
+      };
+  static String get pyntUnder => languages.lop_pynt_under;
+  static String get pyntVanlig => languages.lop_pynt_vanlig;
+  static String get pyntStandard => languages.lop_pynt_standard;
+  static String pyntTa(String merke) => languages.lop_pynt_ta(merke);
+
+  /// «13 760»: thousands with a narrow space, as the design writes metres.
+  static String tallTekst(int n) {
+    final s = n.abs().toString();
+    final b = StringBuffer(n < 0 ? '-' : '');
+    for (var i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) b.write('\u00A0');
+      b.write(s[i]);
+    }
+    return b.toString();
+  }
 }

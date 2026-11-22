@@ -24,6 +24,8 @@ import '../kit/bergen_kit.dart';
 import '../../../services/lopet_utboks.dart';
 import 'lopet_copy.dart';
 import 'lopet_liste.dart';
+import 'lopet_kai.dart';
+import '../kit/ae_primitiver.dart' show AeKnappPille;
 import 'lopet_data.dart';
 
 enum _Fase { start, spill, pause, slutt }
@@ -116,6 +118,10 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   int? _teller;
 
   FjordResult? _res;
+
+  /// Design 21 Nov plan Step 7: how many places win from Premiehylla (the ladder's voucher prizes), for the tile.
+  int? _toppVinner;
+  bool _premieHentet = false;
   String _sluttGrunn = 'kollisjon'; // kollisjon | ved_dora
   int _sluttPoeng = 0;
   int? _sluttFraRekord;
@@ -619,56 +625,12 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     }
   }
 
-  /// Pynt på båten (spec §5.7): one per place, from what is unlocked; never affects play.
+  /// Pynt på båten (spec §5.7, Design 21 Nov plan Step 7): three places × three tiles from the catalogue; a tap on an
+  /// unlocked one shows it on the boat at once (the server keeps the choice). Never affects play.
   void _pynt() {
     final s = _s;
     if (s == null) return;
-    final valgt = Map<String, String?>.from(s.equipped);
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: const Color(0xFF103847),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, set) => SafeArea(
-          child: Padding(
-            key: const Key('lopet-pynt'),
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(LopetCopy.pynt, style: BergenTokens.display(20, weight: FontWeight.w800, color: Colors.white)),
-                const SizedBox(height: 10),
-                if (s.cosmetics.isEmpty) Text(LopetCopy.pyntIngen, style: BergenTokens.text(13, weight: FontWeight.w600, color: Colors.white70)),
-                for (final kind in const ['pennant', 'wake', 'figurehead'])
-                  if (s.cosmetics.any((c) => c.kind == kind)) ...[
-                    const SizedBox(height: 8),
-                    Text(LopetCopy.pyntPlass(kind), style: BergenTokens.text(12, weight: FontWeight.w800, color: Colors.white60)),
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        ChoiceChip(label: Text(LopetCopy.pyntIngenValgt), selected: valgt[kind] == null, onSelected: (_) => set(() => valgt[kind] = null)),
-                        for (final c in s.cosmetics.where((c) => c.kind == kind))
-                          ChoiceChip(
-                            label: Text('${c.name}${'★' * c.stars}'),
-                            selected: valgt[kind] == c.item,
-                            onSelected: (_) => set(() => valgt[kind] = c.item),
-                          ),
-                      ],
-                    ),
-                  ],
-                const SizedBox(height: 14),
-                if (s.cosmetics.isNotEmpty)
-                  _Knapp(tekst: LopetCopy.fortsett, onTap: () {
-                    Navigator.of(ctx).pop();
-                    _api.equip(valgt).then((_) => _hent(stille: true));
-                  }),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+    LopetArk.vis(context, (ctx) => LopetPyntArk(s: s, onVelg: (valgt) => _api.equip(valgt).then((_) => _hent(stille: true))));
   }
 
   void _vilkaar() {
@@ -741,125 +703,88 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     );
   }
 
+  /// The ladder once per screen: the prizes say how many places win from Premiehylla (never a number in the app).
+  void _hentPremier() {
+    if (_premieHentet) return;
+    _premieHentet = true;
+    LopetListeApi().ladder().then((d) {
+      final p = ((d?['prizes'] as List?) ?? const []).whereType<Map>().where((p) => p['kind'] == 'voucher');
+      final n = p.isEmpty || d?['prizes_enabled'] == false ? null : p.map((p) => (p['to'] as num?)?.toInt() ?? 0).reduce((a, b) => a > b ? a : b);
+      if (mounted && n != null && n > 0) setState(() => _toppVinner = n);
+    });
+  }
+
+  /// Design 21 Nov plan Step 7 (design `Fjordløpet · Start`): «Ukens led» with the week line and the losgrad pill,
+  /// Sjøkortet, the NESTE MÅL and UKELISTEN tiles, the life rings, «Sett seil» and «Vilkår for Fjordløpet»; the
+  /// badges live in the Ukeliste sheet and Pynt is the corner button on the scene.
   Widget _start() {
     final s = _s;
     if (s == null || _stengt) {
       return _Melding(key: const Key('lopet-stengt'), tekst: LopetCopy.stengt, knapp: LopetCopy.tilSporing, onTap: _tilSporing);
     }
+    _hentPremier();
     final igjen = _igjen;
     final beste = LopetLager.beste(s.week) ?? s.personalBestM;
+    final b = beste ?? 0;
     // Short screens (the iPhone SE) keep the quay as a band behind the title, so the start fits as before (T24).
     final kort = MediaQuery.sizeOf(context).height < 720;
     final kaiH = kort ? _kaiHKort : _kaiH;
     final liste = ListView(
       key: const Key('lopet-start'),
-      padding: EdgeInsets.fromLTRB(20, kort ? 12 : _kaiTopp, 20, 28),
+      padding: EdgeInsets.fromLTRB(16, kort ? 12 : _kaiTopp, 16, 24),
       children: [
-        Row(
-          children: [
-            Expanded(child: Text(LopetCopy.ukensLed, style: BergenTokens.display(28, weight: FontWeight.w800, color: Colors.white, letterSpacingEm: -0.03))),
-            IconButton(
-              key: const Key('lopet-lyd'),
-              tooltip: LopetCopy.lyd,
-              onPressed: () {
-                setState(() => _settLyd(!_lyd));
-                _api.sound(_lyd);
-              },
-              icon: Icon(_lyd ? Icons.volume_up_rounded : Icons.volume_off_rounded, color: Colors.white70),
-            ),
-          ],
-        ),
-        // Points plan Step 13 (game spec §5.3): the Platina boat sails under its own name.
-        Text([s.week, s.losgrad, if (s.weeksSailed > 0) LopetCopy.uker(s.weeksSailed), if ((s.boatName ?? '').isNotEmpty) s.boatName!].join(' · '),
-            style: BergenTokens.text(13, weight: FontWeight.w700, color: const Color(0xFF7FF0CB))),
-        if (s.rival != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(LopetCopy.rival(s.rival!.name, s.rival!.distanceM), key: const Key('lopet-rival'),
-                style: BergenTokens.text(12.5, weight: FontWeight.w700, color: const Color(0xFFFF9C7A))),
-          ),
-        if (s.bonusGranted) ...[
-          const SizedBox(height: 10),
-          _Chip(key: const Key('lopet-bonus'), tekst: LopetCopy.forsinket, farge: const Color(0xFFF2C14E)),
-        ],
-        const SizedBox(height: 16),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _Sjokort(s: s, besteM: beste ?? 0),
-            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _Tall(etikett: LopetCopy.dinBeste, verdi: beste == null ? '—' : '$beste m'),
-                  const SizedBox(height: 12),
-                  _Tall(etikett: LopetCopy.ukensBeste, verdi: s.weekBestM == null ? '—' : '${s.weekBestM} m'),
-                  const SizedBox(height: 12),
-                  for (var k = 0; k < s.milestones.length && k < 3; k++)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Row(
-                        children: [
-                          Icon(Icons.circle, size: 10, color: (beste ?? 0) >= s.milestones[k] ? const Color(0xFFF2C14E) : Colors.white24),
-                          const SizedBox(width: 8),
-                          Text('${LopetCopy.porter[k]} · ${s.milestones[k]} m', style: BergenTokens.text(12.5, weight: FontWeight.w700, color: Colors.white70)),
-                        ],
-                      ),
-                    ),
-                  if (_nesteFullMaaler(s)) ...[
-                    const SizedBox(height: 6),
-                    _Chip(key: const Key('lopet-vest'), tekst: LopetCopy.vest, farge: const Color(0xFFE5532D)),
-                  ],
+                  Text(LopetCopy.ukensLed, style: BergenTokens.display(28, weight: FontWeight.w800, color: Colors.white, letterSpacingEm: -0.03)),
+                  const SizedBox(height: 2),
+                  // Points plan Step 13 (game spec §5.3): the Platina boat sails under its own name.
+                  Text([LopetCopy.kaiUke(s.week), if (s.weeksSailed > 0) LopetCopy.uker(s.weeksSailed), if ((s.boatName ?? '').isNotEmpty) s.boatName!].join(' · '),
+                      style: BergenTokens.text(13, weight: FontWeight.w600, color: Colors.white.withValues(alpha: .76))),
                 ],
               ),
             ),
+            const SizedBox(width: 10),
+            LopetLosgrad(s: s),
           ],
         ),
-        if (s.badges.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          _Merker(badges: s.badges),
+        if (s.bonusGranted) ...[
+          const SizedBox(height: 10),
+          Align(alignment: Alignment.centerLeft, child: _Chip(key: const Key('lopet-bonus'), tekst: LopetCopy.forsinket, farge: const Color(0xFFF2C14E))),
         ],
-        const SizedBox(height: 22),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            for (var k = 0; k < s.runsAllowed; k++)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Icon(Icons.sailing_rounded, size: 22, color: k < igjen ? Colors.white : Colors.white24),
-              ),
-          ],
+        const SizedBox(height: 14),
+        LopetKaiSjokort(s: s, besteM: b),
+        const SizedBox(height: 12),
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: LopetMaalFlis(s: s, besteM: b)),
+              const SizedBox(width: 10),
+              Expanded(child: LopetListeFlis(s: s, besteM: b, toppVinner: _toppVinner, onTap: () => LopetListe.vis(context, s: s))),
+            ],
+          ),
         ),
-        const SizedBox(height: 6),
-        Center(child: Text(LopetCopy.seilaserIgjen(igjen), key: const Key('lopet-igjen'), style: BergenTokens.text(13, weight: FontWeight.w700, color: Colors.white70))),
+        const SizedBox(height: 18),
+        LopetBoyer(antall: s.runsAllowed, igjen: igjen, vest: _nesteFullMaaler(s)),
         const SizedBox(height: 14),
         if (s.noNewRun) ...[
           _Melding(key: const Key('lopet-snart'), tekst: LopetCopy.snartFremme, knapp: LopetCopy.tilSporing, onTap: _tilSporing),
         ] else if (igjen > 0)
-          _Knapp(key: const Key('lopet-sett-seil'), tekst: LopetCopy.settSeil, onTap: _settSeilMedOvergang)
+          AeKnappPille(key: const Key('lopet-sett-seil'), label: LopetCopy.settSeil, onPressed: _settSeilMedOvergang)
         else
           _Melding(key: const Key('lopet-neste'), tekst: LopetCopy.nesteSeilas, knapp: LopetCopy.tilSporing, onTap: _tilSporing),
-        const SizedBox(height: 16),
-        Wrap(
-          alignment: WrapAlignment.center,
-          children: [
-            TextButton(
-              key: const Key('lopet-ukeliste-knapp'),
-              onPressed: () => LopetListe.vis(context),
-              child: Text(LopetCopy.ukeliste, style: BergenTokens.text(13, weight: FontWeight.w700, color: const Color(0xFFF7D57E))),
-            ),
-            TextButton(
-              key: const Key('lopet-pynt-knapp'),
-              onPressed: _pynt,
-              child: Text(LopetCopy.pynt, style: BergenTokens.text(13, weight: FontWeight.w700, color: Colors.white70)),
-            ),
-            TextButton(
-              key: const Key('lopet-vilkaar-knapp'),
-              onPressed: _vilkaar,
-              child: Text(LopetCopy.vilkaar, style: BergenTokens.text(13, weight: FontWeight.w700, color: const Color(0xFF7FF0CB))),
-            ),
-          ],
+        const SizedBox(height: 10),
+        Center(
+          child: TextButton(
+            key: const Key('lopet-vilkaar-knapp'),
+            onPressed: _vilkaar,
+            child: Text(LopetCopy.vilkaarLenke, style: BergenTokens.text(14, weight: FontWeight.w800, color: Colors.white.withValues(alpha: .86))),
+          ),
         ),
       ],
     );
@@ -891,6 +816,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
               ),
             ),
             Positioned.fill(child: liste),
+            if (!kort) Positioned(right: 16, top: 14, child: LopetPyntKnapp(onTap: _pynt)),
           ],
         ),
       ),
@@ -1315,21 +1241,21 @@ class _Sjokort extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => _SjokortStor.vis(context, s, besteM),
+      onTap: () => LopetSjokortStor.vis(context, s, besteM),
       child: Container(
         key: const Key('lopet-sjokort'),
         width: 96,
         height: 230,
         decoration: BoxDecoration(color: const Color(0xFF123F50), borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.white24)),
         clipBehavior: Clip.antiAlias,
-        child: CustomPaint(painter: _SjokortMaler(s: s, besteM: besteM, merker: [if (merkeM != null) merkeM!])),
+        child: CustomPaint(painter: LopetSjokortMaler(s: s, besteM: besteM, merker: [if (merkeM != null) merkeM!])),
       ),
     );
   }
 }
 
 /// Sjøkortet in full screen (spec §5.2): the landmarks by name, the gates, and where each of this week's runs ended.
-class _SjokortStor {
+class LopetSjokortStor {
   static void vis(BuildContext context, LopetState s, int besteM) {
     showDialog<void>(
       context: context,
@@ -1351,7 +1277,7 @@ class _SjokortStor {
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                 child: CustomPaint(
                   size: Size.infinite,
-                  painter: _SjokortMaler(s: s, besteM: besteM, merker: [for (final r in s.myRuns) r.distanceM], navn: true),
+                  painter: LopetSjokortMaler(s: s, besteM: besteM, merker: [for (final r in s.myRuns) r.distanceM], navn: true),
                 ),
               ),
             ),
@@ -1373,8 +1299,8 @@ class _SjokortStor {
   }
 }
 
-class _SjokortMaler extends CustomPainter {
-  _SjokortMaler({required this.s, required this.besteM, this.merker = const [], this.navn = false});
+class LopetSjokortMaler extends CustomPainter {
+  LopetSjokortMaler({required this.s, required this.besteM, this.merker = const [], this.navn = false, this.visM});
 
   final LopetState s;
   final int besteM;
@@ -1385,9 +1311,12 @@ class _SjokortMaler extends CustomPainter {
   /// Full screen: the landmarks by name.
   final bool navn;
 
+  /// The metres shown (Design 21 Nov: the quay's card shows 1 200 m, turned on its side).
+  final int? visM;
+
   @override
   void paint(Canvas canvas, Size size) {
-    final visM = navn ? (besteM + 200).clamp(400, 5000).toDouble() : 1200.0;
+    final visM = this.visM?.toDouble() ?? (navn ? (besteM + 200).clamp(400, 5000).toDouble() : 1200.0);
     double y(num m) => size.height - 10 - (m / visM) * (size.height - 20);
     final seen = besteM.clamp(0, visM.toInt());
     final rows = (s.course['rows'] as List?) ?? const [];
@@ -1429,7 +1358,7 @@ class _SjokortMaler extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_SjokortMaler old) => old.besteM != besteM || old.merker.length != merker.length;
+  bool shouldRepaint(LopetSjokortMaler old) => old.besteM != besteM || old.merker.length != merker.length;
 }
 
 class _Tall extends StatelessWidget {

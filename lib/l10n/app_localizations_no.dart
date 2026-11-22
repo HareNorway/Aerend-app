@@ -8744,6 +8744,186 @@ class AppLocalizationsNo extends AppLocalizations {
   }
 
   @override
+  String get lop_kai_pynt => 'Pynt';
+
+  @override
+  String lop_kai_uke(Object p0) {
+    return 'Uke $p0 · samme løp for alle til søndag';
+  }
+
+  @override
+  String lop_kai_grad_neste(Object p0, Object p1) {
+    return '$p0 m til $p1';
+  }
+
+  @override
+  String get lop_kai_grad_hoyeste => 'Høyeste losgrad';
+
+  @override
+  String lop_kai_seilt(Object p0) {
+    return 'SEILT $p0 M';
+  }
+
+  @override
+  String get lop_kai_alt_take => 'ALT LIGGER I TÅKE';
+
+  @override
+  String get lop_kai_take => 'Tåke · seil lenger for å se mer';
+
+  @override
+  String get lop_kai_neste_maal => 'NESTE MÅL';
+
+  @override
+  String lop_kai_igjen(Object p0) {
+    return '$p0 m igjen';
+  }
+
+  @override
+  String get lop_kai_ingen_foran => 'Ingen foran deg';
+
+  @override
+  String lop_kai_poeng(Object p0) {
+    return '+$p0 poeng';
+  }
+
+  @override
+  String get lop_kai_forste => '1. plass';
+
+  @override
+  String get lop_kai_leder => 'Du leder uken';
+
+  @override
+  String get lop_kai_hold => 'Hold plassen';
+
+  @override
+  String get lop_kai_ukelisten => 'UKELISTEN';
+
+  @override
+  String get lop_kai_plass => 'plass';
+
+  @override
+  String get lop_kai_ikke_paa => 'Seil for å komme på listen';
+
+  @override
+  String lop_kai_foran(Object p0, Object p1) {
+    return '$p0 · $p1 m foran deg';
+  }
+
+  @override
+  String lop_kai_bak(Object p0, Object p1) {
+    return '$p0 · $p1 m bak deg';
+  }
+
+  @override
+  String get lop_kai_premieplass => 'Du har premieplass nå';
+
+  @override
+  String get lop_kai_topp_ti => 'Topp ti gir premie';
+
+  @override
+  String lop_kai_til_topp_ti(Object p0) {
+    return '$p0 m til topp ti';
+  }
+
+  @override
+  String lop_kai_topp_vinner(Object p0) {
+    return 'Topp $p0 vinner fra Premiehylla';
+  }
+
+  @override
+  String get lop_kai_vest => '+ redningsvest';
+
+  @override
+  String get lop_kai_vilkaar => 'Vilkår for Fjordløpet';
+
+  @override
+  String get lop_liste_premier => 'UKENS PREMIER';
+
+  @override
+  String lop_liste_plass_en(Object p0) {
+    return '$p0. plass';
+  }
+
+  @override
+  String lop_liste_plass_to(Object p0, Object p1) {
+    return '$p0. og $p1.';
+  }
+
+  @override
+  String lop_liste_plass_til(Object p0, Object p1) {
+    return '$p0. til $p1.';
+  }
+
+  @override
+  String lop_liste_hylle(Object p0) {
+    return 'Velger en premie fra $p0-hylla på Premiehylla';
+  }
+
+  @override
+  String lop_liste_poeng(Object p0) {
+    return '$p0 poeng';
+  }
+
+  @override
+  String get lop_liste_merker => 'DINE MERKER DENNE UKEN';
+
+  @override
+  String lop_liste_av(Object p0, Object p1) {
+    return '$p0 av $p1';
+  }
+
+  @override
+  String get lop_liste_tatt => 'Tatt denne uken';
+
+  @override
+  String lop_liste_rival(Object p0) {
+    return 'Rivalen din · $p0 m foran deg';
+  }
+
+  @override
+  String lop_merke_crates(Object p0, Object p1) {
+    return '$p0 / $p1 kasser';
+  }
+
+  @override
+  String lop_merke_near(Object p0, Object p1) {
+    return '$p0 / $p1 nære på';
+  }
+
+  @override
+  String lop_merke_metres(Object p0, Object p1) {
+    return '$p0 / $p1 m';
+  }
+
+  @override
+  String lop_merke_records(Object p0, Object p1) {
+    return '$p0 / $p1 rekorder';
+  }
+
+  @override
+  String lop_merke_rad(Object p0, Object p1) {
+    return '$p0 / $p1 seilaser';
+  }
+
+  @override
+  String get lop_merke_torr => 'Bøye 1 uten vest';
+
+  @override
+  String get lop_pynt_under =>
+      'Merkene låser opp pynt. Pynt påvirker aldri spillet.';
+
+  @override
+  String get lop_pynt_vanlig => 'Vanlig';
+
+  @override
+  String get lop_pynt_standard => 'Standard';
+
+  @override
+  String lop_pynt_ta(Object p0) {
+    return 'Ta $p0';
+  }
+
+  @override
   String get lop_kr_kicker => 'FJORDLØPET · ÆRENDET ER LEVERT';
 
   @override

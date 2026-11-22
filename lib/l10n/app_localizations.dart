@@ -15476,6 +15476,276 @@ abstract class AppLocalizations {
   /// **'Fjordløpet: you reached {p0}'**
   String lop_levert(Object p0);
 
+  /// No description provided for @lop_kai_pynt.
+  ///
+  /// In en, this message translates to:
+  /// **'Decorate'**
+  String get lop_kai_pynt;
+
+  /// No description provided for @lop_kai_uke.
+  ///
+  /// In en, this message translates to:
+  /// **'Week {p0} · the same course for everyone until Sunday'**
+  String lop_kai_uke(Object p0);
+
+  /// No description provided for @lop_kai_grad_neste.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} m to {p1}'**
+  String lop_kai_grad_neste(Object p0, Object p1);
+
+  /// No description provided for @lop_kai_grad_hoyeste.
+  ///
+  /// In en, this message translates to:
+  /// **'Top rank'**
+  String get lop_kai_grad_hoyeste;
+
+  /// No description provided for @lop_kai_seilt.
+  ///
+  /// In en, this message translates to:
+  /// **'SAILED {p0} M'**
+  String lop_kai_seilt(Object p0);
+
+  /// No description provided for @lop_kai_alt_take.
+  ///
+  /// In en, this message translates to:
+  /// **'ALL IN FOG'**
+  String get lop_kai_alt_take;
+
+  /// No description provided for @lop_kai_take.
+  ///
+  /// In en, this message translates to:
+  /// **'Fog · sail further to see more'**
+  String get lop_kai_take;
+
+  /// No description provided for @lop_kai_neste_maal.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT GOAL'**
+  String get lop_kai_neste_maal;
+
+  /// No description provided for @lop_kai_igjen.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} m to go'**
+  String lop_kai_igjen(Object p0);
+
+  /// No description provided for @lop_kai_ingen_foran.
+  ///
+  /// In en, this message translates to:
+  /// **'No one ahead of you'**
+  String get lop_kai_ingen_foran;
+
+  /// No description provided for @lop_kai_poeng.
+  ///
+  /// In en, this message translates to:
+  /// **'+{p0} points'**
+  String lop_kai_poeng(Object p0);
+
+  /// No description provided for @lop_kai_forste.
+  ///
+  /// In en, this message translates to:
+  /// **'1st place'**
+  String get lop_kai_forste;
+
+  /// No description provided for @lop_kai_leder.
+  ///
+  /// In en, this message translates to:
+  /// **'You lead the week'**
+  String get lop_kai_leder;
+
+  /// No description provided for @lop_kai_hold.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold the spot'**
+  String get lop_kai_hold;
+
+  /// No description provided for @lop_kai_ukelisten.
+  ///
+  /// In en, this message translates to:
+  /// **'THIS WEEK'**
+  String get lop_kai_ukelisten;
+
+  /// No description provided for @lop_kai_plass.
+  ///
+  /// In en, this message translates to:
+  /// **'place'**
+  String get lop_kai_plass;
+
+  /// No description provided for @lop_kai_ikke_paa.
+  ///
+  /// In en, this message translates to:
+  /// **'Sail to get on the list'**
+  String get lop_kai_ikke_paa;
+
+  /// No description provided for @lop_kai_foran.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} · {p1} m ahead of you'**
+  String lop_kai_foran(Object p0, Object p1);
+
+  /// No description provided for @lop_kai_bak.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} · {p1} m behind you'**
+  String lop_kai_bak(Object p0, Object p1);
+
+  /// No description provided for @lop_kai_premieplass.
+  ///
+  /// In en, this message translates to:
+  /// **'You hold a prize place'**
+  String get lop_kai_premieplass;
+
+  /// No description provided for @lop_kai_topp_ti.
+  ///
+  /// In en, this message translates to:
+  /// **'The top ten win prizes'**
+  String get lop_kai_topp_ti;
+
+  /// No description provided for @lop_kai_til_topp_ti.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} m to the top ten'**
+  String lop_kai_til_topp_ti(Object p0);
+
+  /// No description provided for @lop_kai_topp_vinner.
+  ///
+  /// In en, this message translates to:
+  /// **'Top {p0} win from Premiehylla'**
+  String lop_kai_topp_vinner(Object p0);
+
+  /// No description provided for @lop_kai_vest.
+  ///
+  /// In en, this message translates to:
+  /// **'+ life vest'**
+  String get lop_kai_vest;
+
+  /// No description provided for @lop_kai_vilkaar.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms for Fjordløpet'**
+  String get lop_kai_vilkaar;
+
+  /// No description provided for @lop_liste_premier.
+  ///
+  /// In en, this message translates to:
+  /// **'THIS WEEK\'S PRIZES'**
+  String get lop_liste_premier;
+
+  /// No description provided for @lop_liste_plass_en.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0}. place'**
+  String lop_liste_plass_en(Object p0);
+
+  /// No description provided for @lop_liste_plass_to.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0}. and {p1}.'**
+  String lop_liste_plass_to(Object p0, Object p1);
+
+  /// No description provided for @lop_liste_plass_til.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0}. to {p1}.'**
+  String lop_liste_plass_til(Object p0, Object p1);
+
+  /// No description provided for @lop_liste_hylle.
+  ///
+  /// In en, this message translates to:
+  /// **'Picks a prize from the {p0} shelf on Premiehylla'**
+  String lop_liste_hylle(Object p0);
+
+  /// No description provided for @lop_liste_poeng.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} points'**
+  String lop_liste_poeng(Object p0);
+
+  /// No description provided for @lop_liste_merker.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR BADGES THIS WEEK'**
+  String get lop_liste_merker;
+
+  /// No description provided for @lop_liste_av.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} of {p1}'**
+  String lop_liste_av(Object p0, Object p1);
+
+  /// No description provided for @lop_liste_tatt.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken this week'**
+  String get lop_liste_tatt;
+
+  /// No description provided for @lop_liste_rival.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rival · {p0} m ahead of you'**
+  String lop_liste_rival(Object p0);
+
+  /// No description provided for @lop_merke_crates.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} / {p1} crates'**
+  String lop_merke_crates(Object p0, Object p1);
+
+  /// No description provided for @lop_merke_near.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} / {p1} near misses'**
+  String lop_merke_near(Object p0, Object p1);
+
+  /// No description provided for @lop_merke_metres.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} / {p1} m'**
+  String lop_merke_metres(Object p0, Object p1);
+
+  /// No description provided for @lop_merke_records.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} / {p1} records'**
+  String lop_merke_records(Object p0, Object p1);
+
+  /// No description provided for @lop_merke_rad.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} / {p1} runs'**
+  String lop_merke_rad(Object p0, Object p1);
+
+  /// No description provided for @lop_merke_torr.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoy 1 without the vest'**
+  String get lop_merke_torr;
+
+  /// No description provided for @lop_pynt_under.
+  ///
+  /// In en, this message translates to:
+  /// **'Badges unlock decorations. Decorations never change the game.'**
+  String get lop_pynt_under;
+
+  /// No description provided for @lop_pynt_vanlig.
+  ///
+  /// In en, this message translates to:
+  /// **'Plain'**
+  String get lop_pynt_vanlig;
+
+  /// No description provided for @lop_pynt_standard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get lop_pynt_standard;
+
+  /// No description provided for @lop_pynt_ta.
+  ///
+  /// In en, this message translates to:
+  /// **'Take {p0}'**
+  String lop_pynt_ta(Object p0);
+
   /// No description provided for @lop_kr_kicker.
   ///
   /// In en, this message translates to:

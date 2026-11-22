@@ -155,13 +155,23 @@ void main() {
     }
   });
 
-  testWidgets('the start screen: weeks sailed, the rival, the week\'s badges; the chart opens full screen with the crash marker', (t) async {
+  testWidgets('the start screen: weeks sailed, the rival in the Ukelisten tile, the badges in the Ukeliste sheet; the chart opens full screen', (t) async {
     await _open(t, _Api(_stateJson()));
     expect(find.textContaining(LopetCopy.uker(4)), findsOneWidget);
+    // Design 21 Nov plan Step 7: the rival is the Ukelisten tile's line; the badges moved to the Ukeliste sheet.
     expect(find.byKey(const Key('lopet-rival')), findsOneWidget);
-    expect(find.text(LopetCopy.rival('Seiler 30', 42)), findsOneWidget);
+    expect(find.textContaining('Seiler 30'), findsOneWidget);
+    expect(find.byKey(const Key('lopet-merker')), findsNothing);
+    expect(find.byKey(const Key('lopet-neste-maal')), findsOneWidget);
+    expect(find.byKey(const Key('lopet-losgrad')), findsOneWidget);
+    await t.ensureVisible(find.byKey(const Key('lopet-ukeliste-knapp')));
+    await t.tap(find.byKey(const Key('lopet-ukeliste-knapp')));
+    await t.pumpAndSettle();
     expect(find.byKey(const Key('lopet-merker')), findsOneWidget);
-    expect(find.text('3 / 10'), findsOneWidget);
+    expect(find.textContaining('3 / 10'), findsOneWidget);
+    Navigator.of(t.element(find.byKey(const Key('lopet-merker')))).pop();
+    await t.pumpAndSettle();
+    await t.ensureVisible(find.byKey(const Key('lopet-sjokort')));
     await t.tap(find.byKey(const Key('lopet-sjokort')));
     await t.pumpAndSettle();
     expect(find.byKey(const Key('lopet-sjokort-stor')), findsOneWidget);
@@ -171,13 +181,14 @@ void main() {
   testWidgets('pynt på båten: unlocked items with their stars; the choice goes to the server', (t) async {
     final api = _Api(_stateJson());
     await _open(t, api);
-    await t.ensureVisible(find.byKey(const Key('lopet-pynt-knapp')));
     await t.tap(find.byKey(const Key('lopet-pynt-knapp')));
     await t.pumpAndSettle();
-    expect(find.text('Kjølvann i mint★★'), findsOneWidget);
-    await t.tap(find.text('Kjølvann i mint★★'));
-    await t.pump();
-    await t.tap(find.text(LopetCopy.fortsett));
+    // Design 21 Nov plan Step 7: the tiles per place; a tap on an unlocked one is the choice, at once.
+    expect(find.byKey(const Key('lopet-pynt')), findsOneWidget);
+    expect(find.text('Kjølvann i mint'), findsOneWidget);
+    expect(find.text('★'), findsOneWidget, reason: 'two stars: one extra');
+    await t.ensureVisible(find.byKey(const Key('lopet-pynt-wake_mint')));
+    await t.tap(find.byKey(const Key('lopet-pynt-wake_mint')));
     await t.pumpAndSettle();
     expect(api.equipped, {'pennant': null, 'wake': 'wake_mint', 'figurehead': null});
   });

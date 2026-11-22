@@ -45,6 +45,10 @@ class LopetState {
     required this.personalBestM,
     required this.weekBestM,
     required this.losgrad,
+    this.losgradNeste,
+    this.losgradNesteM,
+    this.lifetimeM = 0,
+    this.katalog = const [],
     required this.levelName,
     required this.boat,
     this.boatName,
@@ -107,6 +111,15 @@ class LopetState {
   final int? personalBestM;
   final int? weekBestM;
   final String losgrad;
+
+  /// Design 21 Nov plan Step 7 (spec §5.3): the next losgrad and its lifetime metres, and the customer's lifetime
+  /// metres (the quay's bar and «13 760 m til Styrmann»).
+  final String? losgradNeste;
+  final int? losgradNesteM;
+  final int lifetimeM;
+
+  /// Design 21 Nov plan Step 7: every decoration with the badge that unlocks it (the Pynt sheet's locked tiles).
+  final List<LopetPyntVare> katalog;
   final String levelName;
 
   /// robaat | vimpel | snekke | egen
@@ -155,6 +168,10 @@ class LopetState {
       personalBestM: j['personal_best_m'] == null ? null : _i(j['personal_best_m']),
       weekBestM: j['week_best_m'] == null ? null : _i(j['week_best_m']),
       losgrad: '${l['name'] ?? ''}',
+      losgradNeste: l['next_name'] as String?,
+      losgradNesteM: l['next_m'] == null ? null : _i(l['next_m']),
+      lifetimeM: _i(l['lifetime_m']),
+      katalog: [for (final c in ((((j['cosmetics'] as Map?)?['catalogue']) as List?) ?? const [])) if (c is Map) LopetPyntVare.fromJson(c.cast<String, dynamic>())],
       levelName: '${lv['name'] ?? ''}',
       boat: '${lv['boat'] ?? 'robaat'}',
       boatName: lv['boat_name'] as String?,
@@ -275,6 +292,19 @@ class LopetBadge {
         done: j['done'] == true,
         unlocks: '${j['unlocks'] ?? ''}',
       );
+}
+
+/// Design 21 Nov plan Step 7: a decoration in the catalogue and the badge that unlocks it.
+class LopetPyntVare {
+  const LopetPyntVare({required this.item, required this.kind, required this.name, this.badgeName});
+
+  final String item;
+  final String kind;
+  final String name;
+  final String? badgeName;
+
+  factory LopetPyntVare.fromJson(Map<String, dynamic> j) =>
+      LopetPyntVare(item: '${j['item']}', kind: '${j['kind'] ?? ''}', name: '${j[LopetLanguage.en ? 'en' : 'nb'] ?? j['item']}', badgeName: j['badge_name'] as String?);
 }
 
 class LopetCosmetic {
