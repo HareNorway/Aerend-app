@@ -47,6 +47,9 @@ class MainActivity: FlutterFragmentActivity() {
                 result.success(haptic(call.arguments as? String ?: "tick"))
             } else result.notImplemented()
         }
+        // Fjordløpet haptics plan Step 2: the game's own haptics (tiers, Rich compositions, Standard effects).
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, GameHaptics.CHANNEL)
+            .setMethodCallHandler(GameHaptics(applicationContext))
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val l = PowerManager.OnThermalStatusChangedListener { pushPerf() }
