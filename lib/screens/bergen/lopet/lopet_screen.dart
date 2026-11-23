@@ -811,8 +811,11 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       context: context,
       backgroundColor: const Color(0xFF103847),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      // The text is edited in the panel (`game.vilkaar`) and grows with the text size: the sheet takes its height from
+      // the text and scrolls when that is more than the screen (T3 GAM-B09: it overflowed at 9/16 of the screen).
+      isScrollControlled: true,
       builder: (ctx) => SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           key: const Key('lopet-vilkaar'),
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
           child: Column(
