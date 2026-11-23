@@ -127,6 +127,9 @@ class _SporingScreenState extends State<SporingScreen> {
   bool _fersk = false;
   bool _vervLukket = false;
   String? _vervKode;
+  // Gullbilletten's points from points/me/referral (the card said «Gi 100 kr, få 100 kr»; T3 PTS-D01).
+  int _vervGi = 200;
+  int _vervFaa = 200;
   SpArk? _ark;
 
   /// Bug-7a: the bottom panel's height as last laid out (it grows with «Verv en venn», the code slot, a case), so
@@ -286,7 +289,13 @@ class _SporingScreenState extends State<SporingScreen> {
     final referral = json?['referral'];
     if (!mounted || referral is! Map) return;
     final code = '${referral['code'] ?? ''}';
-    if (code.isNotEmpty) setState(() => _vervKode = code);
+    if (code.isNotEmpty) {
+      setState(() {
+        _vervKode = code;
+        _vervGi = (referral['points_for_them'] as num?)?.toInt() ?? _vervGi;
+        _vervFaa = (referral['points_for_me'] as num?)?.toInt() ?? _vervFaa;
+      });
+    }
   }
 
   /// Delivered: remember when, and fetch the order's points for SPART TID.
@@ -1094,6 +1103,8 @@ class _SporingScreenState extends State<SporingScreen> {
                 slotKode: slotKode,
                 slotVerv: slotVerv,
                 vervKode: _vervKode ?? '',
+                vervGi: _vervGi,
+                vervFaa: _vervFaa,
                 bunn: math.max(bunn - 24, 0),
                 poengNeste: SporingScreen.stegPoeng(t),
                 onSammendrag: () => setState(() => _ark = SpArk.sammendrag),

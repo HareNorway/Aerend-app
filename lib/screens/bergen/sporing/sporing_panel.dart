@@ -186,6 +186,8 @@ class SpPanel extends StatelessWidget {
     required this.onDelBillett,
     required this.onKopierBillett,
     this.vervKode = '',
+    this.vervGi = 200,
+    this.vervFaa = 200,
     this.bunn = 0,
     this.poengNeste,
     this.takkNavn,
@@ -207,6 +209,8 @@ class SpPanel extends StatelessWidget {
   final bool offline;
   final bool slotKode, slotVerv;
   final String vervKode;
+  final int vervGi;
+  final int vervFaa;
   final VoidCallback onSammendrag, onDetaljer, onAvslutt, onFjordfiske, onVisVeien, onChat, onRing, onLukkVerv, onDelBillett, onKopierBillett;
 
   /// Extra padding under the panel (the safe area).
@@ -275,7 +279,7 @@ class SpPanel extends StatelessWidget {
                 ),
               const SizedBox(height: 12),
               if (slotVerv) ...[
-                _Vervebillett(kode: vervKode, onLukk: onLukkVerv, onDel: onDelBillett, onKopier: onKopierBillett),
+                _Vervebillett(kode: vervKode, gi: vervGi, faa: vervFaa, onLukk: onLukkVerv, onDel: onDelBillett, onKopier: onKopierBillett),
                 const SizedBox(height: 14),
               ] else if (slotKode && kode != null) ...[
                 OnbMaal(id: 'leveringskode', radius: 22, child: LeveringskodeCard(code: kode, offline: offline, tracking: t)),
@@ -885,9 +889,10 @@ class _Avslutt extends StatelessWidget {
 /// **Levert · vervebillett** (L7100): the ticket, «VERV EN VENN», Del /
 /// Kopier — shown in the slot right after a purchase.
 class _Vervebillett extends StatelessWidget {
-  const _Vervebillett({required this.kode, required this.onLukk, required this.onDel, required this.onKopier});
+  const _Vervebillett({required this.kode, this.gi = 200, this.faa = 200, required this.onLukk, required this.onDel, required this.onKopier});
 
   final String kode;
+  final int gi, faa;
   final VoidCallback onLukk, onDel, onKopier;
 
   @override
@@ -970,10 +975,10 @@ class _Vervebillett extends StatelessWidget {
                       style: inter(10, weight: FontWeight.w800, em: .08, color: kSpMintLight),
                     ),
                     const SizedBox(height: 2),
-                    Text('Gi 100 kr, få 100 kr', style: jakarta(15, em: -.015, height: 1.15)),
+                    Text('Gi $gi · få $faa poeng', style: jakarta(15, em: -.015, height: 1.15)),
                     const SizedBox(height: 3),
                     Text(
-                      'Begge får 100 kr når vennens første ordre er levert.',
+                      'Dere får poengene når vennens første ordre er levert.',
                       style: inter(11, weight: FontWeight.w600, height: 1.35, color: kSpSub),
                     ),
                   ],
