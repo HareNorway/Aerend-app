@@ -1670,7 +1670,7 @@ class _StoreRow extends StatelessWidget {
     final line = [
       if (b.category != null) b.category!,
       if (b.etaMinutes != null) SokCopy.a1_sok_eta(b.etaMinutes!),
-      if (!b.open) SokCopy.a1_sok_closed,
+      if (b.paused) SokCopy.a1_sok_pauset(b.reopensAt) else if (!b.open) SokCopy.a1_sok_closed,
     ].join(' · ');
     final lys = context.lys;
     return _BobleInn(

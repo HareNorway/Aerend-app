@@ -21,6 +21,7 @@ abstract final class HentKartCopy {
   static const String henterSelv = 'Du henter selv i disken.';
   static String aapentTil(String kl) => 'Åpent til $kl.';
   static String aapner(String kl) => 'Stengt nå · åpner $kl.';
+  static String aapnerIgjen(String? kl) => kl == null ? 'Stengt nå · åpner igjen snart.' : 'Stengt nå · åpner igjen $kl.';
   static const String veibeskrivelse = 'Veibeskrivelse';
   static String gaa(int min, String avstand) => '$min min å gå · $avstand';
 }
@@ -36,7 +37,11 @@ Future<void> visHentKart(BuildContext context, {required BergenStoreInfo store})
   String? kl(String? t) => t == null || t.length < 5 ? null : t.substring(0, 5);
   final stenger = kl(store.closeTime), aapner = kl(store.openTime);
   // Open: until when; closed: when it opens (as Kassen's own row says).
-  final tid = store.open ? (stenger == null ? null : HentKartCopy.aapentTil(stenger)) : (aapner == null ? null : HentKartCopy.aapner(aapner));
+  final tid = store.paused
+      ? HentKartCopy.aapnerIgjen(store.reopensAt)
+      : store.open
+      ? (stenger == null ? null : HentKartCopy.aapentTil(stenger))
+      : (aapner == null ? null : HentKartCopy.aapner(aapner));
   return showMegArk<void>(
     context,
     key: const Key('hent-kart'),

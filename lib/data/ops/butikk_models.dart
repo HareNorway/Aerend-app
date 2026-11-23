@@ -15,6 +15,8 @@ class BergenStoreInfo {
     this.bannerUrl,
     this.logoUrl,
     this.open = true,
+    this.paused = false,
+    this.reopensAt,
     this.openTime,
     this.closeTime,
     this.rating,
@@ -42,6 +44,13 @@ class BergenStoreInfo {
   final String? bannerUrl;
   final String? logoUrl;
   final bool open;
+
+  /// T1 ORD-12: paused in ops (Travelmodus in the Partner app, or the auto-pause) — the server sends
+  /// `store_status` 0 then, so [open] is false too; the copy says «Åpner igjen [reopensAt]» instead of the hours.
+  final bool paused;
+
+  /// When the pause ends, «HH:MM» (`reopens_at`); null when it waits for the store («Åpner igjen snart»).
+  final String? reopensAt;
   final String? openTime;
   final String? closeTime;
   final String? rating;
@@ -137,7 +146,9 @@ class BergenStoreInfo {
       categoryName: category,
       bannerUrl: p.storeBanner.isEmpty ? null : p.storeBanner,
       logoUrl: p.storeLogo.isEmpty ? null : p.storeLogo,
-      open: p.storeStatus == 1,
+      open: p.storeStatus == 1 && !p.paused,
+      paused: p.paused,
+      reopensAt: p.reopensAt,
       openTime: p.openTime.isEmpty ? null : p.openTime,
       closeTime: p.closeTime.isEmpty ? null : p.closeTime,
       rating: _d(p.averageRating) == null || _d(p.averageRating) == 0

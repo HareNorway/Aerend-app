@@ -160,6 +160,9 @@ class StoreListItem {
     _orderDeliveryTime = json['order_delivery_time'];
     _orderMinAmount = json['order_min_amount'];
     _storeStatus = json['store_status'];
+    // T1 ORD-12: paused in ops (Travelmodus / auto-pause) — `store_status` is 0 then; `reopens_at` «HH:MM» or null.
+    opsAvailability = json['ops_availability'] is String ? json['ops_availability'] as String : 'open';
+    reopensAt = json['reopens_at'] is String && (json['reopens_at'] as String).isNotEmpty ? json['reopens_at'] as String : null;
     _distance = json['distance'];
     _storeLogo = json['store_logo'];
     _description = json['description'];
@@ -178,6 +181,14 @@ class StoreListItem {
 
   /// The shop joined Ærend in the last 14 days (`new_on_aerend`).
   bool newOnAerend = false;
+
+  /// `ops_availability`: `open`, `paused_manual` or `paused_auto` (T1 ORD-12).
+  String opsAvailability = 'open';
+
+  /// `reopens_at`: when a pause ends, «HH:MM» in the store's time zone; null without an end.
+  String? reopensAt;
+
+  bool get paused => opsAvailability == 'paused_manual' || opsAvailability == 'paused_auto';
   String? _storeName;
   String? _storeBanner;
   String? _storeProducts;
@@ -227,6 +238,8 @@ class StoreListItem {
     map['order_delivery_time'] = _orderDeliveryTime;
     map['order_min_amount'] = _orderMinAmount;
     map['store_status'] = _storeStatus;
+    map['ops_availability'] = opsAvailability;
+    map['reopens_at'] = reopensAt;
     map['distance'] = _distance;
     return map;
   }

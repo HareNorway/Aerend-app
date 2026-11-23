@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -113,6 +115,16 @@ class _FakeKasse extends OpsKasseApi {
 
   @override
   Future<String?> vippsRedirect(int orderId) async => null;
+}
+
+/// A quote that takes its time (the T1 phone: «Velg adresse» until `order-preview` answered).
+class _SlowKasse extends _FakeKasse {
+  _SlowKasse(this.quote, {super.state, super.addressList});
+
+  final Future<OrderPreviewPojo?> quote;
+
+  @override
+  Future<OrderPreviewPojo?> preview({bool flex = false, bool? useFreeDelivery}) => quote;
 }
 
 class _FakeCustomer extends OpsCustomerApi {
@@ -591,6 +603,54 @@ void main() {
     expect(api.lastPlace, isNull);
     expect(find.text(KasseCopy.a1_kasse_stengt_toast('Gyros House', '12:30')), findsOneWidget);
     await tester.pump(const Duration(seconds: 4));
+  });
+
+  testWidgets('T1 ORD-12: a paused store: «Stengt nå · Åpner igjen HH:MM» and no order is sent', (tester) async {
+    _frame(tester);
+    final api = _FakeKasse(
+      state: KurvState(lines: [_line(1, 'Solbriller', 200)], storeId: 7),
+      previewPojo: _preview(),
+      addressList: [_address(5)],
+      placeResponse: {'status': 1, 'order_id': 1, 'total_pay': 239},
+    );
+    // Travelmodus: the legacy hours say open all day (00:00–23:59), the pause says closed until 10:19.
+    final butikk = _FakeButikk(const BergenStoreInfo(
+      id: 7, name: 'Red Sun (Test)', kind: BergenStoreKind.other, open: false, paused: true, reopensAt: '10:19', openTime: '00:00', closeTime: '23:59'));
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer(), butikkApi: butikk)));
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text(KasseCopy.a1_kasse_apner_igjen('10:19')), findsOneWidget);
+    expect(KasseCopy.a1_kasse_apner_igjen('10:19'), 'Åpner igjen 10:19');
+    expect(find.text(KasseCopy.a1_kasse_tid_asap), findsNothing);
+    await _dragToPay(tester);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(api.lastPlace, isNull);
+    expect(find.text(KasseCopy.a1_kasse_pause_toast('Red Sun (Test)', '10:19')), findsOneWidget);
+    await tester.pump(const Duration(seconds: 4));
+  });
+
+  testWidgets('the saved address shows before a slow quote is in', (tester) async {
+    _frame(tester);
+    final quote = Completer<OrderPreviewPojo?>();
+    final api = _SlowKasse(
+      quote.future,
+      state: KurvState(lines: [_line(1, 'Gyros', 200)], storeId: 7),
+      addressList: [_address(5)],
+    );
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())));
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.textContaining('Nygårdsgaten 5'), findsOneWidget);
+    expect(find.text(KasseCopy.a1_kasse_adr_velg), findsNothing);
+
+    quote.complete(_preview());
+    await tester.pump();
+    await tester.pump();
+    expect(find.textContaining('Nygårdsgaten 5'), findsOneWidget);
   });
 
   testWidgets('back on a pushed Kassen goes back, not to a new store page', (tester) async {

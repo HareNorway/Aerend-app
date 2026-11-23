@@ -80,6 +80,10 @@ abstract final class ButikkCopy {
       _t('$grunn · spar $kr kr', '$grunn · save $kr kr');
   static String get a1_butikk_tilbud_grunn => _t('Fra kjøkkenet', 'From the kitchen');
   static String get a1_butikk_pauset => languages.ops_butikk_pauset;
+  /// T1 ORD-12: paused in the Partner app (Travelmodus) or by the auto-pause — «Åpner igjen 10:19» when the pause
+  /// has an end, else «Åpner igjen snart» (Partner plan Step 4).
+  static String a1_butikk_apner_igjen(String? kl) =>
+      kl == null ? languages.ops_status_paused : _t('Åpner igjen $kl', 'Opens again $kl');
   static String a1_butikk_km(double km) =>
       '${km.toStringAsFixed(1).replaceAll('.', ',')} km';
   static String a1_butikk_levering(String fee) => languages.ops_butikk_levering(fee);

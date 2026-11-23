@@ -43,6 +43,13 @@ abstract final class KasseCopy {
   static String a1_kasse_stengt_toast(String navn, String? aapner) => aapner == null
       ? _t('$navn er stengt nå', '$navn is closed now')
       : _t('$navn er stengt nå · åpner $aapner', '$navn is closed now · opens $aapner');
+  /// T1 ORD-12: paused in the Partner app (Travelmodus) or by the auto-pause — «Åpner igjen 10:19» when the pause
+  /// has an end, else «Åpner igjen snart» (Partner plan Step 4).
+  static String a1_kasse_apner_igjen(String? kl) =>
+      kl == null ? languages.ops_status_paused : _t('Åpner igjen $kl', 'Opens again $kl');
+  static String a1_kasse_pause_toast(String navn, String? kl) => kl == null
+      ? _t('$navn er stengt nå · åpner igjen snart', '$navn is closed now · opening again soon')
+      : _t('$navn er stengt nå · åpner igjen $kl', '$navn is closed now · opens again $kl');
   static String a1_kasse_betaler_med(String m) => _t('Betaler med $m', 'Paying with $m');
   static String get a1_kasse_betalt => _t('Betalt', 'Paid');
   static String a1_kasse_betalt_sum(String kr) => _t('Betalt · $kr kr', 'Paid · $kr kr');

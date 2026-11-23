@@ -6,6 +6,7 @@ import 'package:aerend_customer/data/ops/sok_models.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 import 'package:aerend_customer/screens/bergen/bergen_routes_agil1.dart';
 import 'package:aerend_customer/screens/bergen/butikk/butikk_screen.dart';
+import 'package:aerend_customer/screens/bergen/sok/sok_copy.dart';
 import 'package:aerend_customer/screens/bergen/sok/sok_screen.dart';
 import 'package:aerend_customer/utils/utils.dart';
 import 'package:aerend_customer/screens/common/home/bergen/bergen_nav.dart';
@@ -185,6 +186,31 @@ void main() {
     expect(find.text('179 kr'), findsOneWidget);
     expect(find.byKey(const Key('a1_sok_vanlig_footer')), findsOneWidget);
     expect(find.byKey(const Key('a1_sok_ingen')), findsNothing);
+  });
+
+  testWidgets('T1 ORD-12: a paused store reads «Stengt · åpner igjen HH:MM»', (tester) async {
+    _frame(tester);
+    final api = _FakeApi(
+      treff: const SokTreff(
+        butikker: [
+          SokButikk(id: 95, name: 'Red Sun (Test)', category: 'Sunglasses', etaMinutes: 15, open: false, paused: true, reopensAt: '10:19'),
+          SokButikk(id: 96, name: 'Red Sun', category: 'Sunglasses', etaMinutes: 15, open: false),
+          SokButikk(id: 97, name: 'Red Sun Auto', category: 'Sunglasses', open: false, paused: true),
+        ],
+      ),
+    );
+    await tester.pumpWidget(_app(SokScreen(api: api)));
+    await tester.pump();
+
+    await tester.enterText(find.byKey(const Key('a1_sok_field')), 'Red Sun');
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump();
+
+    expect(find.text('Sunglasses · 15 min · ${SokCopy.a1_sok_pauset('10:19')}'), findsOneWidget);
+    expect(SokCopy.a1_sok_pauset('10:19'), 'Stengt · åpner igjen 10:19');
+    // Closed by its hours: «Stengt» as before; an auto-pause without an end: «åpner igjen snart».
+    expect(find.text('Sunglasses · 15 min · ${SokCopy.a1_sok_closed}'), findsOneWidget);
+    expect(find.text('Sunglasses · ${SokCopy.a1_sok_pauset(null)}'), findsOneWidget);
   });
 
   testWidgets('no hits shows the Ægil fallback', (tester) async {
