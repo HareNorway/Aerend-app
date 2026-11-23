@@ -42,7 +42,9 @@ class VoucherApi {
     final auth = OpsCustomerApi.authParams();
     if (auth == null) return 'network';
     try {
-      final json = await _helper.post('api/points/premie_vouchers/$voucherId/claim?${Uri(queryParameters: auth).query}', body: {'premie_id': premieId});
+      // T3: a 422 (PREMIE_LIMIT, SHELF_LOCKED …) is an answer, not a transport failure — it read «Fikk ikke svar fra
+      // Ægil» before. Same as the shelf claim (points_repo claimPrize).
+      final json = (await _helper.postAllowClientError('api/points/premie_vouchers/$voucherId/claim?${Uri(queryParameters: auth).query}', body: {'premie_id': premieId})).data;
       if (json is Map && json['status'] == 1) return null;
       return json is Map ? '${json['message'] ?? 'error'}' : 'error';
     } catch (e) {
@@ -61,7 +63,8 @@ class SendPremieApi {
     final auth = OpsCustomerApi.authParams();
     if (auth == null) return 'network';
     try {
-      final json = await _helper.post('api/points/$path?${Uri(queryParameters: auth).query}', body: body);
+      // A 422 (ADDRESS_INCOMPLETE, CLAIM_ALREADY_SENT …) carries the code the sheet explains (T3).
+      final json = (await _helper.postAllowClientError('api/points/$path?${Uri(queryParameters: auth).query}', body: body)).data;
       return json is Map && json['status'] == 1 ? null : (json is Map ? '${json['message'] ?? 'error'}' : 'error');
     } catch (_) {
       return 'network';
