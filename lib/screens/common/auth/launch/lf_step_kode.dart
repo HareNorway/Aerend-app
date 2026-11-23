@@ -118,14 +118,22 @@ extension _Kode on LaunchOnboardingState {
   Widget _kodeSteg(BuildContext context, double inset) {
     final kode = _kodeV;
     final tlf = _tlf.text.trim().isEmpty ? LfCopy.tlfHint : _tlf.text.trim();
+    // T3: with the keyboard up the step was taller than the space above it («BOTTOM OVERFLOWED BY 46 PIXELS» on the
+    // iPhone Air, more on smaller phones, «Bekreft» cut). Ægil is smaller while typing, and the step scrolls when it
+    // still does not fit.
+    final tast = MediaQuery.viewInsetsOf(context).bottom > 0;
     return Padding(
-      padding: EdgeInsets.fromLTRB(22, inset + 84, 22, 22),
-      child: Column(
+      padding: EdgeInsets.fromLTRB(22, inset + 84, 22, 0),
+      child: SingleChildScrollView(
+        key: const Key('lf-kode-rull'),
+        physics: const ClampingScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 22),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Column(
             children: [
-              _kjolAegil('assets/images/aegil/find.png', 84, 26, 64, 10),
+              tast ? _kjolAegil('assets/images/aegil/find.png', 60, 19, 46, 7) : _kjolAegil('assets/images/aegil/find.png', 84, 26, 64, 10),
               const SizedBox(height: 12),
               Text(LfCopy.kodeTittel, style: jakarta(25, em: -.03)),
               const SizedBox(height: 6),
@@ -237,8 +245,8 @@ extension _Kode on LaunchOnboardingState {
               ),
             ),
           ),
-          const Spacer(),
         ],
+        ),
       ),
     );
   }
