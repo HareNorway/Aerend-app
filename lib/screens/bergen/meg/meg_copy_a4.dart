@@ -462,7 +462,7 @@ abstract final class A4MegCopy {
   // Premiehylla (design `Premiehylla` ≈L6177)
   static const String a4_hylla_kode = 'Kode';
   static String a4_hylla_dager_igjen(int n) => '$n dager igjen';
-  static String a4_hylla_aktive(int n) => '$n aktive';
+  static String a4_hylla_aktive(int n) => '$n ${n == 1 ? 'aktiv' : 'aktive'}';
   static const String a4_hylla_intro_l = 'Prisene står i poeng. Sett én som mål, så følger Ægil deg dit.';
   static const String a4_hylla_velger_linje_l = 'En premie som passer deg';
   static const String a4_hylla_nivaa_kicker = 'NIVÅ';
