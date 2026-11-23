@@ -1419,7 +1419,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                     Text(LopetCopy.listeAv(s.badges.where((b) => b.done || b.progress + plus(b.metric) >= b.target).length, s.badges.length), style: BergenTokens.text(12.5, weight: FontWeight.w800, color: const Color(0xFFF7D57E))),
                   ]),
                   const SizedBox(height: 12),
-                  Row(children: [for (final b in s.badges.take(3)) Expanded(child: LopetMerkeRing(b: b, pluss: plus(b.metric)))]),
+                  LopetMerkeRader(badges: s.badges, pluss: plus),
                 ]),
               ),
             ],
