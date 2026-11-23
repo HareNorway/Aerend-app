@@ -1343,7 +1343,7 @@ abstract final class OhCopy {
   static String antFra(int n, String butikk) => '${antVarer(n)} fra $butikk';
   static String kr(int n) => '${_nf(n)} kr';
   static String kroner(int n) => '+$n poeng';
-  static const String kronerNavn = 'Ærend-kroner';
+  static const String kronerNavn = 'Ærend-poeng';
   static const String betalt = 'betalt';
   static const String arkLinje = 'Kvittering og status for bestillingen';
   static const String levert = 'Levert';

@@ -56,8 +56,9 @@ abstract final class KasseCopy {
   static String get a1_kasse_gjor_klar => _t('Ægil gjør seg klar', 'Ægil is getting ready');
   static String get a1_kasse_tom_status => _t('Kurven er tom', 'Your basket is empty');
   static String get a1_kasse_kvittering => _t('KVITTERING', 'RECEIPT');
-  static String a1_kasse_kr_tilbake(int n) => _t('+$n kr tilbake', '+$n kr back');
-  static String get a1_kasse_i_kroner => _t('i Ærend-kroner', 'in Ærend kroner');
+  // Points spec P1 / T3 PTS-A01: the order earns Ærend-poeng (1 per 10 kr of goods), not kroner.
+  static String a1_kasse_kr_tilbake(int n) => _t('+$n poeng', '+$n points');
+  static String get a1_kasse_i_kroner => _t('når ordren er levert', 'when the order is delivered');
   static String get a1_kasse_dor_hint => _t('F.eks. 3. etasje, ring på Hansen', 'E.g. 3rd floor, ring Hansen');
   static String a1_kasse_frakt_over(String kr) => _t('Gratis over $kr', 'Free over $kr');
   static String a1_kasse_mot(int mangler, String butikk, String frakt) => _t(

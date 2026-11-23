@@ -62,7 +62,7 @@ class KurvKvittering extends StatelessWidget {
   /// The slip's code under the barcode (`Æ-42K`).
   final String kode;
 
-  /// «+N kr tilbake i Ærend-kroner»; hidden at 0.
+  /// «+N poeng · når ordren er levert» (the order's points from the server preview); hidden at 0.
   final int tilbake;
 
   @override
