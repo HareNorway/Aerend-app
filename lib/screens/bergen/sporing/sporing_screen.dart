@@ -488,7 +488,7 @@ class _SporingScreenState extends State<SporingScreen> {
   void _fjordfiske() {
     final g = _t?.raw['game'];
     if (g is Map && g['open'] == true) {
-      LopetPort.apne(context, orderId: _id, gameOpen: true);
+      LopetPort.apne(context, orderId: _id, gameOpen: true, fraSporing: true);
       return;
     }
     BergenRoutes.pushOr(context, '/bergen/fjordfiske', orElse: () => showBergenToast(context, BergenRoutes.kommerSnart));

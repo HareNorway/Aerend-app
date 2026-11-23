@@ -555,12 +555,12 @@ abstract final class LopetPort {
   }
 
   /// Open the game for [orderId] (Sporing knows it), or for the open session found, or Fjordfiske.
-  static Future<void> apne(BuildContext context, {int? orderId, bool gameOpen = false}) async {
+  static Future<void> apne(BuildContext context, {int? orderId, bool gameOpen = false, bool fraSporing = false}) async {
     var id = gameOpen ? orderId : null;
     id ??= (await sjekk())?.orderId;
     if (!context.mounted) return;
     if (id != null) {
-      await BergenRoutes.push(context, '/bergen/lopet', arguments: {'order_id': '$id'});
+      await BergenRoutes.push(context, '/bergen/lopet', arguments: {'order_id': '$id', if (fraSporing) 'fra': 'sporing'});
     } else {
       await BergenRoutes.push(context, '/bergen/fjordfiske');
     }

@@ -44,10 +44,14 @@ enum _Fase { start, spill, pause, slutt }
 /// notification and the app going to the background pause it, and it resumes with 3 · 2 · 1. No new run once the
 /// courier is within two minutes. Runs are recorded tick by tick and kept on the phone for Step 8 to submit.
 class LopetScreen extends StatefulWidget {
-  const LopetScreen({super.key, this.orderId, this.api, this.haptics, this.pollEvery = const Duration(seconds: 6), this.tilSporingEtter = const Duration(milliseconds: 1500)});
+  const LopetScreen({super.key, this.orderId, this.api, this.haptics, this.pollEvery = const Duration(seconds: 6), this.tilSporingEtter = const Duration(milliseconds: 1500), this.fraSporing});
 
   final int? orderId;
   final LopetApi? api;
+
+  /// Opened from Sporing (route argument `fra: sporing`): «Til sporing» goes back. From Hjem, Utforsk or Ægil it opens
+  /// Sporing in the quay's place (T3 GAM-D05: at the door the app went back to Hjem instead of Sporing).
+  final bool? fraSporing;
 
   /// The game's haptics (tests pass one with a fake channel); the screen makes its own otherwise.
   final GameHaptics? haptics;
@@ -78,6 +82,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   Timer? _nedtelling;
 
   int _orderId = 0;
+  bool _fraSporing = false;
   LopetState? _s;
   bool _laster = true;
   bool _stengt = false;
@@ -171,6 +176,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     super.didChangeDependencies();
     if (_orderId == 0) {
       _orderId = widget.orderId ?? int.tryParse(BergenRoutes.argsOf(context)['order_id'] ?? '') ?? 0;
+      _fraSporing = widget.fraSporing ?? BergenRoutes.argsOf(context)['fra'] == 'sporing';
       _hent();
       unawaited(LopetUtboks.send()); // runs left over from an offline session
       _poll = Timer.periodic(widget.pollEvery, (_) => _hent(stille: true));
@@ -796,10 +802,15 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   void _tilSporing() {
     if (_fase == _Fase.spill) _pause('manuell');
     final nav = Navigator.of(context);
-    if (nav.canPop()) {
+    if (_fraSporing && nav.canPop()) {
       nav.pop();
-    } else {
-      BergenRoutes.push(context, '/bergen/sporing', arguments: {'id': '$_orderId'});
+      return;
+    }
+    final sporing = BergenRoutes.generate(RouteSettings(name: '/bergen/sporing', arguments: {'id': '$_orderId'}));
+    if (sporing != null) {
+      nav.pushReplacement<dynamic, dynamic>(sporing);
+    } else if (nav.canPop()) {
+      nav.pop();
     }
   }
 

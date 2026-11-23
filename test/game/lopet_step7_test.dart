@@ -123,7 +123,7 @@ void main() {
 
   testWidgets('T6: the courier at the door ends the run, the end card shows the distance, then Sporing is on screen', (tester) async {
     _stor(tester);
-    await _fraSporing(tester, LopetScreen(orderId: 42, api: _FakeApi(_stateJson()), pollEvery: const Duration(hours: 1), tilSporingEtter: const Duration(milliseconds: 600)));
+    await _fraSporing(tester, LopetScreen(orderId: 42, api: _FakeApi(_stateJson()), pollEvery: const Duration(hours: 1), tilSporingEtter: const Duration(milliseconds: 600), fraSporing: true));
     await _seil(tester);
     LopetSignaler.send(LopetSignal.vedDora);
     await tester.pump();
@@ -139,7 +139,7 @@ void main() {
   testWidgets('T6 by the poll: arrived_customer in /game/state ends the run as the push does', (tester) async {
     _stor(tester);
     final api = _FakeApi(_stateJson());
-    await _fraSporing(tester, LopetScreen(orderId: 42, api: api, pollEvery: const Duration(seconds: 1), tilSporingEtter: const Duration(milliseconds: 300)));
+    await _fraSporing(tester, LopetScreen(orderId: 42, api: api, pollEvery: const Duration(seconds: 1), tilSporingEtter: const Duration(milliseconds: 300), fraSporing: true));
     await _seil(tester, pumps: 5);
     api.json = _stateJson(deliveryState: 'arrived_customer');
     await tester.pump(const Duration(seconds: 1));
