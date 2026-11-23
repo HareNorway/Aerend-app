@@ -264,10 +264,21 @@ class LopetMaalFlis extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Row(children: [
-            Expanded(child: Text(under, maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.text(12.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .8)))),
-            Flexible(child: Text(hoyre, maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.text(12.5, weight: FontWeight.w800, color: _gullLys))),
-          ]),
+          // T3 GAM-B03: the leader's pair («Ingen foran deg» · «Hold plassen») does not fit one line in a half tile and
+          // both were cut («Ingen fora… Hold plas…»). Side by side when it fits, else the right part takes a line.
+          SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              key: const Key('lopet-neste-maal-under'),
+              alignment: WrapAlignment.spaceBetween,
+              spacing: 8,
+              runSpacing: 2,
+              children: [
+                Text(under, style: BergenTokens.text(12.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .8))),
+                Text(hoyre, style: BergenTokens.text(12.5, weight: FontWeight.w800, color: _gullLys)),
+              ],
+            ),
+          ),
         ],
       ),
     );
