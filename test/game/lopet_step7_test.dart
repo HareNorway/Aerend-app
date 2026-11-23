@@ -160,8 +160,8 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     await tester.pump();
     expect(find.byKey(const Key('lopet-pause')), findsOneWidget);
-    // Design 21 Nov plan Step 8: the message cause — «Du har en melding fra budet».
-    expect(find.text(LopetCopy.pauseTekst('trenger').$1), findsOneWidget);
+    // T3 GAM-D03: a card for the customer (a delay or problem notice) — «Ærendet ditt trenger deg», not the courier's message.
+    expect(find.text(LopetCopy.pauseTekst('kort').$1), findsOneWidget);
 
     // Resumed with 3 · 2 · 1 while the same card is still open: the next poll does not pause again.
     await tester.tap(find.byKey(const Key('lopet-fortsett')));

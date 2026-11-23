@@ -120,7 +120,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   int _ordrePoeng = 0;
   FjordGoal? _sluttMaal;
 
-  String? _pauseGrunn; // manuell | bakgrunn | trenger
+  String? _pauseGrunn; // manuell | bakgrunn | trenger (a courier call or message, a CRITICAL push) | kort (a card for the customer)
   String? _trengerSett; // the needs-you card that already paused a run
   Timer? _doraTimer;
   String? _sluttToken; // the token of the run on the end card
@@ -245,7 +245,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         _vedDora();
       } else if (trenger is String && trenger.isNotEmpty && trenger != _trengerSett) {
         _trengerSett = trenger;
-        _pause('trenger'); // a card that needs the customer's answer (spec §7), once per card
+        // A card that needs the customer's answer (spec §7), once per card: a delay or problem notice from the store or
+        // Ærend, not a courier message, so «Ærendet ditt trenger deg» (T3 GAM-D03).
+        _pause('kort');
       }
       return;
     }
@@ -591,7 +593,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _hap.hold(true); // stop, and nothing new while paused (spec §6)
     // Step 5: U03 when the player pauses, U04 the knock for «Du har en melding fra budet».
     if (grunn == 'manuell') _hap.preview(HaptikkId.u03);
-    if (grunn == 'trenger') _hap.preview(HaptikkId.u04);
+    if (grunn == 'trenger' || grunn == 'kort') _hap.preview(HaptikkId.u04);
     _nedtelling?.cancel();
     setState(() {
       _fase = _Fase.pause;

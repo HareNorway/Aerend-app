@@ -182,6 +182,7 @@ abstract final class LopetCopy {
   static (String, String) pauseTekst(String? grunn) => switch (grunn) {
         'bakgrunn' => (languages.lop_p_bruker, languages.lop_p_bakgrunn_under),
         'trenger' => (languages.lop_p_melding, languages.lop_p_melding_under),
+        'kort' => (languages.lop_trenger_deg, languages.lop_p_melding_under),
         _ => (languages.lop_p_bruker, languages.lop_p_bruker_under),
       };
   static String lydTekst(bool paa) => paa ? languages.lop_p_lyd_paa : languages.lop_p_lyd_av;
