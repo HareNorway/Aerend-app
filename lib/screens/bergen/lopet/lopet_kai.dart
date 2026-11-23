@@ -117,9 +117,10 @@ class LopetKaiSjokort extends StatelessWidget {
             Row(children: [
               const Icon(Icons.explore_outlined, size: 16, color: Color.fromRGBO(255, 255, 255, .7)),
               const SizedBox(width: 8),
-              Expanded(child: Text(LopetCopy.sjokort.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis, style: _kicker(const Color.fromRGBO(255, 255, 255, .78)))),
+              // T3 GAM-E03: the short title took the row and cut «STOPPET VED 828 M»; the status gets the room now.
+              Text(LopetCopy.sjokort.toUpperCase(), maxLines: 1, style: _kicker(const Color.fromRGBO(255, 255, 255, .78))),
               const SizedBox(width: 8),
-              Flexible(child: Text(stoppM != null ? LopetCopy.stoppet(stoppM!) : besteM > 0 ? LopetCopy.seilt(besteM) : LopetCopy.altTake, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.right, style: _kicker(const Color.fromRGBO(255, 255, 255, .78)))),
+              Expanded(child: Text(stoppM != null ? LopetCopy.stoppet(stoppM!) : besteM > 0 ? LopetCopy.seilt(besteM) : LopetCopy.altTake, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.right, style: _kicker(const Color.fromRGBO(255, 255, 255, .78)))),
               const SizedBox(width: 8),
               const Icon(Icons.open_in_full_rounded, size: 15, color: _mint),
             ]),

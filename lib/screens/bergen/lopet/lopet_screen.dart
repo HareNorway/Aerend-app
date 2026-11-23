@@ -1493,7 +1493,8 @@ class _Stat extends StatelessWidget {
       Expanded(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(tall, style: BergenTokens.display(18, weight: FontWeight.w800, color: Colors.white)),
-          Text(etikett, maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.text(12, weight: FontWeight.w700, color: Colors.white.withValues(alpha: .7))),
+          // T3 GAM-E03: «Redningsvest brukt» was cut to «Redningsvest b…» in a half-width tile.
+          Text(etikett, maxLines: 2, overflow: TextOverflow.ellipsis, style: BergenTokens.text(12, weight: FontWeight.w700, color: Colors.white.withValues(alpha: .7))),
         ]),
       ),
     ]),
