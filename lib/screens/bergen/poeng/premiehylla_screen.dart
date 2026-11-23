@@ -67,6 +67,9 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
 
   /// «Finn en premie» scrolls here (`[data-premiehylla]`).
   final GlobalKey _hyllaKey = GlobalKey();
+
+  /// The «Mine premier» header, scrolled to after a claim.
+  final GlobalKey _mineKey = GlobalKey();
   bool _loading = true;
 
   /// Points plan Step 12: open premiekuponger from Ukens led.
@@ -149,7 +152,20 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
       return;
     }
     final claimed = await PremieArk.krev(context, p: p, poeng: _points, api: _api, gyldigDager: p.validDays ?? _regler?.claimExpiryDays);
-    if (claimed == true && mounted) _load();
+    if (claimed == true && mounted) {
+      await _load();
+      _visMinePremier();
+    }
+  }
+
+  /// T3 PRM-B06: after a claim the shelf was left scrolled down at the premie, so «Se Mine premier» closed the
+  /// celebration onto a screen without Mine premier. Bring the strip with the new claim into view behind it.
+  void _visMinePremier() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final c = _mineKey.currentContext;
+      if (c != null && c.mounted) Scrollable.ensureVisible(c, duration: const Duration(milliseconds: 350), curve: Curves.easeOutCubic, alignment: .05);
+    });
   }
 
   /// «Bruk premiekupongen?» — true when the customer chose it (claimed or refused); false lets the normal claim go on.
@@ -416,6 +432,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
                   ),
                 if (_claims.isNotEmpty) ...[
                   Padding(
+                    key: _mineKey,
                     padding: const EdgeInsets.fromLTRB(2, 22, 2, 10),
                     child: Row(
                       children: [
