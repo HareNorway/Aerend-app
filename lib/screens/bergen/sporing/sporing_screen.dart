@@ -889,12 +889,14 @@ class _SporingScreenState extends State<SporingScreen> {
         // scene 10, the label at 84; the pill ~43 tall) — in the frame it sits flush on the label.
         (kart ? kartTopp + 94 - 47 - 176 : sceneTopp);
     final visBud = !hent && s >= 2 && (t.courier != null || t.isPartner) && !t.isCancelled;
-    final slotVerv = _fersk && !_vervLukket && _vervKode != null && !t.isCancelled;
     // The design's stage 3, and (Customer Step 2) while the courier carries
     // the order with the code not yet used — when the courier scans it.
     final kodeUnderveis = !hent && s == 2 && (t.state == 'picked_up' || t.state == 'arrived_customer') && t.deliveryCode?.verifiedAt == null;
     // Not once the order is delivered or cancelled: the code has nothing left to open.
-    final slotKode = !slotVerv && _ark == null && t.deliveryCode != null && !t.isDelivered && !t.isCancelled && (hent ? s == 2 : s == 3 || kodeUnderveis);
+    final slotKode = _ark == null && t.deliveryCode != null && !t.isDelivered && !t.isCancelled && (hent ? s == 2 : s == 3 || kodeUnderveis);
+    // v3 T1 IOS-01: the referral ticket gives way to the code — a customer who stayed on Sporing since paying never
+    // saw «VIS DENNE TIL BUDET» at the door (the ticket held the slot until closed).
+    final slotVerv = !slotKode && _fersk && !_vervLukket && _vervKode != null && !t.isCancelled;
     final stadieNavn = t.isCancelled
         ? SporingCopy.a1_sporing_avbestilt
         : t.findingCourier
