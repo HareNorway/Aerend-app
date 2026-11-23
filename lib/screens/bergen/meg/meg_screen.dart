@@ -125,6 +125,9 @@ class _MegScreenBodyState extends State<MegScreenBody> {
 
   /// Debug harness: the points card opened (`megArk: poeng`).
   bool _poengApen = false;
+
+  /// The points card, scrolled to when Meg opens it from elsewhere (MegApne.poeng).
+  final GlobalKey _poengKey = GlobalKey();
   List<AddressListItem> _adresser = const [];
 
   /// Customer Step 5: this month's Tillitsregnskap (`agent/me/trust-ledger`).
@@ -339,6 +342,11 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       if (MegApne.poeng) {
         MegApne.poeng = false;
         _poengApen = true;
+        // T3 F02: «Se poengene dine» opened Meg at the top with the card below the fold — bring the open card in view.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final c = _poengKey.currentContext;
+          if (mounted && c != null && c.mounted) Scrollable.ensureVisible(c, duration: const Duration(milliseconds: 420), curve: Curves.easeOutCubic, alignment: .08);
+        });
       }
       // Customer v2 Step 6: a Varsler card («Endre» on the notice, the deep link) opens Ukeshandel on arrival.
       if (MegApne.ukeshandel case final steg?) {
@@ -944,6 +952,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                               if (b != null) ...[
                                 const SizedBox(height: 14),
                                 OnbMaal(
+                                  key: _poengKey,
                                   id: 'poeng',
                                   radius: 24,
                                   child: MegPoengKort(
