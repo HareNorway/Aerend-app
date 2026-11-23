@@ -40,6 +40,19 @@ class VelgerApi {
     return (offer: (r['offer'] as Map?)?.cast<String, dynamic>(), returned: r['returned'] == true, error: null);
   }
 
+  /// `GET points/velger`: what one pick costs and whether it can be used now (null offline).
+  Future<({int points, bool available})?> pris() async {
+    final auth = OpsCustomerApi.authParams();
+    if (auth == null || !OpsCustomerApi.networkEnabled) return null;
+    try {
+      final json = await _helper.get('api/points/velger?${Uri(queryParameters: auth).query}');
+      if (json is! Map || json['status'] != 1) return null;
+      return (points: (json['points'] as num?)?.toInt() ?? 0, available: json['available'] == true);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<({String? name, String? state, bool shown})?> boat() async {
     final auth = OpsCustomerApi.authParams();
     if (auth == null || !OpsCustomerApi.networkEnabled) return null;

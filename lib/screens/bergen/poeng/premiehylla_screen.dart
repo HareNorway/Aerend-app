@@ -9,6 +9,7 @@ import 'package:flutter/rendering.dart' show OverflowBoxFit;
 import '../../../data/points/points_app_repo.dart';
 import '../../../data/points/points_models.dart';
 import '../../../data/points/points_rules.dart';
+import '../../../data/points/velger_api.dart';
 import '../../../data/points/voucher_api.dart';
 import '../../../utils/shared_pref_utill.dart';
 import '../../common/auth/launch/lf_css.dart';
@@ -60,6 +61,9 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
 
   /// `points/rules`: the claim validity and points expiry (Gap Step 3).
   PointsRules? _regler;
+  // T3 PTS-D04: Ægil velger's own price (`GET points/velger`, the setting points.velger_points); the card showed the
+  // cheapest premie's price instead.
+  ({int points, bool available})? _velger;
 
   /// «Finn en premie» scrolls here (`[data-premiehylla]`).
   final GlobalKey _hyllaKey = GlobalKey();
@@ -75,9 +79,10 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
   }
 
   Future<void> _load() async {
-    final r = await Future.wait<Object?>([a3Try(_api.balance), a3Try(_api.shelf), a3Try(_api.claims), a3Try(A3Services.rules), a3Try(() => VoucherApi().list())]);
+    final r = await Future.wait<Object?>([a3Try(_api.balance), a3Try(_api.shelf), a3Try(_api.claims), a3Try(A3Services.rules), a3Try(() => VoucherApi().list()), a3Try(() => VelgerApi().pris())]);
     if (!mounted) return;
     setState(() {
+      _velger = r[5] as ({int points, bool available})? ?? _velger;
       _kuponger = (r[4] as List<PremieVoucher>?) ?? const [];
       _regler = r[3] as PointsRules? ?? _regler;
       _balance = r[0] as PointsBalance?;
@@ -517,10 +522,10 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
                       i: prizes.length,
                       navn: A4MegCopy.a4_hylla_velger,
                       linje: A4MegCopy.a4_hylla_velger_linje_l,
-                      pris: cheapest ?? 0,
+                      pris: _velger?.points ?? cheapest ?? 0,
                       art: const _VelgerArt(),
                       poeng: _points,
-                      ute: cheapest == null,
+                      ute: _velger == null ? cheapest == null : !_velger!.available,
                       erMaal: false,
                       velger: true,
                       onHent: _openVelger,
