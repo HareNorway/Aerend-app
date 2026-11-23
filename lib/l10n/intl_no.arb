@@ -2479,6 +2479,8 @@
   "cus_ai_akt_reorder": "Bestilte igjen",
   "cus_ai_akt_profile": "Leste profilen",
   "cus_ai_akt_open_support": "Åpnet en supportsak",
+  "cus_ai_akt_get_cart": "Så på handlekurven",
+  "cus_ai_akt_cancel_order": "Avbestilte en bestilling",
   "cus_ai_fra_tittel": "Koble fra {navn}?",
   "cus_ai_fra_alle_tittel": "Koble fra alle assistenter?",
   "cus_ai_fra_linje": "{navn} mister tilgangen med en gang. Bestillinger som allerede er sendt, påvirkes ikke.",

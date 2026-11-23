@@ -7548,6 +7548,12 @@ class AppLocalizationsSv extends AppLocalizations {
   String get cus_ai_akt_open_support => 'Opened a support case';
 
   @override
+  String get cus_ai_akt_get_cart => 'Looked at the cart';
+
+  @override
+  String get cus_ai_akt_cancel_order => 'Cancelled an order';
+
+  @override
   String cus_ai_fra_tittel(String navn) {
     return 'Unlink $navn?';
   }

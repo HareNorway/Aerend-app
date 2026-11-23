@@ -13508,6 +13508,18 @@ abstract class AppLocalizations {
   /// **'Opened a support case'**
   String get cus_ai_akt_open_support;
 
+  /// No description provided for @cus_ai_akt_get_cart.
+  ///
+  /// In en, this message translates to:
+  /// **'Looked at the cart'**
+  String get cus_ai_akt_get_cart;
+
+  /// No description provided for @cus_ai_akt_cancel_order.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled an order'**
+  String get cus_ai_akt_cancel_order;
+
   /// No description provided for @cus_ai_fra_tittel.
   ///
   /// In en, this message translates to:

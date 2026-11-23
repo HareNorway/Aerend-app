@@ -7553,6 +7553,12 @@ class AppLocalizationsNo extends AppLocalizations {
   String get cus_ai_akt_open_support => 'Åpnet en supportsak';
 
   @override
+  String get cus_ai_akt_get_cart => 'Så på handlekurven';
+
+  @override
+  String get cus_ai_akt_cancel_order => 'Avbestilte en bestilling';
+
+  @override
   String cus_ai_fra_tittel(String navn) {
     return 'Koble fra $navn?';
   }

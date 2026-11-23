@@ -4619,6 +4619,8 @@
   "cus_ai_akt_reorder": "Reordered",
   "cus_ai_akt_profile": "Read the profile",
   "cus_ai_akt_open_support": "Opened a support case",
+  "cus_ai_akt_get_cart": "Looked at the cart",
+  "cus_ai_akt_cancel_order": "Cancelled an order",
   "cus_ai_fra_tittel": "Unlink {navn}?",
   "@cus_ai_fra_tittel": {
     "placeholders": {

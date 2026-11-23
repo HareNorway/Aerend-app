@@ -745,7 +745,7 @@ class CusApi {
 
   /// Customer v2 Step 2: «Aktivitet» on its own route (`GET customer/ai/links/{id}/activity`); null when offline.
   Future<List<CusAiAktivitet>?> aiLinkActivity(int id, {int limit = 30}) async {
-    final j = await _get('ai/links/$id/activity?limit=$limit');
+    final j = await _get('ai/links/$id/activity', {'limit': '$limit'});
     if (j == null) return null;
     return [for (final m in (j['activity'] as List? ?? const []).whereType<Map>()) CusAiAktivitet.fromJson(m.cast<String, dynamic>())];
   }
@@ -852,7 +852,7 @@ class CusApi {
 
   /// «Bytt» (`GET customer/ai/requests/{id}/alternatives`): up to three products of the same store for a sold-out line.
   Future<List<CusAiAlternativ>> aiRequestAlternatives(String id, int lineId) async {
-    final j = await _get('ai/requests/${Uri.encodeComponent(id)}/alternatives?line_id=$lineId');
+    final j = await _get('ai/requests/${Uri.encodeComponent(id)}/alternatives', {'line_id': '$lineId'});
     return [for (final m in (j?['products'] as List? ?? const []).whereType<Map>()) CusAiAlternativ.fromJson(m.cast<String, dynamic>())];
   }
 
