@@ -233,6 +233,8 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
     final ok = await showMegArk<bool>(
       context,
       key: const Key('cus-hylla-adresse-ark'),
+      // Four fields: the sheet must ride above the keyboard (T3 PRM-B06: the keyboard covered all of it).
+      tastatur: true,
       title: A4MegCopy.a4_hylla_send_adresse,
       subtitle: A4MegCopy.a4_hylla_send_adresse_sub,
       body: (ctx, _) => Column(children: [
