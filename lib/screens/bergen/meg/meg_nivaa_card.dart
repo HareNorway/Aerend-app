@@ -246,6 +246,15 @@ class MegNivaaCard extends StatelessWidget {
               ),
             ),
           ],
+          // T3 PTS-A08: the inactivity expiry the server announces (60 days before), as the old Meg card did.
+          if (b.expiringAmount > 0 && b.expiringFirstAt != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              A4MegCopy.a4_meg_utloper(b.expiringAmount, b.expiringFirstAt!.toLocal()),
+              key: const Key('meg-utloper-line'),
+              style: BergenTokens.text(11.5, weight: FontWeight.w700, color: context.aeM(const Color(0xFFFFB38A), const Color(0xFFB4441C))),
+            ),
+          ],
           if (g != null) ...[
             const SizedBox(height: 13),
             Container(

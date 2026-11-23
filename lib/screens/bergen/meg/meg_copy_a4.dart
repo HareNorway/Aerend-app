@@ -33,6 +33,9 @@ abstract final class A4MegCopy {
   static String a4_meg_opptjent(int n) => 'Opptjent i alt: ${_nf(n)} poeng';
   static const String a4_meg_poeng = 'poeng';
   static String a4_meg_kommer(int n) => '+${_nf(n)} kommer når ordren er levert';
+  /// Points spec P4: the balance expires after 12 months without a delivered order (`/points/me` `expiring_soon`).
+  static String a4_meg_utloper(int n, DateTime d) =>
+      '${_nf(n)} poeng utløper ${d.day}. ${cus_meg_maaneder[d.month - 1].toLowerCase()} · en levert ordre før det beholder dem';
   static String a4_meg_maal(String label, int igjen) => 'Mål: ${label.toLowerCase()} · ${_nf(igjen)} poeng igjen';
   static String a4_meg_maal_klar(String label) => 'Mål: ${label.toLowerCase()} · klar';
   static const String a4_meg_hent_premien = 'Hent premien';
