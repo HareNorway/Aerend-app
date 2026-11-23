@@ -173,7 +173,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       _poll = Timer.periodic(widget.pollEvery, (_) => _hent(stille: true));
     }
     // Fjordløpet v1.3 plan Step 5 (spec §12.2): a covered screen stops the run, as the background does.
-    final dekket = !TickerMode.valuesOf(context).enabled;
+    final dekket = !TickerMode.of(context); // same value as valuesOf(context).enabled, which needs Flutter ≥ 3.38
     if (dekket && _fase == _Fase.spill) _pause('dekket');
     // Haptics plan Step 4: covered, nothing plays (also during the freeze after a collision, which is not paused).
     if (dekket) {
