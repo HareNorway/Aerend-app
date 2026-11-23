@@ -23,8 +23,11 @@ abstract final class LigaArk {
   /// everyone else sees «Klatrer N» (`LeagueService::nameFor`).
   static Future<League?> navn(BuildContext context, {required PointsAppApi api, required League league, VoidCallback? onMeldAv}) {
     final bli = !league.optedIn;
-    final rang = league.own?.rank;
-    final anonNavn = 'Klatrer ${rang ?? (league.participants + 1)}';
+    // A place only when ranked: an employee or a member below the minimum orders has rank null/0 («0. plass» before).
+    final rang = (league.own?.rank ?? 0) > 0 ? league.own!.rank : null;
+    // Anonymous is saved as visibility `skjult` with no name, and others then see the server's hidden name, not
+    // «Klatrer N» (T3 PTS-C01: the sheet promised «Klatrer 1» and previewed the real name while hidden).
+    const anonNavn = 'Skjult klatrer';
     final har = (league.displayName ?? '').trim();
     var anonym = league.optedIn && (har.isEmpty || league.visibility == 'skjult' && har.startsWith('Klatrer '));
     final felt = TextEditingController(text: anonym ? '' : har);
@@ -54,7 +57,7 @@ abstract final class LigaArk {
               controller: felt,
               fokus: fokus,
               anonym: anonym,
-              forhaandsvis: v,
+              forhaandsvis: syn == 'skjult' ? anonNavn : v,
               plass: rang,
               onEndret: () => setState(() {}),
             ),
