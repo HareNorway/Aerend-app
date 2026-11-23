@@ -840,7 +840,11 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   // ── Launch layout (`erMeg`, L7339–7500, design px) ─────────────────────────
 
   /// `megBobleTx`: the goal first, then Ægil's tips, one per tap on him.
-  List<String> get _tips => [_bubble, A4MegCopy.a4_meg_tips_hylla, A4MegCopy.a4_meg_tips_nivaa, A4MegCopy.a4_meg_tips_verv, A4MegCopy.a4_meg_tips_trykk];
+  // T3 small fix #14: with points off (no balance, no points card) Ægil must not send the customer to Premiehylla
+  // or talk about points.
+  List<String> get _tips => _balance == null
+      ? const [A4MegCopy.a4_meg_tips_bio]
+      : [_bubble, A4MegCopy.a4_meg_tips_hylla, A4MegCopy.a4_meg_tips_nivaa, A4MegCopy.a4_meg_tips_verv, A4MegCopy.a4_meg_tips_trykk];
 
   int _aegN = 0;
 

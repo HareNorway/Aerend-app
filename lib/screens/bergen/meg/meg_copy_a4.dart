@@ -152,6 +152,8 @@ abstract final class A4MegCopy {
   static const String a4_meg_tips_nivaa = 'Du går opp i nivå når du handler hos butikkene i Bergen.';
   static const String a4_meg_tips_verv = 'Verv en venn, så får dere poeng begge to.';
   static const String a4_meg_tips_trykk = 'Trykk på meg når du vil ha et nytt tips.';
+  // With points off: no points talk (T3 small fix #14).
+  static const String a4_meg_tips_bio = 'Fortell meg hva du liker, så tilpasser jeg appen til deg.';
   static const String a4_meg_betaling = 'Betaling';
   static const String a4_meg_betaling_vipps = 'Vipps';
   static const String a4_meg_varsler = 'Varsler';
