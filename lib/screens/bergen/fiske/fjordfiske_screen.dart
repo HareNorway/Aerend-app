@@ -570,7 +570,9 @@ class _FjordfiskeScreenState extends State<FjordfiskeScreen> {
         erPr ? FiskeCopy.a1_fiske_hint_premie : FiskeCopy.a1_fiske_hint_fangst,
       FiskePhase.venter => FiskeCopy.a1_fiske_hint_venter,
       _ =>
-        _capped
+        _earn?.reason == 'no_recent_order'
+            ? FiskeCopy.a1_fiske_hint_ingen_ordre
+            : _capped
             ? FiskeCopy.a1_fiske_hint_capped(_day?.max ?? _earn?.max ?? 5)
             : FiskeCopy.a1_fiske_hint_klar(_perCatch),
     };

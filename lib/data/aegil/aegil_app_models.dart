@@ -442,7 +442,7 @@ class AegilPick {
 
 /// The answer of `POST points/me/earn?rule=dagens_napp`.
 class EarnResult {
-  const EarnResult({required this.earned, required this.today, required this.max, this.capped = false, this.duplicate = false});
+  const EarnResult({required this.earned, required this.today, required this.max, this.capped = false, this.duplicate = false, this.reason});
 
   final int earned;
   final int today;
@@ -450,12 +450,16 @@ class EarnResult {
   final bool capped;
   final bool duplicate;
 
+  /// Why a catch paid nothing: already_today | monthly_cap | no_recent_order (null when it paid).
+  final String? reason;
+
   factory EarnResult.fromJson(Map<String, dynamic> json) => EarnResult(
     earned: (json['earned'] as num?)?.toInt() ?? 0,
     today: (json['today'] as num?)?.toInt() ?? 0,
     max: (json['max'] as num?)?.toInt() ?? 5,
     capped: json['capped'] == true,
     duplicate: json['duplicate'] == true,
+    reason: json['reason'] as String?,
   );
 }
 

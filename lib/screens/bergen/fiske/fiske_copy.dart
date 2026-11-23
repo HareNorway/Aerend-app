@@ -50,6 +50,10 @@ abstract final class FiskeCopy {
   static String get a1_fiske_hint_premie => languages.ops_fiske_hint_premie;
   static String a1_fiske_hint_capped(int max) =>
       languages.ops_fiske_hint_capped(max);
+  // T3 PTS-B03 (points spec §7: Dagens napp needs a delivered order in the last 30 days): the catch paid 0, say why.
+  static String get a1_fiske_hint_ingen_ordre => languages.localeName.startsWith('en')
+      ? 'Catch points need a delivered order in the last 30 days — fish for fun until then.'
+      : 'Fiskepoeng krever en levert ordre de siste 30 dagene — fisk for moro til da.';
 
   // ── Fangst / Premiefangst ───────────────────────────────────────────────
   static String a1_fiske_plus(int n) => languages.ops_fiske_plus(n);
