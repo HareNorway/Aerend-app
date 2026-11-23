@@ -27,6 +27,7 @@ import '../../../data/points/points_models.dart';
 import '../../../data/points/points_rules.dart';
 import '../../common/home/home_repo.dart';
 import '../../../utils/shared_pref_utill.dart';
+import '../poeng/opprykk_screen.dart';
 import '../../common/manageAddress/manage_address.dart';
 import '../../common/manageCard/manage_card.dart';
 import 'betaling_screen.dart';
@@ -350,6 +351,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       if (kDebugMode && HjemHarness.megOppdrag != null) _oppdrag = harnessOppdrag(HjemHarness.megOppdrag!);
       _loading = false;
     });
+    // T3 PTS-A06: a new level since Meg last saw one → Nivåopprykk, once (not in widget tests, which inject their api).
+    if (_brukerCache) unawaited(OpprykkVakt.sjekk(context, _balance));
     // Customer Step 14: the linked assistants for the rows; the harness opens a sheet (`ai`).
     unawaited(AiStore.instance.load());
     if (kDebugMode && HjemHarness.ai != null && !HjemHarness.ai!.startsWith('kurv')) {

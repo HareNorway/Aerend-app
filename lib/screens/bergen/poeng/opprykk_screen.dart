@@ -11,6 +11,8 @@ import '../../common/home/bergen/bergen_kit.dart' show bergenSvg;
 import '../aegil/aegil_bits.dart';
 import '../kit/svg_sti.dart';
 import '../kit/ae_mynt.dart';
+import '../../../utils/shared_pref_utill.dart';
+import '../kit/bergen_routes.dart';
 import '../meg/a3_services.dart';
 import 'poeng_copy.dart';
 import 'prize_art.dart';
@@ -21,6 +23,29 @@ import 'prize_art.dart';
 /// (`klask`), «NIVÅOPPRYKK · Du er på {nivå}.», the gift Ægil chose (when the
 /// promotion carries one), and «Hylla di har fått N nye premier». Entered from
 /// a `TierPromoted` push or a `points/me` tier delta.
+/// T3 PTS-A06: the screen once per new level. Nothing opened it: the `customer.level.up` push goes to Meg's level
+/// sheet, and the app had no «higher than last time» check. The app keeps the last level it showed per account; a
+/// higher one opens Nivåopprykk. The first look only notes the level, so an existing customer is not greeted for a
+/// level they already had; a lower level is noted too, so the next rise shows again.
+abstract final class OpprykkVakt {
+  static bool _viser = false;
+
+  static String _nokkel() => 'pts_sist_nivaa_${prefGetInt(prefUserId)}';
+
+  static Future<void> sjekk(BuildContext context, PointsBalance? b) async {
+    if (b == null || _viser || prefGetInt(prefUserId) <= 0) return;
+    final sist = int.tryParse(prefGetStringWithDefaultValue(_nokkel(), ''));
+    if (sist != b.tier) await prefSetString(_nokkel(), '${b.tier}');
+    if (sist == null || b.tier <= sist || !context.mounted) return;
+    _viser = true;
+    try {
+      await BergenRoutes.push<void>(context, '/bergen/opprykk', arguments: {'tier_name': b.tierName});
+    } finally {
+      _viser = false;
+    }
+  }
+}
+
 class OpprykkScreen extends StatefulWidget {
   const OpprykkScreen({super.key, this.tierName, this.giftName, this.api});
 
