@@ -125,6 +125,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   Timer? _doraTimer;
   String? _sluttToken; // the token of the run on the end card
   String? _sluttMaalServer; // the server's nearest goal for that run, once it answered
+  // The state as the run ended. The end card adds this run to its badge progress; the 6 s poll's newer state already
+  // counts the run once the server has it, so that one would count it twice (T3 GAM-E03).
+  LopetState? _sluttS;
   int? _teller;
 
   FjordResult? _res;
@@ -649,6 +652,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     if (poeng > _ordrePoeng) _ordrePoeng = poeng;
     final maal = _maalFor(s, res, forBeste);
     void sett() {
+      _sluttS = s;
       _sluttMaal = maal;
       _res = res;
       _sluttGrunn = grunn;
@@ -1301,7 +1305,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                 ? LopetCopy.aarsak('${cause['obstacle']}', s?.landmarkName(cause['landmark'] as String?), r.distanceM)
                 : (_sluttFraRekord != null ? LopetCopy.fraRekorden(_sluttFraRekord!) : null);
     final linje3 = _sluttMaalServer ?? _maalTekst(_sluttMaal);
-    final merke = s == null ? null : _nyttMerke(s, r);
+    final sb = _sluttS ?? s;
+    final merke = sb == null ? null : _nyttMerke(sb, r);
     final plass = s?.ladderTop.where((x) => x.me).firstOrNull?.place ?? (s?.rival == null ? null : s!.rival!.place + 1);
     int plus(String m) => switch (m) { 'crates' => r.crates, 'near_misses' => r.nearMisses, 'metres' => r.distanceM, _ => 0 };
     return ListView(
@@ -1407,7 +1412,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
               const SizedBox(width: 10),
               Expanded(child: _Stat(ikon: Icons.support_rounded, tall: '${r.vestUses}', etikett: LopetCopy.vestBruk)),
             ]),
-            if (s != null && s.badges.isNotEmpty) ...[
+            if (sb != null && sb.badges.isNotEmpty) ...[
               const SizedBox(height: 12),
               Container(
                 key: const Key('lopet-merker'),
@@ -1416,10 +1421,10 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                   Row(children: [
                     Expanded(child: Text(LopetCopy.merkerUke, style: BergenTokens.text(12, weight: FontWeight.w800, color: Colors.white.withValues(alpha: .75)).copyWith(letterSpacing: 1.1))),
-                    Text(LopetCopy.listeAv(s.badges.where((b) => b.done || b.progress + plus(b.metric) >= b.target).length, s.badges.length), style: BergenTokens.text(12.5, weight: FontWeight.w800, color: const Color(0xFFF7D57E))),
+                    Text(LopetCopy.listeAv(sb.badges.where((b) => b.done || b.progress + plus(b.metric) >= b.target).length, sb.badges.length), style: BergenTokens.text(12.5, weight: FontWeight.w800, color: const Color(0xFFF7D57E))),
                   ]),
                   const SizedBox(height: 12),
-                  LopetMerkeRader(badges: s.badges, pluss: plus),
+                  LopetMerkeRader(badges: sb.badges, pluss: plus),
                 ]),
               ),
             ],
