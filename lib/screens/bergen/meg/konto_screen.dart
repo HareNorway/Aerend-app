@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import '../../common/manageAddress/manage_address_dl.dart';
 import '../../common/manageCard/manage_card.dart';
 import '../../../networking/ops/cus_api.dart';
 import '../../../services/customer/client_flags.dart';
+import '../../../services/ntf/ntf_live_card.dart';
 import '../../../ui/kit/ae_haptic.dart';
 import 'betaling_screen.dart';
 import '../aegil/aegil_bits.dart';
@@ -26,7 +28,8 @@ import '../../../theme/lys/lys_palett.dart';
 import '../../../theme/lys/modus_scope.dart';
 import 'konto_utseende.dart';
 
-const String kPrefA3KrysningAv = 'a3_konto_krysning_varsler_av';
+/// «Varsler om krysningen · Live på låseskjermen» off — the order's lock-screen card ([NtfLiveCard.av]).
+const String kPrefA3KrysningAv = NtfLiveCard.prefAv;
 const String kPrefA3Rolig = 'a3_konto_rolig';
 
 /// Konto (`erKonto`, L8211–8270 in `Ærend Kunde Launch.dc.html`, design px):
@@ -225,7 +228,8 @@ class _KontoScreenState extends State<KontoScreen> {
                     bryter: _krysning,
                     onTap: () {
                       setState(() => _krysning = !_krysning);
-                      prefSetBool(kPrefA3KrysningAv, !_krysning);
+                      // Off takes the card that is up away too; on lets the next update show it.
+                      unawaited(NtfLiveCard.settAv(!_krysning));
                     },
                   ),
                   _Rad(

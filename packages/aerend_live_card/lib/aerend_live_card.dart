@@ -26,4 +26,15 @@ abstract final class AerendLiveCard {
       // Nothing to cancel.
     }
   }
+
+  /// Every live card that is up (the customer turned the card off).
+  static Future<void> cancelAll() async {
+    try {
+      await _c.invokeMethod<void>('cancelAll');
+    } on MissingPluginException {
+      // Not on this platform.
+    } on PlatformException {
+      // Nothing to cancel.
+    }
+  }
 }
