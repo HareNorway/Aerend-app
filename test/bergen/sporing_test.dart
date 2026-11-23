@@ -5,6 +5,7 @@ import 'package:aerend_customer/screens/bergen/kit/ae_mynt.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:aerend_customer/data/ops/tracking_models.dart';
+import 'package:aerend_customer/networking/ops/cus_api.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 import 'package:aerend_customer/screens/bergen/bergen_routes_agil1.dart';
 import 'package:aerend_customer/screens/bergen/hjelp/support.dart';
@@ -73,6 +74,20 @@ class _FakeApi extends OpsCustomerApi {
   }) async {
     problems.add({'kind': kind, 'words': words, 'items': items});
     return problemResult;
+  }
+}
+
+/// The order's thread (`GET api/customer/orders/{id}/messages`) as the server holds it.
+class _FakeCus extends CusApi {
+  _FakeCus([this.server = const []]);
+
+  List<CusMelding> server;
+  int hentet = 0;
+
+  @override
+  Future<List<CusMelding>> meldinger(int orderId) async {
+    hentet++;
+    return server;
   }
 }
 
@@ -537,6 +552,7 @@ void main() {
         await tester.pump();
         expect(api.contacts.single['kind'], 'message');
         expect(find.text('Ring på'), findsWidgets);
+        expect(find.text(SporingCopy.a1_sporing_sendt_tekst('Jonas')), findsOneWidget, reason: 'picked up: the courier got it');
 
         // Back to main, then Finner ikke døra.
         await tester.tap(find.byKey(const Key('a1_sporing_hjelp_tilbake')));
@@ -551,6 +567,84 @@ void main() {
         await tester.pumpAndSettle();
         expect(api.problems.single['kind'], 'door');
         expect(find.byKey(const Key('a1_sporing_hjelp_sendt')), findsOneWidget);
+      },
+    );
+
+    // T1 (order 819): paid, the store had not tapped Godta — the server routes Ring / Send melding to the STORE
+    // (`contact.message_target`), so the sheet must not say «Budet er budet ditt» / «Budet har fått beskjeden».
+    testWidgets(
+      'before pickup the contact is the store: header, «Melding til butikken», hint, quick replies and the confirmation name it',
+      (tester) async {
+        _frame(tester);
+        final api = _FakeApi(contactResult: {'kind': 'message', 'target': 'store'});
+        final cus = _FakeCus();
+        Future<void> pump(Map<String, dynamic> p) async {
+          await tester.pumpWidget(_app(HjelpScreen(key: UniqueKey(), orderId: 4471, tracking: OpsTracking.fromJson(p), api: api, cus: cus)));
+          await tester.pump();
+        }
+
+        // A courier already on the run, the bag still in the kitchen («Klar»): still the store.
+        await pump(payload(state: 'ready', stage: 1, label: 'Maten er klar'));
+        expect(find.text(SporingCopy.a1_sporing_har_bestillingen('Sandviken Bakeri')), findsOneWidget);
+        expect(find.text(SporingCopy.a1_sporing_er_budet('Jonas')), findsNothing);
+
+        await pump(payload(state: 'placed', stage: 0, label: 'Bekreftet', withCourier: false));
+        expect(find.text(SporingCopy.a1_sporing_har_bestillingen('Sandviken Bakeri')), findsOneWidget);
+        expect(find.text(SporingCopy.a1_sporing_er_budet(SporingCopy.a1_sporing_Budet)), findsNothing);
+
+        await tester.tap(find.byKey(const Key('a1_sporing_hjelp_melding')));
+        await tester.pumpAndSettle();
+        expect(find.text(SporingCopy.a1_sporing_hjelp_melding(SporingCopy.a1_sporing_butikken)), findsOneWidget);
+        expect(find.text(SporingCopy.a1_sporing_hjelp_melding(SporingCopy.a1_sporing_bud)), findsNothing);
+        expect(find.text(SporingCopy.a1_sporing_til_butikken_linje), findsOneWidget);
+        expect(find.text(SporingCopy.a1_sporing_aktiv_naa), findsNothing);
+        expect(find.text(SporingCopy.a1_sporing_skriv_til('Sandviken Bakeri')), findsOneWidget);
+        expect(find.text(SporingCopy.a1_sporing_hurtig_butikk.first), findsOneWidget);
+        expect(find.text(SporingCopy.a1_sporing_hurtig_launch.first), findsNothing, reason: '«Jeg står utenfor» is for the door');
+
+        await tester.enterText(find.byKey(const Key('a1_sporing_meld_felt')), 'Har dere soyasaus til sushien?');
+        await tester.tap(find.byKey(const Key('a1_sporing_meld_send')));
+        await tester.pump();
+        await tester.pump();
+        expect(api.contacts.single, {'kind': 'message', 'message': 'Har dere soyasaus til sushien?'});
+        expect(find.text(SporingCopy.a1_sporing_sendt_tekst('Sandviken Bakeri')), findsOneWidget);
+        expect(find.text(SporingCopy.a1_sporing_sendt_tekst(SporingCopy.a1_sporing_Budet)), findsNothing);
+        await tester.pumpAndSettle();
+
+        // ORD-14: the store answers in Partner (`customer.store_answer`); the next read of the thread (every 8 s while
+        // «Melding til butikken» is open) shows it under the question — the question once, its «… har fått beskjeden.» kept.
+        final lest = cus.hentet;
+        cus.server = [
+          CusMelding(fraMeg: true, tekst: 'Har dere soyasaus til sushien?', at: DateTime(2026, 11, 23, 18, 2), fra: 'customer', til: 'store'),
+          CusMelding(fraMeg: false, tekst: 'Ja, den ligger i posen', at: DateTime(2026, 11, 23, 18, 4), fra: 'store', navn: 'Sandviken Bakeri'),
+        ];
+        await tester.pump(const Duration(seconds: 8));
+        await tester.pumpAndSettle();
+        expect(cus.hentet, greaterThan(lest), reason: 'polled while open');
+        expect(find.text('Ja, den ligger i posen'), findsOneWidget);
+        expect(find.text('Har dere soyasaus til sushien?'), findsOneWidget, reason: 'the sent line is not doubled by the server copy');
+        expect(find.text(SporingCopy.a1_sporing_sendt_tekst('Sandviken Bakeri')), findsOneWidget);
+        final y = [for (final t in ['Har dere soyasaus til sushien?', SporingCopy.a1_sporing_sendt_tekst('Sandviken Bakeri'), 'Ja, den ligger i posen']) tester.getTopLeft(find.text(t)).dy];
+        expect(y[0] < y[1] && y[1] < y[2], isTrue, reason: 'question, confirmation, answer: $y');
+      },
+    );
+
+    testWidgets(
+      'opened straight on «Melding til butikken» (Sporing\'s chat key), the store\'s earlier answer is already there',
+      (tester) async {
+        _frame(tester);
+        final cus = _FakeCus([
+          CusMelding(fraMeg: true, tekst: 'Kan jeg få ekstra wasabi?', at: DateTime(2026, 11, 23, 18, 1), fra: 'customer', til: 'store'),
+          CusMelding(fraMeg: false, tekst: 'Ja, skriv det her', at: DateTime(2026, 11, 23, 18, 3), fra: 'store', navn: 'Sandviken Bakeri'),
+        ]);
+        final t = OpsTracking.fromJson(payload(state: 'accepted', stage: 1, label: 'Tilberedes', withCourier: false));
+        await tester.pumpWidget(_app(HjelpScreen(key: UniqueKey(), orderId: 4471, tracking: t, api: _FakeApi(), cus: cus, initial: HjelpState.melding)));
+        await tester.pump();
+        await tester.pump();
+        expect(find.byKey(const Key('a1_sporing_hjelp_melding_state')), findsOneWidget);
+        expect(find.text('Kan jeg få ekstra wasabi?'), findsOneWidget);
+        expect(find.text('Ja, skriv det her'), findsOneWidget);
+        await tester.pumpAndSettle();
       },
     );
 

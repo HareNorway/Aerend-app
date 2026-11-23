@@ -366,11 +366,12 @@ class _SporingScreenState extends State<SporingScreen> {
   }
 
   /// The chat key: the dark bud chat when a courier carries the order
-  /// (21 Oct `budchat`); the store's driver and the counter keep the help
-  /// sheet's message state.
+  /// (21 Oct `budchat`); the store's driver, the counter and an order still in
+  /// the kitchen (`contact.message_target` = store, even with a courier on
+  /// the run) keep the help sheet's message state.
   void _chat() {
     final t = _t;
-    if (t == null || t.isPickup || t.isPartner || t.courier == null) {
+    if (t == null || t.isPickup || t.contactIsStore || t.courier == null) {
       _openHelp(HjelpState.melding);
       return;
     }

@@ -75,7 +75,8 @@ class BudChatTraad extends ChangeNotifier {
   }
 
   Future<void> hent() async {
-    final liste = await cus.meldinger(orderId);
+    // The courier's chat only: the questions to the store and its answers live in the help sheet's «Melding til butikken».
+    final liste = [for (final m in await cus.meldinger(orderId)) if (!m.medButikken) m];
     if (_lukket) return;
     if (liste.isEmpty && _server.isNotEmpty) return;
     _server = liste;
