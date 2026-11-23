@@ -1396,7 +1396,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         if (!vedDora)
           Wrap(alignment: WrapAlignment.center, spacing: 24, children: [
             TextButton(key: const Key('lopet-til-kaien'), onPressed: () => setState(() => _fase = _Fase.start), child: Text(LopetCopy.tilKaien, style: BergenTokens.text(14, weight: FontWeight.w800, color: Colors.white))),
-            TextButton(onPressed: _tilSporing, child: Text(LopetCopy.tilSporing, style: BergenTokens.text(14, weight: FontWeight.w800, color: Colors.white))),
+            // T3 E01/E04: when the main action is already «Til sporing» (no run left, or none coming), not twice.
+            if (igjen > 0 && !(s != null && s.noNewRun))
+              TextButton(key: const Key('lopet-slutt-til-sporing'), onPressed: _tilSporing, child: Text(LopetCopy.tilSporing, style: BergenTokens.text(14, weight: FontWeight.w800, color: Colors.white))),
           ]),
         // Below: «Mer om seilasen».
         Center(
