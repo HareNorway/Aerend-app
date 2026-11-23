@@ -470,6 +470,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     final navn = await showMegArk<String>(
       context,
       key: const Key('meg-baat-ark'),
+      // The field autofocuses: the sheet must ride above the keyboard (T3 PTS-D06: the keyboard covered all of it).
+      tastatur: true,
       title: A4MegCopy.a4_meg_baat_tittel,
       subtitle: A4MegCopy.a4_meg_baat_linje,
       body: (ctx, _) => TextField(key: const Key('meg-baat-felt'), controller: c, maxLength: 20, autofocus: true, textCapitalization: TextCapitalization.words),
