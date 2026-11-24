@@ -1066,7 +1066,7 @@ class LopetScene9 extends CustomPainter with LopetSprBatch9 {
 /// bobbing and rolling in the shared wave field, the oars resting, with its shadow and reflection. Drawn over Home's
 /// scene; [repaint] ticks it (30 frames a second is plenty, as the design's idle loop).
 class LopetKaiBaat9 extends CustomPainter with LopetSprBatch9 {
-  LopetKaiBaat9({required this.atlas, required this.mode, this.level = 'Bronse', this.vimpel = '', this.figur = '', this.rolig = false, required Listenable repaint}) : super(repaint: repaint);
+  LopetKaiBaat9({required this.atlas, required this.mode, this.level = 'Bronse', this.vimpel = '', this.figur = '', this.rolig = false, this.vannTopp = 200, required Listenable repaint}) : super(repaint: repaint);
 
   @override
   final LopetAtlas9 atlas;
@@ -1074,13 +1074,16 @@ class LopetKaiBaat9 extends CustomPainter with LopetSprBatch9 {
   final String level, vimpel, figur;
   final bool rolig;
 
+  /// Where the water starts behind it (design px; the design's quay 200, Home's scene 127).
+  final double vannTopp;
+
   static double _hoyde(double x, double t, double ph) => 2.4 * math.sin(t * 1.05 + x * .017 + ph) + 1.3 * math.sin(t * 1.73 - x * .031 + ph * 1.7) + .6 * math.sin(t * 2.9 + x * .07);
 
   @override
   void paint(Canvas canvas, Size size) {
     resetSprites();
     final w = size.width, t = (DateTime.now().microsecondsSinceEpoch / 1e6) % 3600;
-    final s = math.min(1.1, w / 390), m = 15.0, k = m / LopetScene9.m0, bx = w / 2, yW = 200 * s, by = yW + 64 * s;
+    final s = math.min(1.1, w / 390), m = 15.0, k = m / LopetScene9.m0, bx = w / 2, yW = vannTopp * s, by = yW + 64 * s;
     final hy = _hoyde(bx, t, .7), hL = _hoyde(bx - 8, t, .7), hR = _hoyde(bx + 8, t, .7);
     final bob = rolig ? 0.0 : hy * .45, rull = rolig ? 0.0 : math.atan2(hR - hL, 16) * .55;
     final bx0 = bx - 74 * s, by0 = yW + 16 * s + (rolig ? 0 : math.sin(t * 1.3) * 1.2);

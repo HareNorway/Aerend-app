@@ -1148,6 +1148,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                 vimpel: _pyntId(s.equipped['pennant']),
                 figur: _pyntId(s.equipped['figurehead']),
                 rolig: MediaQuery.disableAnimationsOf(context),
+                vannTopp: LopetScreen.hjemScene ? 127 : 200,
                 repaint: _kaiTikk,
               ),
             ),
@@ -1167,30 +1168,25 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     }
     // Design (9) 1:1 plan Step 4: the design's quay is Home's scene with its 73 px offset (`uOff −73`): Bryggen from 73 to
     // 200, Vågen under it, and the hill's colour above (Bryggen's top row) behind the strip.
+    // Home's scene as on Home (its Bryggen shader draws in screen space, so it is not moved); the moored boat lies on
+    // its waterline (127 design px) as the design's lies on its own.
     final vaer = _hjemVaer();
     return Stack(
       children: [
         Positioned.fill(
           child: LfFrame(
-            child: Column(
-              children: [
-                SizedBox(height: 73, child: ColoredBox(color: _bryggenTopp[vaer] ?? const Color(0xFF969997))),
-                Expanded(
-                  child: HjemHero(
-                    key: const Key('lopet-kai-scene'),
-                    vaer: vaer,
-                    floats: const [],
-                    onFloatAdd: (_) {},
-                    onFloatSink: (_) {},
-                    onFloatNever: (_) {},
-                    onPose: () {},
-                    onFjordfiske: () {},
-                    nappAvailable: false,
-                    vindu: true,
-                    utenAegil: true,
-                  ),
-                ),
-              ],
+            child: HjemHero(
+              key: const Key('lopet-kai-scene'),
+              vaer: vaer,
+              floats: const [],
+              onFloatAdd: (_) {},
+              onFloatSink: (_) {},
+              onFloatNever: (_) {},
+              onPose: () {},
+              onFjordfiske: () {},
+              nappAvailable: false,
+              vindu: true,
+              utenAegil: true,
             ),
           ),
         ),
@@ -1198,9 +1194,6 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       ],
     );
   }
-
-  /// The top row of each Bryggen picture (`assets/images/bryggen/hjem_*.jpg`): the hill continues above it on the quay.
-  static const Map<HjemVaer, Color> _bryggenTopp = {HjemVaer.regn: Color(0xFF969997), HjemVaer.sol: Color(0xFF6C7370), HjemVaer.solnedgang: Color(0xFF694D33), HjemVaer.natt: Color(0xFF0C151E)};
 
   /// Home's weather for the scene: the same choice Home makes (the harness, else the hour).
   HjemVaer _hjemVaer() => switch (_mode) {
