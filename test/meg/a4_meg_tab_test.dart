@@ -246,7 +246,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     await tester.tap(find.byKey(const Key('liga-anonym')));
     await tester.pump();
-    expect(find.textContaining('Du er anonym · vises som Klatrer'), findsOneWidget);
+    // T3 PTS-C01: hidden members show as the server's «Skjult klatrer», not «Klatrer N».
+    expect(find.textContaining('Du er anonym · vises som Skjult klatrer'), findsOneWidget);
     await tester.tap(find.byKey(const Key('liga-navn-lagre')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));

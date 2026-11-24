@@ -43,14 +43,22 @@ abstract final class KasseCopy {
   static String a1_kasse_stengt_toast(String navn, String? aapner) => aapner == null
       ? _t('$navn er stengt nå', '$navn is closed now')
       : _t('$navn er stengt nå · åpner $aapner', '$navn is closed now · opens $aapner');
+  /// T1 ORD-12: paused in the Partner app (Travelmodus) or by the auto-pause — «Åpner igjen 10:19» when the pause
+  /// has an end, else «Åpner igjen snart» (Partner plan Step 4).
+  static String a1_kasse_apner_igjen(String? kl) =>
+      kl == null ? languages.ops_status_paused : _t('Åpner igjen $kl', 'Opens again $kl');
+  static String a1_kasse_pause_toast(String navn, String? kl) => kl == null
+      ? _t('$navn er stengt nå · åpner igjen snart', '$navn is closed now · opening again soon')
+      : _t('$navn er stengt nå · åpner igjen $kl', '$navn is closed now · opens again $kl');
   static String a1_kasse_betaler_med(String m) => _t('Betaler med $m', 'Paying with $m');
   static String get a1_kasse_betalt => _t('Betalt', 'Paid');
   static String a1_kasse_betalt_sum(String kr) => _t('Betalt · $kr kr', 'Paid · $kr kr');
   static String get a1_kasse_gjor_klar => _t('Ægil gjør seg klar', 'Ægil is getting ready');
   static String get a1_kasse_tom_status => _t('Kurven er tom', 'Your basket is empty');
   static String get a1_kasse_kvittering => _t('KVITTERING', 'RECEIPT');
-  static String a1_kasse_kr_tilbake(int n) => _t('+$n kr tilbake', '+$n kr back');
-  static String get a1_kasse_i_kroner => _t('i Ærend-kroner', 'in Ærend kroner');
+  // Points spec P1 / T3 PTS-A01: the order earns Ærend-poeng (1 per 10 kr of goods), not kroner.
+  static String a1_kasse_kr_tilbake(int n) => _t('+$n poeng', '+$n points');
+  static String get a1_kasse_i_kroner => _t('når ordren er levert', 'when the order is delivered');
   static String get a1_kasse_dor_hint => _t('F.eks. 3. etasje, ring på Hansen', 'E.g. 3rd floor, ring Hansen');
   static String a1_kasse_frakt_over(String kr) => _t('Gratis over $kr', 'Free over $kr');
   static String a1_kasse_mot(int mangler, String butikk, String frakt) => _t(

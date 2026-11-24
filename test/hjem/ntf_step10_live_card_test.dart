@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:aerend_customer/networking/ops/cus_api.dart';
 import 'package:aerend_customer/services/ntf/ntf_hooks.dart';
 import 'package:aerend_customer/services/ntf/ntf_live_card.dart';
+import 'package:aerend_customer/utils/shared_pref_utill.dart';
 
 import '../layout/reduced_motion_harness.dart';
 
@@ -28,17 +29,21 @@ void main() {
   final vist = <(int, String, String)>[];
   final visninger = <Map<String, Object?>>[];
   final borte = <int>[];
+  var alleBorte = 0;
 
-  setUp(() {
+  setUp(() async {
     vist.clear();
     visninger.clear();
     borte.clear();
+    alleBorte = 0;
+    await prefSetBool(NtfLiveCard.prefAv, false);
     NtfLiveCard.reset();
     NtfLiveCard.show = (id, v) async {
       vist.add((id, '${v['title']}', '${v['sub']}'));
       visninger.add(v);
     };
     NtfLiveCard.cancel = (id) async => borte.add(id);
+    NtfLiveCard.cancelAll = () async => alleBorte++;
   });
   tearDown(NtfLiveCard.reset);
 
@@ -107,6 +112,53 @@ void main() {
     await NtfLiveCard.end(412);
     expect(borte, hasLength(1), reason: 'ended once');
     NtfHooks.onLiveCard = null;
+  });
+
+  group('«Live på låseskjermen» off in Konto (v3 T1 NTF-07)', () {
+    test('off: the card is not read (no server updates) and nothing is shown', () async {
+      await NtfLiveCard.settAv(true);
+      final api = _Cus((enabled: true, card: kort));
+      NtfLiveCard.api = () => api;
+      expect(await NtfLiveCard.start(412), isFalse);
+      expect(api.lest, 0, reason: 'unread, so the server never marks the card up');
+      expect(vist, isEmpty);
+    });
+
+    test('turning it off takes the card that is up away; a silent push and an order push do not bring it back', () async {
+      NtfLiveCard.api = () => _Cus((enabled: true, card: kort));
+      expect(await NtfLiveCard.start(412), isTrue);
+      await NtfLiveCard.settAv(true);
+      expect(borte, <int>[NtfLiveCard.idFor(412)]);
+      expect(alleBorte, 1, reason: 'any other engine\'s card, and «Levert på døra», go too');
+      expect(NtfLiveCard.isShown(412), isFalse);
+      expect(prefGetBool(NtfLiveCard.prefAv), isTrue);
+
+      final n = vist.length;
+      NtfHooks.onLiveCard = NtfLiveCard.fromPush;
+      await NtfHooks.handleData(<String, dynamic>{'kind': 'ntf.live_card', 'object': 'order:412', 'live': '1', 'state': 'accepted', 'stage': '1'});
+      await NtfLiveCard.onPush(<String, dynamic>{'kind': 'ntf.live_card', 'object': 'order:412', 'live': '1', 'state': 'accepted', 'stage': '1'});
+      await NtfLiveCard.onPush(<String, dynamic>{'type': 'customer.order.delivered', 'order_id': '412'});
+      await NtfLiveCard.end(412, delivered: true);
+      expect(vist, hasLength(n), reason: '«Maten lages» stays away');
+      NtfHooks.onLiveCard = null;
+
+      // On again: the next read or update shows it.
+      await NtfLiveCard.settAv(false);
+      expect(await NtfLiveCard.start(412), isTrue);
+      expect(vist, hasLength(n + 1));
+    });
+
+    test('the engine a push wakes reads the switch again before it draws', () async {
+      var lest = 0;
+      NtfLiveCard.reloadPrefs = () async {
+        lest++;
+        await prefSetBool(NtfLiveCard.prefAv, true); // what the app wrote since this engine loaded its prefs
+      };
+      await NtfLiveCard.onPush(<String, dynamic>{'kind': 'ntf.live_card', 'object': 'order:412', 'live': '1', 'state': 'accepted', 'stage': '1'});
+      expect(lest, 1);
+      expect(vist, isEmpty);
+      expect(borte, <int>[NtfLiveCard.idFor(412)], reason: 'one still up from before goes');
+    });
   });
 
   group('the «Ærend Kunde Bergen» lock-screen card (2026-11-14)', () {

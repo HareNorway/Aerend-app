@@ -23,6 +23,7 @@ import 'package:aerend_customer/screens/bergen/poeng/liga_screen.dart';
 import 'package:aerend_customer/screens/bergen/poeng/opprykk_screen.dart';
 import 'package:aerend_customer/screens/bergen/poeng/premiehylla_screen.dart';
 import 'package:aerend_customer/screens/common/manageAddress/manage_address_dl.dart';
+import 'package:aerend_customer/services/ntf/ntf_live_card.dart';
 import 'package:aerend_customer/ui/kit/ae_haptic.dart';
 import 'package:aerend_customer/utils/shared_pref_utill.dart';
 
@@ -549,6 +550,37 @@ void main() {
     await settle(tester);
     expect(failing.sets, [true]);
     expect(on(), isFalse, reason: 'put back when the feed says no');
+  });
+
+  testWidgets('Konto «Varsler om krysningen» off takes the lock-screen card away and keeps it off (v3 T1 NTF-07)', (tester) async {
+    A3Services.addressList = () async => [];
+    A3Services.cards = () async => [];
+    await prefSetBool(kPrefA3KrysningAv, false);
+    final borte = <int>[];
+    var alle = 0;
+    NtfLiveCard.reset();
+    NtfLiveCard.show = (id, v) async {};
+    NtfLiveCard.cancel = (id) async => borte.add(id);
+    NtfLiveCard.cancelAll = () async => alle++;
+    addTearDown(NtfLiveCard.reset);
+    await NtfLiveCard.apply(412, const <String, dynamic>{'live': true, 'state': 'accepted', 'stage': 1});
+    expect(NtfLiveCard.isShown(412), isTrue);
+
+    await tester.pumpWidget(a3App(KontoScreen(feedRepo: _FakeAerend())));
+    await settle(tester);
+    await tester.ensureVisible(find.byKey(const Key('konto-krysning')));
+    await tester.tap(find.byKey(const Key('konto-krysning')));
+    await settle(tester);
+    expect(prefGetBool(kPrefA3KrysningAv), isTrue);
+    expect(NtfLiveCard.av, isTrue);
+    expect(borte, <int>[NtfLiveCard.idFor(412)]);
+    expect(alle, 1);
+    expect(await NtfLiveCard.apply(412, const <String, dynamic>{'live': true, 'state': 'accepted', 'stage': 1}), isFalse);
+
+    await tester.tap(find.byKey(const Key('konto-krysning')));
+    await settle(tester);
+    expect(NtfLiveCard.av, isFalse);
+    expect(await NtfLiveCard.apply(412, const <String, dynamic>{'live': true, 'state': 'accepted', 'stage': 1}), isTrue);
   });
 
   testWidgets('Konto → «Vibrasjon» (Kunde Glatt D5): on by default, the switch saves ae_vibrasjon and silences the app', (tester) async {

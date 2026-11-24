@@ -692,9 +692,17 @@ class _KupongState extends State<_Kupong> {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 11),
-                                LfPretty(navn, style: jakarta(17, em: -.022, height: 1.18, color: dark, shadows: tekstSkygge)),
-                                const Spacer(),
+                                const SizedBox(height: 7),
+                                // The card is 150 tall: a two-line name with a larger text size (the Vivo's 1.15) pushed the
+                                // price row out («BOTTOM OVERFLOWED BY 3.0 PIXELS», «Legg til» cut). The name takes the room
+                                // that is left, two lines at most, and the price row always fits (gap 11 → 7 and line height
+                                // 1.18 → 1.12, so two lines fit at the 1.15 text size instead of being clipped).
+                                Expanded(
+                                  child: Align(
+                                    alignment: Alignment.topLeft,
+                                    child: LfPretty(navn, maxLines: 2, style: jakarta(17, em: -.022, height: 1.12, color: dark, shadows: tekstSkygge)),
+                                  ),
+                                ),
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [

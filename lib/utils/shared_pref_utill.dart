@@ -146,6 +146,9 @@ Future<void> prefSetInt(String key, int value) async {
 }
 
 //deletes..
+/// Re-reads the prefs from disk (another engine — the app or a push's — may have written them since).
+Future<void> prefReload() async => await _prefs.reload();
+
 Future<bool> prefRemove(String key) async => await _prefs.remove(key);
 
 Future<bool> prefClear() async => await _prefs.clear();

@@ -589,7 +589,9 @@ class OpsCustomerApi {
             },
             feeText: null,
             bannerUrl: (s.storeBanner ?? '').isEmpty ? null : s.storeBanner,
-            open: (s.storeStatus ?? 1) == 1,
+            open: (s.storeStatus ?? 1) == 1 && !s.paused,
+            paused: s.paused,
+            reopensAt: s.reopensAt,
           ),
         );
       }

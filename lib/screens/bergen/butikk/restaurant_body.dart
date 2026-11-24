@@ -577,6 +577,8 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
   }
 
   String get _kitchenText {
+    // T1 ORD-12: the server's pause (`ops_availability`) — the store is closed, with when it opens again.
+    if (store.paused) return ButikkCopy.a1_butikk_apner_igjen(store.reopensAt);
     final a = _availability;
     if (a != null && a['state'] != null && a['state'] != 'open') {
       return ButikkCopy.a1_butikk_pauset;
@@ -853,7 +855,10 @@ class _HeroState extends State<_Hero> with SingleTickerProviderStateMixin {
     final meta = <String>[
       if (address.isNotEmpty) address,
       if (store.distanceKm != null) ButikkCopy.a1_butikk_km(store.distanceKm!),
-      if (store.closeTime != null) ButikkCopy.a1_butikk_open_til(store.closeTime!),
+      if (store.paused)
+        ButikkCopy.a1_butikk_apner_igjen(store.reopensAt)
+      else if (store.closeTime != null)
+        ButikkCopy.a1_butikk_open_til(store.closeTime!),
     ];
     final shadowText = [Shadow(color: rgba(10, 5, 2, .9), blurRadius: 10 * s)];
     const d = math.pi / 180;
@@ -1376,7 +1381,9 @@ class _CreamCard extends StatelessWidget {
                 SizedBox(width: 8 * s),
                 _Tile(
                   key: const Key('a1_butikk_info_t'),
-                  label: store.closeTime != null
+                  label: store.paused
+                      ? ButikkCopy.a1_butikk_apner_igjen(store.reopensAt)
+                      : store.closeTime != null
                       ? ButikkCopy.a1_butikk_open_til(store.closeTime!)
                       : ButikkCopy.a1_butikk_apningstider,
                   colors: const [Color(0xFF7FF0CB), Color(0xFF2FB893)],

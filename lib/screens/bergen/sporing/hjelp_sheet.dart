@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../data/ops/tracking_models.dart';
+import '../../../networking/ops/cus_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../utils/utils.dart';
 import '../../common/auth/launch/lf_css.dart';
@@ -57,7 +58,7 @@ List<CssShadow> _hjKortSh(BuildContext c, List<CssShadow> dark) => c.aeM(dark, L
 /// `/bergen/kundeservice` (the same sheet opened on the support state).
 ///
 /// The dark teal sheet rises over the screen beneath. States: main (the
-/// contact card — courier or store by `delivery_actor` — with Ring / Send
+/// contact card — courier or store by `contact.message_target` — with Ring / Send
 /// melding, VANLIGE SPØRSMÅL), **Ring** (`ops.customer.contact kind=call` →
 /// the relay record; with no provider the masked number is dialled),
 /// **Melding** (`kind=message`), **Finner ikke døra** (`problem kind=door`),
@@ -72,13 +73,16 @@ List<CssShadow> _hjKortSh(BuildContext c, List<CssShadow> dark) => c.aeM(dark, L
 enum HjelpState { main, ring, melding, dor, mangler, feil, komAldri, kundeservice, sendt, chat, hub }
 
 class HjelpScreen extends StatefulWidget {
-  const HjelpScreen({super.key, this.orderId, this.tracking, this.api, this.initial = HjelpState.main, this.items = const [], this.adresse});
+  const HjelpScreen({super.key, this.orderId, this.tracking, this.api, this.cus, this.initial = HjelpState.main, this.items = const [], this.adresse});
 
   final int? orderId;
 
   /// The last tracking payload, when the Sporing screen opens the sheet.
   final OpsTracking? tracking;
   final OpsCustomerApi? api;
+
+  /// The order's thread (`GET api/customer/orders/{id}/messages`) for «Melding til …».
+  final CusApi? cus;
   final HjelpState initial;
 
   /// Opens the sheet over the current screen (the screen stays visible
@@ -125,6 +129,12 @@ class _HjelpScreenState extends State<HjelpScreen> {
   int _callSeconds = 0;
   Timer? _callTimer;
   final List<(bool, String, String)> _thread = [];
+
+  /// v3 T1 (ORD-14): the order's thread from the server — the customer's lines and the answers (the store's
+  /// `customer.store_answer`, the courier's replies) — read when «Melding til …» opens and every 8 s while it is open.
+  List<CusMelding> _traadServer = const [];
+  Timer? _traadPoll;
+  late final CusApi _cus = widget.cus ?? CusApi();
   bool _typing = false;
   final TextEditingController _msg = TextEditingController();
   final TextEditingController _door = TextEditingController();
@@ -145,9 +155,22 @@ class _HjelpScreenState extends State<HjelpScreen> {
   bool get _standalone => _id == 0;
   OpsTracking? get t => _tracking;
   bool get _partner => t?.isPartner ?? false;
-  String get _rolle => _partner ? SporingCopy.a1_sporing_butikken : SporingCopy.a1_sporing_bud;
+
+  /// Ring / Send melding reach whom the server routes them to (`contact.message_target`, contract §5.1): the store
+  /// while it has the order (before pickup, and partner orders), the courier once it is on its way. The door texts
+  /// below stay on the one who delivers ([_navn], [_rolleStor]).
+  bool get _tilButikk => t?.contactIsStore ?? false;
+  String get _rolle => _tilButikk ? SporingCopy.a1_sporing_butikken : SporingCopy.a1_sporing_bud;
   String get _rolleStor => _partner ? SporingCopy.a1_sporing_Butikken : SporingCopy.a1_sporing_Budet;
   String get _navn => _partner ? (t?.store?.name ?? SporingCopy.a1_sporing_Butikken) : (t?.courier?.firstName ?? SporingCopy.a1_sporing_Budet);
+
+  /// The contact's name: the store's, or the courier's first name.
+  String get _kontaktNavn => _navnFor(_tilButikk ? OpsTracking.targetStore : OpsTracking.targetCourier);
+  String _navnFor(Object? target) => switch (target) {
+    OpsTracking.targetStore => t?.store?.name ?? SporingCopy.a1_sporing_Butikken,
+    OpsTracking.targetCourier => t?.courier?.firstName ?? SporingCopy.a1_sporing_Budet,
+    _ => _kontaktNavn,
+  };
 
   @override
   void didChangeDependencies() {
@@ -183,6 +206,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
     }
     // «Ring {navn}» from the bud chat: straight into the call.
     if (start == HjelpState.ring) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _ring() : null);
+    if (start == HjelpState.melding && _id > 0) _startTraad();
     _msg.addListener(() => setState(() {}));
     // The hub reads the config (hours, phone, e-mail) and the cases as they land.
     SupportStore.instance.endret.addListener(_storeEndret);
@@ -197,6 +221,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
     OnbTips.instance.sett('hjelp', null);
     SupportStore.instance.endret.removeListener(_storeEndret);
     _callTimer?.cancel();
+    _traadPoll?.cancel();
     _msg.dispose();
     _door.dispose();
     _scroll.dispose();
@@ -295,6 +320,50 @@ class _HjelpScreenState extends State<HjelpScreen> {
 
   String get _kl => spKlokke(DateTime.now());
 
+  /// Opens «Melding til …» and reads the order's thread.
+  void _tilMelding() {
+    setState(() => _state = HjelpState.melding);
+    _startTraad();
+  }
+
+  void _startTraad() {
+    _hentTraad();
+    _traadPoll ??= Timer.periodic(const Duration(seconds: 8), (_) {
+      if (mounted && _state == HjelpState.melding) _hentTraad();
+    });
+  }
+
+  Future<void> _hentTraad() async {
+    final liste = await _cus.meldinger(_id);
+    if (!mounted || (liste.isEmpty && _traadServer.isNotEmpty)) return;
+    final ny = liste.length != _traadServer.length;
+    setState(() => _traadServer = liste);
+    if (ny) _scrollDown();
+  }
+
+  /// The thread as shown: the server's lines in order, each of the customer's lines followed by its local
+  /// «… har fått beskjeden.»; what the server has not returned yet (just sent, or offline) stays at the end.
+  List<(bool, String, String)> get _traad {
+    final ute = <(bool, String, String)>[];
+    final brukt = <int>{};
+    for (final m in _traadServer) {
+      ute.add((m.fraMeg, m.tekst, m.at == null ? '' : spKlokke(m.at!)));
+      if (!m.fraMeg) continue;
+      final i = _thread.indexed.where((e) => !brukt.contains(e.$1) && e.$2.$1 && e.$2.$2 == m.tekst).firstOrNull?.$1;
+      if (i == null) continue;
+      brukt.add(i);
+      for (var k = i + 1; k < _thread.length && !_thread[k].$1; k++) {
+        brukt.add(k);
+        ute.add(_thread[k]);
+      }
+    }
+    return [
+      ...ute,
+      for (final (i, l) in _thread.indexed)
+        if (!brukt.contains(i)) l,
+    ];
+  }
+
   Future<void> _send([String? preset]) async {
     final text = (preset ?? _msg.text).trim();
     if (text.isEmpty) return;
@@ -308,10 +377,15 @@ class _HjelpScreenState extends State<HjelpScreen> {
     if (!mounted) return;
     setState(() {
       _typing = false;
-      if (res != null) _thread.add((false, SporingCopy.a1_sporing_sendt_tekst(_navn), _kl));
+      // The answer's `target` says who got it (the store before pickup), not who delivers.
+      if (res != null) _thread.add((false, SporingCopy.a1_sporing_sendt_tekst(_navnFor(res['target'])), _kl));
     });
     _scrollDown();
-    if (res == null) showBergenToast(context, BergenRoutes.ikkeSendt);
+    if (res == null) {
+      showBergenToast(context, BergenRoutes.ikkeSendt);
+    } else {
+      _hentTraad();
+    }
   }
 
   void _scrollDown() {
@@ -555,9 +629,9 @@ class _HjelpScreenState extends State<HjelpScreen> {
   Widget _main() {
     final tr = t;
     final min = tr?.minutesLeft(DateTime.now());
-    final under = [if (tr != null) tr.stageLabel, if (min != null && !(tr?.isPickup ?? false)) '$min min unna', if (!_partner && tr?.courier?.vehicle == 'sykkel') SporingCopy.a1_sporing_sykler_siden(tr?.courier?.since)].join(' · ');
+    final under = [if (tr != null) tr.stageLabel, if (min != null && !(tr?.isPickup ?? false)) '$min min unna', if (!_tilButikk && tr?.courier?.vehicle == 'sykkel') SporingCopy.a1_sporing_sykler_siden(tr?.courier?.since)].join(' · ');
     // The courier's average customer rating (backend plan Step 4); no chip without one.
-    final rating = _partner ? null : tr?.courier?.rating;
+    final rating = _tilButikk ? null : tr?.courier?.rating;
     return Column(
       key: const Key('a1_sporing_hjelp_main'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -572,7 +646,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(_partner ? SporingCopy.a1_sporing_leverer_selv(_navn) : SporingCopy.a1_sporing_er_budet(_navn), key: const Key('a1_sporing_hjelp_tittel'), style: jakarta(17, em: -.02, color: _hjT(context))),
+                  Text(_partner ? SporingCopy.a1_sporing_leverer_selv(_navn) : _tilButikk ? SporingCopy.a1_sporing_har_bestillingen(_kontaktNavn) : SporingCopy.a1_sporing_er_budet(_navn), key: const Key('a1_sporing_hjelp_tittel'), style: jakarta(17, em: -.02, color: _hjT(context))),
                   const SizedBox(height: 2),
                   Row(
                     children: [
@@ -652,7 +726,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
               child: _Glass(
                 key: const Key('a1_sporing_hjelp_melding'),
                 height: 48,
-                onTap: () => setState(() => _state = HjelpState.melding),
+                onTap: _tilMelding,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -762,9 +836,9 @@ class _HjelpScreenState extends State<HjelpScreen> {
       const SizedBox(height: 16),
       // Lys («Ring {{ kontaktRolle }}»): `.mkb`, `.mk9f`, `.mk13` (`--lys-mint-tekst`), `.mk6`, `.mk2m`; the round
       // keys `ringDempBg/Fg` (L20839): on `--lys-fjord` / white, off `--lys-dis` / `--lys-fjord`.
-      Text(_navn, style: jakarta(20, em: -.02, color: _hjT(context))),
+      Text(_kontaktNavn, style: jakarta(20, em: -.02, color: _hjT(context))),
       const SizedBox(height: 3),
-      Text(_calling || _callSeconds < 3 ? SporingCopy.a1_sporing_ringer : SporingCopy.a1_sporing_samtale_med(_navn), style: inter(12, color: _hjSek(context, rgba(255, 255, 255, .65)))),
+      Text(_calling || _callSeconds < 3 ? SporingCopy.a1_sporing_ringer : SporingCopy.a1_sporing_samtale_med(_kontaktNavn), style: inter(12, color: _hjSek(context, rgba(255, 255, 255, .65)))),
       const SizedBox(height: 6),
       Text(
         spMmSs(_callSeconds),
@@ -875,7 +949,10 @@ class _HjelpScreenState extends State<HjelpScreen> {
 
   Widget _melding() {
     final kunde = prefGetString(prefUserName).trim().split(' ').first;
-    final chips = SporingCopy.a1_sporing_hurtig_launch.map((c) => c == SporingCopy.a1_sporing_ring_paa && kunde.isNotEmpty ? SporingCopy.a1_sporing_ring_paa_hos(kunde) : c).toList();
+    // While the kitchen has it (stage < 2) the quick replies ask the store about the order; at the door, the door ones.
+    final chips = _tilButikk && (t?.stage ?? 0) < 2
+        ? SporingCopy.a1_sporing_hurtig_butikk
+        : SporingCopy.a1_sporing_hurtig_launch.map((c) => c == SporingCopy.a1_sporing_ring_paa && kunde.isNotEmpty ? SporingCopy.a1_sporing_ring_paa_hos(kunde) : c).toList();
     return Column(
       key: const Key('a1_sporing_hjelp_melding_state'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -909,7 +986,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
                       const SizedBox(width: 5),
                       Flexible(
                         child: Text(
-                          SporingCopy.a1_sporing_aktiv_naa,
+                          _tilButikk ? SporingCopy.a1_sporing_til_butikken_linje : SporingCopy.a1_sporing_aktiv_naa,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: inter(10.5, color: _hjSek(context, rgba(255, 255, 255, .62))),
@@ -944,7 +1021,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
             shrinkWrap: true,
             padding: const EdgeInsets.symmetric(vertical: 2),
             children: [
-              for (final (i, m) in _thread.indexed) ...[if (i > 0) const SizedBox(height: 7), _Boble(meg: m.$1, tekst: m.$2, kl: m.$3, delay: math.min(i, 6) * 40.0)],
+              for (final (i, m) in _traad.indexed) ...[if (i > 0) const SizedBox(height: 7), _Boble(meg: m.$1, tekst: m.$2, kl: m.$3, delay: math.min(i, 6) * 40.0)],
               if (_typing) ...[
                 const SizedBox(height: 7),
                 Align(
@@ -1018,7 +1095,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
                     border: InputBorder.none,
                     filled: false,
                     contentPadding: EdgeInsets.zero,
-                    hintText: SporingCopy.a1_sporing_skriv_til(_navn),
+                    hintText: SporingCopy.a1_sporing_skriv_til(_kontaktNavn),
                     hintStyle: jakarta(14, weight: FontWeight.w700, color: _hjDemp(context, rgba(255, 255, 255, .45))),
                   ),
                 ),
@@ -1163,7 +1240,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
                     const SizedBox(width: 7),
                     Flexible(
                       child: Text(
-                        SporingCopy.a1_sporing_ring_navn(_navn),
+                        SporingCopy.a1_sporing_ring_navn(_kontaktNavn),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: inter(13, weight: FontWeight.w800, color: _hjT(context)),
@@ -1177,7 +1254,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
             Expanded(
               child: _Glass(
                 height: 46,
-                onTap: () => setState(() => _state = HjelpState.melding),
+                onTap: _tilMelding,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

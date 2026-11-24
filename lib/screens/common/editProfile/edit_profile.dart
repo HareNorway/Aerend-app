@@ -11,6 +11,11 @@ import '../../../utils/utils.dart';
 import '../base_dl.dart';
 import '../login/login_dl.dart';
 import 'edit_profile_bloc.dart';
+import '../../bergen/kit/ae_primitiver.dart' show AeKnappPille;
+import '../auth/launch/lf_css.dart' show inter;
+import '../../bergen/meg/a3_scaffold.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 class EditProfile extends StatefulWidget {
   const EditProfile({super.key});
@@ -36,20 +41,15 @@ class EditProfileState extends State<EditProfile> {
     super.dispose();
   }
 
+  // T3 (Vivo): this was the old purple «My Profile» (Material AppBar, purple buttons) inside the Bergen app. It now
+  // uses the Bergen frame (A3Scaffold, fjord gradient), glass fields and the kit's pill; the bloc is unchanged.
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-        child: Scaffold(
-          appBar: AppBar(
-            automaticallyImplyLeading: true,
-            centerTitle: false,
-            titleSpacing: 0,
-            title: Text(
-              languages.myProfile,
-              style: toolbarStyle(),
-            ),
-          ),
-          body: _buildEditProfile(context),
+        child: A3Scaffold(
+          title: languages.myProfile,
+          padding: EdgeInsets.zero,
+          child: _buildEditProfile(context),
         ),
         onWillPop: () async {
           Navigator.pop(context, _bloc.isChangedData);
@@ -57,189 +57,139 @@ class EditProfileState extends State<EditProfile> {
         });
   }
 
+  static const _mint = Color(0xFF7FF0CB);
+
+  InputDecoration _felt(String label, {Widget? prefix}) {
+    final lys = context.lys;
+    final kant = lys ? LysPalett.kantFarge : const Color.fromRGBO(255, 255, 255, .22);
+    return InputDecoration(
+      labelText: label,
+      labelStyle: inter(13, weight: FontWeight.w700, color: lys ? LysPalett.sekundar : const Color(0xFFB8D4DA)),
+      floatingLabelStyle: inter(13, weight: FontWeight.w800, color: lys ? LysPalett.mintTekst : _mint),
+      filled: true,
+      fillColor: lys ? Colors.white : const Color.fromRGBO(255, 255, 255, .08),
+      prefixIcon: prefix,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: kant)),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: lys ? LysPalett.mintTekst : _mint, width: 1.5)),
+      errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFFF8A6A))),
+      focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFFF8A6A), width: 1.5)),
+      errorStyle: inter(12, weight: FontWeight.w700, color: const Color(0xFFFFB199)),
+    );
+  }
+
+  TextStyle get _tekst => inter(15.5, weight: FontWeight.w700, color: context.lys ? LysPalett.tittel : Colors.white);
+
   _buildEditProfile(BuildContext context) {
-    var textStyle =
-        bodyText(fontSize: textSizeMediumBig, fontWeight: FontWeight.w600);
-    return CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsetsDirectional.only(top: deviceHeight * 0.04),
-            child: Column(
-              children: [
-                Column(
-                  children: [
-                    ClipRRect(
-                      borderRadius:
-                          BorderRadius.circular(deviceAverageSize * 0.06),
-                      child: profileImage(),
+    final lys = context.lys;
+    final emailKanEndres = prefGetString(prefLoginType) == loginTypeEmail;
+    // A3Scaffold already scrolls its child: a plain column (a CustomScrollView inside it had no height → blank page).
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Form(
+              key: _bloc.formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: GestureDetector(
+                      onTap: () => _bloc.addProfileImage(),
+                      child: Column(children: [
+                        Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: lys ? LysPalett.mintTekst : _mint, width: 2)),
+                          child: ClipOval(child: profileImage()),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(languages.changePicture, style: inter(14, weight: FontWeight.w800, color: lys ? LysPalett.mintTekst : _mint)),
+                      ]),
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        _bloc.addProfileImage();
-                      },
-                      child: Container(
-                        margin: EdgeInsetsDirectional.only(
-                            top: deviceHeight * 0.008),
-                        child: Text(
-                          languages.changePicture,
-                          textAlign: TextAlign.center,
-                          style: bodyText(
-                              fontSize: textSizeBig,
-                              textColor: colorPrimary,
-                              fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 22),
+                  TextFormField(
+                    key: const Key('profil-navn'),
+                    controller: _bloc.fullNameTEC,
+                    style: _tekst,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: _felt(languages.fullName),
+                    validator: (value) {
+                      _bloc.buttonHide();
+                      return fullNameValidate(value);
+                    },
+                    onChanged: (_) => _bloc.buttonHide(),
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    key: const Key('profil-epost'),
+                    controller: _bloc.emailTEC,
+                    keyboardType: TextInputType.emailAddress,
+                    readOnly: !emailKanEndres,
+                    style: _tekst.copyWith(color: emailKanEndres ? null : (lys ? LysPalett.sekundar : const Color(0xFFB8D4DA))),
+                    decoration: _felt(languages.emailAddress),
+                    validator: (value) {
+                      _bloc.buttonHide();
+                      final e = validateEmailOrNumber(value ?? '');
+                      return e.isEmpty ? null : e; // '' means valid; a TextFormField takes '' as an error
+                    },
+                    onChanged: (_) => _bloc.buttonHide(),
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    key: const Key('profil-mobil'),
+                    controller: _bloc.mobileNoTEC,
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    style: _tekst,
+                    decoration: _felt(
+                      languages.mobileNumber,
+                      prefix: Padding(
+                        padding: const EdgeInsetsDirectional.only(start: 12, end: 4),
+                        child: CustomCountryCodePicker(
+                          showDropDownButton: true,
+                          arrowColor: context.lys ? LysPalett.sekundar : const Color(0xFFB8D4DA),
+                          showFlag: false,
+                          showFlagDialog: true,
+                          padding: EdgeInsets.zero,
+                          dialogSize: Size(deviceWidth * 0.9, deviceHeight * 0.9),
+                          textStyle: _tekst,
+                          dialogTextStyle: bodyText(fontSize: textSizeMediumBig, fontWeight: FontWeight.w600),
+                          onChanged: _bloc.changeCountryCode,
+                          onInit: (value) {
+                            if (value != null) _bloc.changeCountryCode(value);
+                          },
+                          initialSelection: prefGetString(prefCountryCode).trim().isNotEmpty ? prefGetString(prefCountryCode) : defaultCountryCode.name,
                         ),
                       ),
                     ),
-                  ],
-                ),
-                Container(
-                  alignment: AlignmentDirectional.topStart,
-                  margin: EdgeInsetsDirectional.only(
-                      start: deviceWidth * 0.04,
-                      end: deviceWidth * 0.04,
-                      top: deviceHeight * 0.05),
-                  child: Form(
-                    key: _bloc.formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextFormFieldCustom(
-                          controller: _bloc.fullNameTEC,
-                          useLabelWithBorder: true,
-                          decoration:
-                              InputDecoration(labelText: languages.fullName),
-                          suffix: Padding(
-                            padding: EdgeInsetsDirectional.only(
-                                end: deviceWidth * 0.04),
-                            child: Icon(
-                              CustomIcons.edit,
-                              size: deviceHeight * 0.02,
-                              color: colorMainLightGray,
-                            ),
-                          ),
-                          style: textStyle,
-                          setError: true,
-                          validator: (value) {
-                            _bloc.buttonHide();
-                            return fullNameValidate(value);
-                          },
-                        ),
-                        SizedBox(height: formSpacingVertical),
-                        TextFormFieldCustom(
-                          controller: _bloc.emailTEC,
-                          keyboardType: TextInputType.emailAddress,
-                          readOnly:
-                              prefGetString(prefLoginType) != loginTypeEmail,
-                          useLabelWithBorder: true,
-                          decoration: InputDecoration(
-                              labelText: languages.emailAddress),
-                          suffix: prefGetString(prefLoginType) == loginTypeEmail
-                              ? Padding(
-                                  padding: EdgeInsetsDirectional.only(
-                                      end: deviceWidth * 0.04),
-                                  child: Icon(
-                                    CustomIcons.edit,
-                                    size: deviceHeight * 0.02,
-                                    color: colorMainLightGray,
-                                  ),
-                                )
-                              : const SizedBox(width: 0, height: 0),
-                          style: textStyle,
-                          setError: true,
-                          validator: (value) {
-                            _bloc.buttonHide();
-                            return validateEmailOrNumber(value);
-                          },
-                        ),
-                        SizedBox(height: formSpacingVertical),
-                        TextFormFieldCustom(
-                          controller: _bloc.mobileNoTEC,
-                          keyboardType: TextInputType.phone,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly
-                          ],
-                          useLabelWithBorder: true,
-                          decoration: InputDecoration(
-                              labelText: languages.mobileNumber),
-                          suffix: Padding(
-                            padding: EdgeInsetsDirectional.only(
-                                end: deviceWidth * 0.04),
-                            child: Icon(
-                              CustomIcons.edit,
-                              size: deviceHeight * 0.02,
-                              color: colorMainLightGray,
-                            ),
-                          ),
-                          prefix: CustomCountryCodePicker(
-                            showDropDownButton: true,
-                            flagWidth: deviceHeight * 0.035,
-                            showFlag: false,
-                            showFlagDialog: true,
-                            padding: const EdgeInsets.all(0),
-                            dialogSize:
-                                Size(deviceWidth * 0.9, deviceHeight * 0.9),
-                            textStyle: textStyle,
-                            dialogTextStyle: textStyle,
-                            onChanged: _bloc.changeCountryCode,
-                            onInit: (value) {
-                              if (value != null) {
-                                _bloc.changeCountryCode(value);
-                              }
-                            },
-                            initialSelection:
-                                prefGetString(prefCountryCode).trim().isNotEmpty
-                                    ? prefGetString(prefCountryCode)
-                                    : defaultCountryCode.name,
-                          ),
-                          style: textStyle,
-                          setError: true,
-                          validator: (value) {
-                            _bloc.buttonHide();
-                            return mobileNumberValidate(value);
-                          },
-                        ),
-                        SizedBox(height: formSpacingVertical),
-                        TextFormFieldCustom(
-                          controller: _bloc.emergencyContactTEC,
-                          keyboardType: TextInputType.phone,
-                          textInputAction: TextInputAction.done,
-                          useLabelWithBorder: true,
-                          decoration: InputDecoration(
-                              labelText: languages.emergencyContact),
-                          suffix: Padding(
-                            padding: EdgeInsetsDirectional.only(
-                                end: deviceWidth * 0.04),
-                            child: Icon(
-                              CustomIcons.edit,
-                              size: deviceHeight * 0.02,
-                              color: colorMainLightGray,
-                            ),
-                          ),
-                          style: textStyle,
-                          setError: true,
-                        ),
-                      ],
-                    ),
+                    validator: (value) {
+                      _bloc.buttonHide();
+                      return mobileNumberValidate(value);
+                    },
+                    onChanged: (_) => _bloc.buttonHide(),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    key: const Key('profil-nod'),
+                    controller: _bloc.emergencyContactTEC,
+                    keyboardType: TextInputType.phone,
+                    textInputAction: TextInputAction.done,
+                    style: _tekst,
+                    decoration: _felt(languages.emergencyContact),
+                  ),
+                ],
+              ),
             ),
-          ),
         ),
-        SliverFillRemaining(
-          hasScrollBody: false,
-          child: Container(
-            alignment: Alignment.bottomCenter,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(flex: 1, child: deleteButton()),
-                Expanded(flex: 1, child: updateButton()),
-              ],
-            ),
-          ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(16, 28, 16, 20 + MediaQuery.paddingOf(context).bottom),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            updateButton(),
+            const SizedBox(height: 6),
+            deleteButton(),
+          ]),
         ),
       ],
     );
@@ -306,34 +256,17 @@ class EditProfileState extends State<EditProfile> {
     return StreamBuilder<bool>(
       stream: _bloc.submitValid,
       builder: (context, snap) {
-        bool isEnable = snap.data ?? false;
+        final isEnable = snap.data ?? false;
         return StreamBuilder<ApiResponse<LoginPojo>>(
           stream: _bloc.subject,
           builder: (context, snapLoading) {
-            var isLoading = snapLoading.hasData &&
-                snapLoading.data?.status == Status.loading;
-            return CustomRoundedButton(
-              context,
-              languages.update,
-              (isLoading || !isEnable)
-                  ? null
-                  : () {
-                      _bloc.updateProfile();
-                    },
-              setProgress: isLoading,
-              fontWeight: FontWeight.w700,
-              textSize: textSizeLarge,
-              minWidth: deviceWidth,
-              bgColor: colorPrimary,
-              textColor: colorWhite,
-              minHeight: commonBtnHeight,
-              padding: EdgeInsetsDirectional.only(
-                  start: deviceWidth * 0.02, end: deviceWidth * 0.02),
-              margin: EdgeInsetsDirectional.only(
-                start: deviceWidth * 0.02,
-                end: deviceWidth * 0.05,
-                top: deviceHeight * 0.05,
-                bottom: deviceHeight * 0.035,
+            final isLoading = snapLoading.hasData && snapLoading.data?.status == Status.loading;
+            return Opacity(
+              opacity: isEnable || isLoading ? 1 : .55,
+              child: AeKnappPille(
+                key: const Key('profil-lagre'),
+                label: isLoading ? '…' : languages.update,
+                onPressed: (isLoading || !isEnable) ? null : () => _bloc.updateProfile(),
               ),
             );
           },
@@ -346,31 +279,12 @@ class EditProfileState extends State<EditProfile> {
     return StreamBuilder<ApiResponse<BaseModel>>(
       stream: _bloc.deleteAccountSubject,
       builder: (context, snapLoading) {
-        var isLoading =
-            snapLoading.hasData && snapLoading.data?.status == Status.loading;
-        return CustomRoundedButton(
-          context,
-          languages.delete,
-          isLoading
-              ? null
-              : () {
-                  _bloc.openDeleteAccountDialog();
-                },
-          setProgress: isLoading,
-          fontWeight: FontWeight.w700,
-          textSize: textSizeLarge,
-          minWidth: deviceWidth,
-          bgColor: colorPrimary,
-          textColor: colorWhite,
-          minHeight: commonBtnHeight,
-          padding: EdgeInsetsDirectional.only(
-              start: deviceWidth * 0.02, end: deviceWidth * 0.02),
-          margin: EdgeInsetsDirectional.only(
-            start: deviceWidth * 0.05,
-            end: deviceWidth * 0.02,
-            top: deviceHeight * 0.05,
-            bottom: deviceHeight * 0.035,
-          ),
+        final isLoading = snapLoading.hasData && snapLoading.data?.status == Status.loading;
+        return TextButton(
+          key: const Key('profil-slett'),
+          onPressed: isLoading ? null : () => _bloc.openDeleteAccountDialog(),
+          child: Text(isLoading ? '…' : languages.accountDelete,
+              style: inter(14, weight: FontWeight.w800, color: context.lys ? const Color(0xFFB4421C) : const Color(0xFFFFB199))),
         );
       },
     );

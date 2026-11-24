@@ -33,6 +33,7 @@ import 'lopet_kai.dart';
 import '../kit/ae_primitiver.dart' show AeKnappPille, AeKollaps;
 import '../kit/ae_mynt.dart' show AeMynt;
 import 'lopet_data.dart';
+import '../../../utils/shared_pref_utill.dart' show prefGetBoolOr, prefSetBool;
 
 enum _Fase { start, spill, pause, slutt }
 
@@ -44,10 +45,14 @@ enum _Fase { start, spill, pause, slutt }
 /// notification and the app going to the background pause it, and it resumes with 3 · 2 · 1. No new run once the
 /// courier is within two minutes. Runs are recorded tick by tick and kept on the phone for Step 8 to submit.
 class LopetScreen extends StatefulWidget {
-  const LopetScreen({super.key, this.orderId, this.api, this.haptics, this.pollEvery = const Duration(seconds: 6), this.tilSporingEtter = const Duration(milliseconds: 1500)});
+  const LopetScreen({super.key, this.orderId, this.api, this.haptics, this.pollEvery = const Duration(seconds: 6), this.tilSporingEtter = const Duration(milliseconds: 1500), this.fraSporing});
 
   final int? orderId;
   final LopetApi? api;
+
+  /// Opened from Sporing (route argument `fra: sporing`): «Til sporing» goes back. From Hjem, Utforsk or Ægil it opens
+  /// Sporing in the quay's place (T3 GAM-D05: at the door the app went back to Hjem instead of Sporing).
+  final bool? fraSporing;
 
   /// The game's haptics (tests pass one with a fake channel); the screen makes its own otherwise.
   final GameHaptics? haptics;
@@ -78,6 +83,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   Timer? _nedtelling;
 
   int _orderId = 0;
+  bool _fraSporing = false;
   LopetState? _s;
   bool _laster = true;
   bool _stengt = false;
@@ -111,6 +117,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
 
   // Fjordløpet v1.3 plan Step 6 (spec §12.1, §4.6): flashes on the water, the near-miss zoom, the end screen's lines.
   final ValueNotifier<String?> _flash = ValueNotifier<String?>(null);
+  /// T3 Vivo: «Tap left or right to steer» on the first runs, until a run gets past the first obstacle.
+  final ValueNotifier<bool> _styrHint = ValueNotifier(false);
+  static const _styrHintPref = 'lopetStyrHintLaert';
   final ValueNotifier<double> _zoom = ValueNotifier<double>(1);
   Timer? _flashTimer;
   Timer? _zoomTimer;
@@ -120,11 +129,14 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   int _ordrePoeng = 0;
   FjordGoal? _sluttMaal;
 
-  String? _pauseGrunn; // manuell | bakgrunn | trenger
+  String? _pauseGrunn; // manuell | bakgrunn | trenger (a courier call or message, a CRITICAL push) | kort (a card for the customer)
   String? _trengerSett; // the needs-you card that already paused a run
   Timer? _doraTimer;
   String? _sluttToken; // the token of the run on the end card
   String? _sluttMaalServer; // the server's nearest goal for that run, once it answered
+  // The state as the run ended. The end card adds this run to its badge progress; the 6 s poll's newer state already
+  // counts the run once the server has it, so that one would count it twice (T3 GAM-E03).
+  LopetState? _sluttS;
   int? _teller;
 
   FjordResult? _res;
@@ -168,12 +180,13 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     super.didChangeDependencies();
     if (_orderId == 0) {
       _orderId = widget.orderId ?? int.tryParse(BergenRoutes.argsOf(context)['order_id'] ?? '') ?? 0;
+      _fraSporing = widget.fraSporing ?? BergenRoutes.argsOf(context)['fra'] == 'sporing';
       _hent();
       unawaited(LopetUtboks.send()); // runs left over from an offline session
       _poll = Timer.periodic(widget.pollEvery, (_) => _hent(stille: true));
     }
     // Fjordløpet v1.3 plan Step 5 (spec §12.2): a covered screen stops the run, as the background does.
-    final dekket = !TickerMode.valuesOf(context).enabled;
+    final dekket = !TickerMode.of(context); // same value as valuesOf(context).enabled, which needs Flutter ≥ 3.38
     if (dekket && _fase == _Fase.spill) _pause('dekket');
     // Haptics plan Step 4: covered, nothing plays (also during the freeze after a collision, which is not paused).
     if (dekket) {
@@ -207,6 +220,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _flashTimer?.cancel();
     _zoomTimer?.cancel();
     _flash.dispose();
+    _styrHint.dispose();
     unawaited(_lyder.dispose());
     // The shared instance outlives the screen: stopped, and free to play elsewhere.
     _hap
@@ -242,7 +256,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         _vedDora();
       } else if (trenger is String && trenger.isNotEmpty && trenger != _trengerSett) {
         _trengerSett = trenger;
-        _pause('trenger'); // a card that needs the customer's answer (spec §7), once per card
+        // A card that needs the customer's answer (spec §7), once per card: a delay or problem notice from the store or
+        // Ærend, not a courier message, so «Ærendet ditt trenger deg» (T3 GAM-D03).
+        _pause('kort');
       }
       return;
     }
@@ -363,6 +379,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _flash.value = null;
     loop.onTickEvents = _hap.tickEvents;
     _hap.newRun();
+    _styrHint.value = !_styrHintLaert();
     setState(() {
       _token = ledige.first;
       _loop = loop;
@@ -444,6 +461,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     final s = _s;
     if (s == null) return;
     final m = loop.sim.sailedM;
+    // The steer hint: gone by the first obstacle (40 m); past 60 m the player has learned it — not shown again.
+    if (_styrHint.value && m >= 45) _styrHint.value = false;
+    if (m >= 60 && !_styrHintLaert()) unawaited(prefSetBool(_styrHintPref, true));
     while (_porterVist < s.milestones.length && _porterVist < 3 && m >= s.milestones[_porterVist]) {
       final p = s.pointsFor(s.milestones.sublist(0, _porterVist + 1));
       _vis(LopetCopy.portPoeng(LopetCopy.porter[_porterVist], p));
@@ -574,8 +594,18 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _flashTimer = Timer(const Duration(milliseconds: 1200), () => _flash.value = null);
   }
 
+  /// Whether the player has steered past the first obstacle once (prefs missing in tests: treat as learned).
+  bool _styrHintLaert() {
+    try {
+      return prefGetBoolOr(_styrHintPref, false);
+    } catch (_) {
+      return true;
+    }
+  }
+
   void _styr(int dir) {
     if (_fase != _Fase.spill) return;
+    _styrHint.value = false;
     _loop?.input(dir);
     _hap.touch();
     _lyder.spill('bytte'); // H01 plays when the change is carried out (evLane, DH1)
@@ -588,7 +618,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _hap.hold(true); // stop, and nothing new while paused (spec §6)
     // Step 5: U03 when the player pauses, U04 the knock for «Du har en melding fra budet».
     if (grunn == 'manuell') _hap.preview(HaptikkId.u03);
-    if (grunn == 'trenger') _hap.preview(HaptikkId.u04);
+    if (grunn == 'trenger' || grunn == 'kort') _hap.preview(HaptikkId.u04);
     _nedtelling?.cancel();
     setState(() {
       _fase = _Fase.pause;
@@ -649,6 +679,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     if (poeng > _ordrePoeng) _ordrePoeng = poeng;
     final maal = _maalFor(s, res, forBeste);
     void sett() {
+      _sluttS = s;
       _sluttMaal = maal;
       _res = res;
       _sluttGrunn = grunn;
@@ -790,10 +821,15 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   void _tilSporing() {
     if (_fase == _Fase.spill) _pause('manuell');
     final nav = Navigator.of(context);
-    if (nav.canPop()) {
+    if (_fraSporing && nav.canPop()) {
       nav.pop();
-    } else {
-      BergenRoutes.push(context, '/bergen/sporing', arguments: {'id': '$_orderId'});
+      return;
+    }
+    final sporing = BergenRoutes.generate(RouteSettings(name: '/bergen/sporing', arguments: {'id': '$_orderId'}));
+    if (sporing != null) {
+      nav.pushReplacement<dynamic, dynamic>(sporing);
+    } else if (nav.canPop()) {
+      nav.pop();
     }
   }
 
@@ -811,8 +847,11 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       context: context,
       backgroundColor: const Color(0xFF103847),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      // The text is edited in the panel (`game.vilkaar`) and grows with the text size: the sheet takes its height from
+      // the text and scrolls when that is more than the screen (T3 GAM-B09: it overflowed at 9/16 of the screen).
+      isScrollControlled: true,
       builder: (ctx) => SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           key: const Key('lopet-vilkaar'),
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
           child: Column(
@@ -1163,6 +1202,34 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
             ),
           ),
         ),
+        // T3 Vivo: the first runs say how to steer (new players tapped one side into the first buoy).
+        Positioned(
+          left: 24,
+          right: 24,
+          bottom: 48 + MediaQuery.paddingOf(context).bottom,
+          child: IgnorePointer(
+            child: ValueListenableBuilder<bool>(
+              valueListenable: _styrHint,
+              // Shown or gone, no fade: nothing over the scene may be an opacity layer during play (T30, perf).
+              builder: (_, on, __) => !on
+                  ? const SizedBox.shrink()
+                  : Center(
+                  child: Container(
+                    key: const Key('lopet-styr-hint'),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(color: const Color(0xCC0C2A38), borderRadius: BorderRadius.circular(99), border: Border.all(color: Colors.white24)),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      const Icon(Icons.touch_app_rounded, size: 18, color: Color(0xFF7FF0CB)),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.chevron_left_rounded, size: 18, color: Colors.white70),
+                      Flexible(child: Text(LopetCopy.styrHint, textAlign: TextAlign.center, style: BergenTokens.text(13.5, weight: FontWeight.w800, color: Colors.white))),
+                      const Icon(Icons.chevron_right_rounded, size: 18, color: Colors.white70),
+                    ]),
+                  ),
+                ),
+            ),
+          ),
+        ),
         // One label at a time on the water: «Nære på», a gate with its points, «Ny rekord».
         Positioned(
           left: 0,
@@ -1298,7 +1365,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                 ? LopetCopy.aarsak('${cause['obstacle']}', s?.landmarkName(cause['landmark'] as String?), r.distanceM)
                 : (_sluttFraRekord != null ? LopetCopy.fraRekorden(_sluttFraRekord!) : null);
     final linje3 = _sluttMaalServer ?? _maalTekst(_sluttMaal);
-    final merke = s == null ? null : _nyttMerke(s, r);
+    final sb = _sluttS ?? s;
+    final merke = sb == null ? null : _nyttMerke(sb, r);
     final plass = s?.ladderTop.where((x) => x.me).firstOrNull?.place ?? (s?.rival == null ? null : s!.rival!.place + 1);
     int plus(String m) => switch (m) { 'crates' => r.crates, 'near_misses' => r.nearMisses, 'metres' => r.distanceM, _ => 0 };
     return ListView(
@@ -1375,7 +1443,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         if (!vedDora)
           Wrap(alignment: WrapAlignment.center, spacing: 24, children: [
             TextButton(key: const Key('lopet-til-kaien'), onPressed: () => setState(() => _fase = _Fase.start), child: Text(LopetCopy.tilKaien, style: BergenTokens.text(14, weight: FontWeight.w800, color: Colors.white))),
-            TextButton(onPressed: _tilSporing, child: Text(LopetCopy.tilSporing, style: BergenTokens.text(14, weight: FontWeight.w800, color: Colors.white))),
+            // T3 E01/E04: when the main action is already «Til sporing» (no run left, or none coming), not twice.
+            if (igjen > 0 && !(s != null && s.noNewRun))
+              TextButton(key: const Key('lopet-slutt-til-sporing'), onPressed: _tilSporing, child: Text(LopetCopy.tilSporing, style: BergenTokens.text(14, weight: FontWeight.w800, color: Colors.white))),
           ]),
         // Below: «Mer om seilasen».
         Center(
@@ -1404,7 +1474,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
               const SizedBox(width: 10),
               Expanded(child: _Stat(ikon: Icons.support_rounded, tall: '${r.vestUses}', etikett: LopetCopy.vestBruk)),
             ]),
-            if (s != null && s.badges.isNotEmpty) ...[
+            if (sb != null && sb.badges.isNotEmpty) ...[
               const SizedBox(height: 12),
               Container(
                 key: const Key('lopet-merker'),
@@ -1413,10 +1483,10 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                   Row(children: [
                     Expanded(child: Text(LopetCopy.merkerUke, style: BergenTokens.text(12, weight: FontWeight.w800, color: Colors.white.withValues(alpha: .75)).copyWith(letterSpacing: 1.1))),
-                    Text(LopetCopy.listeAv(s.badges.where((b) => b.done || b.progress + plus(b.metric) >= b.target).length, s.badges.length), style: BergenTokens.text(12.5, weight: FontWeight.w800, color: const Color(0xFFF7D57E))),
+                    Text(LopetCopy.listeAv(sb.badges.where((b) => b.done || b.progress + plus(b.metric) >= b.target).length, sb.badges.length), style: BergenTokens.text(12.5, weight: FontWeight.w800, color: const Color(0xFFF7D57E))),
                   ]),
                   const SizedBox(height: 12),
-                  Row(children: [for (final b in s.badges.take(3)) Expanded(child: LopetMerkeRing(b: b, pluss: plus(b.metric)))]),
+                  LopetMerkeRader(badges: sb.badges, pluss: plus),
                 ]),
               ),
             ],
@@ -1470,7 +1540,8 @@ class _Stat extends StatelessWidget {
       Expanded(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(tall, style: BergenTokens.display(18, weight: FontWeight.w800, color: Colors.white)),
-          Text(etikett, maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.text(12, weight: FontWeight.w700, color: Colors.white.withValues(alpha: .7))),
+          // T3 GAM-E03: «Redningsvest brukt» was cut to «Redningsvest b…» in a half-width tile.
+          Text(etikett, maxLines: 2, overflow: TextOverflow.ellipsis, style: BergenTokens.text(12, weight: FontWeight.w700, color: Colors.white.withValues(alpha: .7))),
         ]),
       ),
     ]),
@@ -1625,22 +1696,39 @@ class LopetSjokortMaler extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final visM = this.visM?.toDouble() ?? (navn ? (besteM + 200).clamp(400, 5000).toDouble() : 1200.0);
+    // Full screen (T3 Vivo): scale to what was sailed and the next gate. A fixed 400 m minimum put a 40 m run in the
+    // bottom tenth, so the chart read as an empty grey box with the ✕ under it.
+    final ende = merker.isEmpty ? 0 : merker.reduce(math.max);
+    final naadd = math.max(besteM, ende);
+    final nesteGate = s.milestones.where((g) => g > naadd).fold<int?>(null, (a, g) => a == null || g < a ? g : a);
+    final visM = this.visM?.toDouble() ?? (navn ? (math.max(naadd, nesteGate ?? naadd) * 1.15).clamp(120, 5000).toDouble() : 1200.0);
     double y(num m) => size.height - 10 - (m / visM) * (size.height - 20);
     final seen = besteM.clamp(0, visM.toInt());
+    // In full screen also what stopped you, just past the ✕.
+    final synlig = navn ? math.max(seen, ende) + 8 : seen;
     final rows = (s.course['rows'] as List?) ?? const [];
     for (final r in rows) {
       final m = ((r as Map)['d'] as num) / 1000;
       if (m > visM) break;
-      if (m > seen) continue;
+      if (m > synlig) continue;
       final lanes = [for (final l in ((r['l'] as List?) ?? const [])) (l as num).toInt()];
       final lane = lanes.isNotEmpty ? lanes.first : ((((r['p'] as Map?)?['lane']) as num?)?.toInt() ?? 1);
       final x = size.width * (lane + .5) / 3;
       canvas.drawCircle(Offset(x, y(m)), navn ? 3.4 : 2.6, Paint()..color = r['t'] == 'boye' ? const Color(0xFFE5532D) : Colors.white70);
     }
-    for (final g in s.milestones) {
+    final gates = [...s.milestones]..sort();
+    for (var i = 0; i < gates.length; i++) {
+      final g = gates[i];
       if (g > visM) continue;
       canvas.drawLine(Offset(6, y(g)), Offset(size.width - 6, y(g)), Paint()..color = const Color(0xFFF2C14E)..strokeWidth = 2);
+      if (navn) {
+        // The gate's name and distance above its line (it was an unlabelled gold line).
+        final tp = TextPainter(
+          text: TextSpan(text: '${LopetCopy.porter[i.clamp(0, 2)]} · $g m', style: const TextStyle(color: Color(0xFFF2C14E), fontSize: 11.5, fontWeight: FontWeight.w800)),
+          textDirection: TextDirection.ltr,
+        )..layout(maxWidth: size.width / 2);
+        tp.paint(canvas, Offset((size.width - tp.width) / 2, y(g) - tp.height - 3));
+      }
     }
     if (navn) {
       for (final lm in s.landmarks) {
@@ -1654,16 +1742,38 @@ class LopetSjokortMaler extends CustomPainter {
         tp.paint(canvas, Offset(right ? size.width - tp.width - 2 : 2, y(m) - tp.height / 2));
       }
     }
+    // The ✕ in the lane of what stopped the run (the first row just past it), not always mid-chart.
+    double xFor(int m) {
+      if (!navn) return size.width / 2;
+      for (final r in rows) {
+        final d = ((r as Map)['d'] as num) / 1000;
+        if (d < m) continue;
+        if (d > m + 8) break;
+        final lanes = [for (final l in ((r['l'] as List?) ?? const [])) (l as num).toInt()];
+        final lane = lanes.isNotEmpty ? lanes.first : ((((r['p'] as Map?)?['lane']) as num?)?.toInt() ?? 1);
+        return size.width * (lane + .5) / 3;
+      }
+      return size.width / 2;
+    }
     final x = Paint()..color = const Color(0xFFFF6B5A)..strokeWidth = 2.2;
     for (final m in merker) {
       if (m > visM) continue;
-      final c = Offset(size.width / 2, y(m));
+      final c = Offset(xFor(m), y(m) + (navn ? 9 : 0));
       canvas.drawLine(c + const Offset(-5, -5), c + const Offset(5, 5), x);
       canvas.drawLine(c + const Offset(-5, 5), c + const Offset(5, -5), x);
     }
     // Fog above the best distance.
     final fog = Rect.fromLTRB(0, 0, size.width, y(seen));
     canvas.drawRect(fog, Paint()..shader = LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Colors.white.withValues(alpha: .08), Colors.white.withValues(alpha: .45)]).createShader(fog));
+    if (navn && fog.height > 60) {
+      // Say what the grey is, as the small card does.
+      final tp = TextPainter(
+        text: TextSpan(text: LopetCopy.take, style: const TextStyle(color: Color(0xCCFFFFFF), fontSize: 13, fontWeight: FontWeight.w700)),
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.center,
+      )..layout(maxWidth: size.width - 40);
+      tp.paint(canvas, Offset((size.width - tp.width) / 2, fog.bottom - fog.height * .45));
+    }
   }
 
   @override

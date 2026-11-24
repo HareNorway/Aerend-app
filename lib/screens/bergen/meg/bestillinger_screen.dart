@@ -59,6 +59,9 @@ class _Ordre {
   DateTime get naar => DateTime.tryParse('${raw['ordered_at'] ?? ''}')?.toLocal() ?? DateTime.now();
   num get sum => (raw['total_pay'] as num?) ?? 0;
   num get levering => (raw['delivery_cost'] as num?) ?? 0;
+
+  /// What a «Gratis levering» premie covered (kr), shown struck through on the receipt.
+  num get premieLevering => (raw['premie_delivery'] as num?) ?? 0;
   num get tips => (raw['tip'] as num?) ?? 0;
 
   /// «Avgifter» (Kassen's service fee): the API's `service_fee`, else what the total has beyond lines, delivery
@@ -1218,7 +1221,7 @@ class _Kvittering extends StatelessWidget {
                 ],
               ),
             ),
-          if (o.levering > 0)
+          if (o.levering > 0 || o.premieLevering > 0)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Row(
@@ -1241,7 +1244,14 @@ class _Kvittering extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Expanded(child: Text(OhCopy.levering, style: inter(13.5, weight: FontWeight.w600, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .75)))),
+                  Expanded(child: Text(o.premieLevering > 0 ? OhCopy.leveringPremie : OhCopy.levering, style: inter(13.5, weight: FontWeight.w600, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .75)))),
+                  if (o.premieLevering > 0) ...[
+                    Text(OhCopy.kr((o.levering + o.premieLevering).round()),
+                        key: const Key('oh-levering-strek'),
+                        style: aeTab(inter(13.5, weight: FontWeight.w600, color: lys ? LysPalett.dempet : const Color.fromRGBO(255, 255, 255, .5)))
+                            .copyWith(decoration: TextDecoration.lineThrough)),
+                    const SizedBox(width: 8),
+                  ],
                   Text(OhCopy.kr(o.levering.round()), style: aeTab(inter(13.5, weight: FontWeight.w700, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .8)))),
                 ],
               ),
@@ -1343,7 +1353,7 @@ abstract final class OhCopy {
   static String antFra(int n, String butikk) => '${antVarer(n)} fra $butikk';
   static String kr(int n) => '${_nf(n)} kr';
   static String kroner(int n) => '+$n poeng';
-  static const String kronerNavn = 'Ærend-kroner';
+  static const String kronerNavn = 'Ærend-poeng';
   static const String betalt = 'betalt';
   static const String arkLinje = 'Kvittering og status for bestillingen';
   static const String levert = 'Levert';
@@ -1352,6 +1362,7 @@ abstract final class OhCopy {
   static const String sakLoest = 'Sak løst';
   static const String kvittering = 'Kvittering';
   static const String levering = 'Levering';
+  static const String leveringPremie = 'Levering · Gratis levering-premie';
   static const String totalt = 'Totalt';
   static const List<String> tid = ['Bestilt', 'Bekreftet', 'Tilberedes', 'På vei', 'Levert'];
   static const List<String> tidHent = ['Bestilt', 'Bekreftet', 'Tilberedes', 'Klar', 'Hentet'];

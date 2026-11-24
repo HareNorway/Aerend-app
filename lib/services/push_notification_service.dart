@@ -134,10 +134,15 @@ class PushNotificationService {
       if (await AiPushHook.vis(notificationData)) return;
     }
 
+    // v3 T1 IOS-07: on iOS a push with an alert is already shown by the system (foreground presentation alert: true,
+    // main.dart) — the local copy below was a second banner for the same push.
+    final bool systemShows = Platform.isIOS && remote.notification != null;
+
     final String? feedPayloadType =
         notificationData[NotificationConstant.feedType]?.toString();
     if (feedPayloadType == NotificationConstant.feedNewPost ||
         feedPayloadType == NotificationConstant.feedNewStory) {
+      if (systemShows) return;
       final String title =
           notificationData[NotificationConstant.title]?.toString() ?? "";
       final String message =
@@ -229,7 +234,7 @@ class PushNotificationService {
       ),
     );
 
-    final bool showTray = notificationType != 0 || !isChatOpen || isChatPayload;
+    final bool showTray = !systemShows && (notificationType != 0 || !isChatOpen || isChatPayload);
 
     if (showTray) {
       await flutterLocalNotificationsPlugin.show(

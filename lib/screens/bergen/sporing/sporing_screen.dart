@@ -127,6 +127,9 @@ class _SporingScreenState extends State<SporingScreen> {
   bool _fersk = false;
   bool _vervLukket = false;
   String? _vervKode;
+  // Gullbilletten's points from points/me/referral (the card said «Gi 100 kr, få 100 kr»; T3 PTS-D01).
+  int _vervGi = 200;
+  int _vervFaa = 200;
   SpArk? _ark;
 
   /// Bug-7a: the bottom panel's height as last laid out (it grows with «Verv en venn», the code slot, a case), so
@@ -286,7 +289,13 @@ class _SporingScreenState extends State<SporingScreen> {
     final referral = json?['referral'];
     if (!mounted || referral is! Map) return;
     final code = '${referral['code'] ?? ''}';
-    if (code.isNotEmpty) setState(() => _vervKode = code);
+    if (code.isNotEmpty) {
+      setState(() {
+        _vervKode = code;
+        _vervGi = (referral['points_for_them'] as num?)?.toInt() ?? _vervGi;
+        _vervFaa = (referral['points_for_me'] as num?)?.toInt() ?? _vervFaa;
+      });
+    }
   }
 
   /// Delivered: remember when, and fetch the order's points for SPART TID.
@@ -366,11 +375,12 @@ class _SporingScreenState extends State<SporingScreen> {
   }
 
   /// The chat key: the dark bud chat when a courier carries the order
-  /// (21 Oct `budchat`); the store's driver and the counter keep the help
-  /// sheet's message state.
+  /// (21 Oct `budchat`); the store's driver, the counter and an order still in
+  /// the kitchen (`contact.message_target` = store, even with a courier on
+  /// the run) keep the help sheet's message state.
   void _chat() {
     final t = _t;
-    if (t == null || t.isPickup || t.isPartner || t.courier == null) {
+    if (t == null || t.isPickup || t.contactIsStore || t.courier == null) {
       _openHelp(HjelpState.melding);
       return;
     }
@@ -487,7 +497,7 @@ class _SporingScreenState extends State<SporingScreen> {
   void _fjordfiske() {
     final g = _t?.raw['game'];
     if (g is Map && g['open'] == true) {
-      LopetPort.apne(context, orderId: _id, gameOpen: true);
+      LopetPort.apne(context, orderId: _id, gameOpen: true, fraSporing: true);
       return;
     }
     BergenRoutes.pushOr(context, '/bergen/fjordfiske', orElse: () => showBergenToast(context, BergenRoutes.kommerSnart));
@@ -888,12 +898,14 @@ class _SporingScreenState extends State<SporingScreen> {
         // scene 10, the label at 84; the pill ~43 tall) — in the frame it sits flush on the label.
         (kart ? kartTopp + 94 - 47 - 176 : sceneTopp);
     final visBud = !hent && s >= 2 && (t.courier != null || t.isPartner) && !t.isCancelled;
-    final slotVerv = _fersk && !_vervLukket && _vervKode != null && !t.isCancelled;
     // The design's stage 3, and (Customer Step 2) while the courier carries
     // the order with the code not yet used — when the courier scans it.
     final kodeUnderveis = !hent && s == 2 && (t.state == 'picked_up' || t.state == 'arrived_customer') && t.deliveryCode?.verifiedAt == null;
     // Not once the order is delivered or cancelled: the code has nothing left to open.
-    final slotKode = !slotVerv && _ark == null && t.deliveryCode != null && !t.isDelivered && !t.isCancelled && (hent ? s == 2 : s == 3 || kodeUnderveis);
+    final slotKode = _ark == null && t.deliveryCode != null && !t.isDelivered && !t.isCancelled && (hent ? s == 2 : s == 3 || kodeUnderveis);
+    // v3 T1 IOS-01: the referral ticket gives way to the code — a customer who stayed on Sporing since paying never
+    // saw «VIS DENNE TIL BUDET» at the door (the ticket held the slot until closed).
+    final slotVerv = !slotKode && _fersk && !_vervLukket && _vervKode != null && !t.isCancelled;
     final stadieNavn = t.isCancelled
         ? SporingCopy.a1_sporing_avbestilt
         : t.findingCourier
@@ -1091,6 +1103,8 @@ class _SporingScreenState extends State<SporingScreen> {
                 slotKode: slotKode,
                 slotVerv: slotVerv,
                 vervKode: _vervKode ?? '',
+                vervGi: _vervGi,
+                vervFaa: _vervFaa,
                 bunn: math.max(bunn - 24, 0),
                 poengNeste: SporingScreen.stegPoeng(t),
                 onSammendrag: () => setState(() => _ark = SpArk.sammendrag),

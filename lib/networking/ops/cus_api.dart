@@ -7,17 +7,29 @@ import 'ops_customer_api.dart';
 /// One line of the order's chat with the courier
 /// (`GET api/customer/orders/{id}/messages`).
 class CusMelding {
-  const CusMelding({required this.fraMeg, required this.tekst, required this.at});
+  const CusMelding({required this.fraMeg, required this.tekst, required this.at, this.fra = '', this.til, this.navn});
 
-  /// The customer's own line (`from: customer`); otherwise the courier's.
+  /// The customer's own line (`from: customer`); otherwise the courier's or the store's.
   final bool fraMeg;
   final String tekst;
   final DateTime? at;
+
+  /// v3 T1 (ORD-14): `from` (customer / courier / store — the store's answer, `customer.store_answer`), whom the
+  /// customer's own line went to (`to`: store / courier) and the store's name on its answer.
+  final String fra;
+  final String? til;
+  final String? navn;
+
+  /// A line between the customer and the store (a question before pickup, or the store's answer).
+  bool get medButikken => fra == 'store' || til == 'store';
 
   factory CusMelding.fromJson(Map<String, dynamic> j) => CusMelding(
     fraMeg: j['from'] == 'customer',
     tekst: '${j['text'] ?? ''}',
     at: DateTime.tryParse('${j['at'] ?? ''}')?.toLocal(),
+    fra: '${j['from'] ?? ''}',
+    til: j['to']?.toString(),
+    navn: j['name']?.toString(),
   );
 }
 

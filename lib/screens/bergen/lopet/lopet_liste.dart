@@ -109,7 +109,7 @@ class _Ark extends StatelessWidget {
                 Text(LopetCopy.listeAv(tatt, badges.length), style: BergenTokens.text(12.5, weight: FontWeight.w800, color: const Color(0xFFF7D57E))),
               ]),
               const SizedBox(height: 12),
-              Row(children: [for (final b in badges.take(3)) Expanded(child: LopetMerkeRing(b: b))]),
+              LopetMerkeRader(badges: badges),
             ],
           ),
           const SizedBox(height: 12),
@@ -157,6 +157,29 @@ class _Boks extends StatelessWidget {
 }
 
 /// A badge as the design's ring: progress in mint (gold when taken), the icon, the name and «22 / 40 kasser».
+/// The week's badges as rings, three to a row: every badge shows, also when the panel sets more than three a week
+/// (`game.badges_per_week`, up to 10; T3 GAM-G01 had six and only the first three showed, beside «2 av 6»).
+class LopetMerkeRader extends StatelessWidget {
+  const LopetMerkeRader({super.key, required this.badges, this.pluss});
+  final List<LopetBadge> badges;
+
+  /// What the last run added to a metric (the end card).
+  final int Function(String metric)? pluss;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      for (var i = 0; i < badges.length; i += 3) ...[
+        if (i > 0) const SizedBox(height: 12),
+        Row(children: [
+          for (var j = i; j < i + 3; j++)
+            Expanded(child: j < badges.length ? LopetMerkeRing(b: badges[j], pluss: pluss?.call(badges[j].metric) ?? 0) : const SizedBox.shrink()),
+        ]),
+      ],
+    ]);
+  }
+}
+
 class LopetMerkeRing extends StatelessWidget {
   const LopetMerkeRing({super.key, required this.b, this.pluss = 0});
   final LopetBadge b;

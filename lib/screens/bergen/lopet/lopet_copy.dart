@@ -135,6 +135,7 @@ abstract final class LopetCopy {
   static String get pyntKort => languages.lop_kai_pynt;
   static String seilt(int m) => languages.lop_kai_seilt(tallTekst(m));
   static String get altTake => languages.lop_kai_alt_take;
+  static String get styrHint => languages.lop_styr_hint;
   static String get take => languages.lop_kai_take;
   static String get nesteMaal => languages.lop_kai_neste_maal;
   static String igjen(int m) => languages.lop_kai_igjen(tallTekst(m));
@@ -182,6 +183,7 @@ abstract final class LopetCopy {
   static (String, String) pauseTekst(String? grunn) => switch (grunn) {
         'bakgrunn' => (languages.lop_p_bruker, languages.lop_p_bakgrunn_under),
         'trenger' => (languages.lop_p_melding, languages.lop_p_melding_under),
+        'kort' => (languages.lop_trenger_deg, languages.lop_p_melding_under),
         _ => (languages.lop_p_bruker, languages.lop_p_bruker_under),
       };
   static String lydTekst(bool paa) => paa ? languages.lop_p_lyd_paa : languages.lop_p_lyd_av;

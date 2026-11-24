@@ -100,6 +100,20 @@ class LopetKaiSjokort extends StatelessWidget {
 
   static const int _visM = 1200;
 
+  /// T3 GAM-B02: the gate chips overlapped («Bu», «Bø», «Bryggen +12») when gates lie close on the chart. The next
+  /// gate not yet reached gets its chip first, then the others only where they do not collide (a chip is ~76 px).
+  List<int> _synligePorter(List<int> ms, double Function(int) x, double w) {
+    final ks = [for (var k = 0; k < ms.length && k < 3; k++) if (ms[k] <= _visM) k];
+    final neste = ks.where((k) => besteM < ms[k]).firstOrNull;
+    final rekke = [if (neste != null) neste, ...ks.reversed.where((k) => k != neste)];
+    final valgt = <int>[];
+    double venstre(int k) => (x(ms[k]) - 34).clamp(0.0, w - 72);
+    for (final k in rekke) {
+      if (valgt.every((v) => (venstre(v) - venstre(k)).abs() >= 76)) valgt.add(k);
+    }
+    return valgt..sort();
+  }
+
   @override
   Widget build(BuildContext context) {
     final ms = s.milestones;
@@ -117,9 +131,10 @@ class LopetKaiSjokort extends StatelessWidget {
             Row(children: [
               const Icon(Icons.explore_outlined, size: 16, color: Color.fromRGBO(255, 255, 255, .7)),
               const SizedBox(width: 8),
-              Expanded(child: Text(LopetCopy.sjokort.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis, style: _kicker(const Color.fromRGBO(255, 255, 255, .78)))),
+              // T3 GAM-E03: the short title took the row and cut «STOPPET VED 828 M»; the status gets the room now.
+              Text(LopetCopy.sjokort.toUpperCase(), maxLines: 1, style: _kicker(const Color.fromRGBO(255, 255, 255, .78))),
               const SizedBox(width: 8),
-              Flexible(child: Text(stoppM != null ? LopetCopy.stoppet(stoppM!) : besteM > 0 ? LopetCopy.seilt(besteM) : LopetCopy.altTake, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.right, style: _kicker(const Color.fromRGBO(255, 255, 255, .78)))),
+              Expanded(child: Text(stoppM != null ? LopetCopy.stoppet(stoppM!) : besteM > 0 ? LopetCopy.seilt(besteM) : LopetCopy.altTake, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.right, style: _kicker(const Color.fromRGBO(255, 255, 255, .78)))),
               const SizedBox(width: 8),
               const Icon(Icons.open_in_full_rounded, size: 15, color: _mint),
             ]),
@@ -151,13 +166,12 @@ class LopetKaiSjokort extends StatelessWidget {
                         bottom: 0,
                         child: Center(child: Text(LopetCopy.take, maxLines: 1, overflow: TextOverflow.fade, softWrap: false, style: BergenTokens.text(11, weight: FontWeight.w700, color: const Color(0xFF2A4C55)))),
                       ),
-                    for (var k = 0; k < ms.length && k < 3; k++)
-                      if (ms[k] <= _visM)
-                        Positioned(
-                          left: (x(ms[k]) - 34).clamp(0.0, w - 72),
-                          top: 0,
-                          child: _PortChip(navn: LopetCopy.porter[k], poeng: pts[k], naadd: besteM >= ms[k]),
-                        ),
+                    for (final k in _synligePorter(ms, x, w))
+                      Positioned(
+                        left: (x(ms[k]) - 34).clamp(0.0, w - 72),
+                        top: 0,
+                        child: _PortChip(navn: LopetCopy.porter[k], poeng: pts[k], naadd: besteM >= ms[k]),
+                      ),
                   ],
                 );
               }),
@@ -264,10 +278,18 @@ class LopetMaalFlis extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Row(children: [
-            Expanded(child: Text(under, maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.text(12.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .8)))),
-            Flexible(child: Text(hoyre, maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.text(12.5, weight: FontWeight.w800, color: _gullLys))),
-          ]),
+          // T3 GAM-B03: the leader's pair («Ingen foran deg» · «Hold plassen») was cut on one line. The right part keeps
+          // its width and the left one wraps to a second line only when it must — a Wrap made every tile taller on an
+          // SE-size screen and pushed «Sett seil» off it.
+          Row(
+            key: const Key('lopet-neste-maal-under'),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: Text(under, maxLines: 2, overflow: TextOverflow.ellipsis, style: BergenTokens.text(12.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .8)))),
+              const SizedBox(width: 6),
+              Text(hoyre, maxLines: 1, style: BergenTokens.text(12.5, weight: FontWeight.w800, color: _gullLys)),
+            ],
+          ),
         ],
       ),
     );

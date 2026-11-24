@@ -10,6 +10,8 @@ import 'package:aerend_customer/game/fjordlopet/sim/engine.dart';
 import 'package:aerend_customer/screens/bergen/lopet/lopet_copy.dart';
 import 'package:aerend_customer/screens/bergen/lopet/lopet_data.dart';
 import 'package:aerend_customer/screens/bergen/lopet/lopet_screen.dart';
+import 'package:aerend_customer/utils/shared_pref_utill.dart' show initSharedPreferences;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../a3/a3_fakes.dart';
 
@@ -136,6 +138,20 @@ void main() {
     expect(loop.ghost!.result().toJson(), FjordEngine.run(_course(), 'none', inputs, stopAt: best.ticks - 200).toJson());
     expect(loop.ghost!.tick, best.ticks - 200, reason: 'it stops at its flag');
     expect(loop.ghostMm(), loop.ghost!.u / 60, reason: 'and stays there');
+  });
+
+  testWidgets('T3 Vivo: a new player sees «Tap left or right to steer»; the first tap hides it', (t) async {
+    SharedPreferences.setMockInitialValues({});
+    await initSharedPreferences();
+    await _open(t, _Api(_stateJson()));
+    await t.tap(find.byKey(const Key('lopet-sett-seil')));
+    for (var i = 0; i < 40; i++) {
+      await t.pump(const Duration(milliseconds: 16));
+    }
+    expect(find.text(LopetCopy.styrHint), findsOneWidget);
+    await t.tapAt(const Offset(60, 400));
+    await t.pump(const Duration(milliseconds: 300));
+    expect(find.byKey(const Key('lopet-styr-hint')), findsNothing, reason: 'gone after the first steer');
   });
 
   testWidgets('T24: on the smallest screen lines 1–5 fit without scrolling — the log after the lighthouse, the goal, the button', (t) async {

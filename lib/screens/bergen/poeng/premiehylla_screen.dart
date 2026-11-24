@@ -9,6 +9,7 @@ import 'package:flutter/rendering.dart' show OverflowBoxFit;
 import '../../../data/points/points_app_repo.dart';
 import '../../../data/points/points_models.dart';
 import '../../../data/points/points_rules.dart';
+import '../../../data/points/velger_api.dart';
 import '../../../data/points/voucher_api.dart';
 import '../../../utils/shared_pref_utill.dart';
 import '../../common/auth/launch/lf_css.dart';
@@ -60,9 +61,15 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
 
   /// `points/rules`: the claim validity and points expiry (Gap Step 3).
   PointsRules? _regler;
+  // T3 PTS-D04: Ægil velger's own price (`GET points/velger`, the setting points.velger_points); the card showed the
+  // cheapest premie's price instead.
+  ({int points, bool available})? _velger;
 
   /// «Finn en premie» scrolls here (`[data-premiehylla]`).
   final GlobalKey _hyllaKey = GlobalKey();
+
+  /// The «Mine premier» header, scrolled to after a claim.
+  final GlobalKey _mineKey = GlobalKey();
   bool _loading = true;
 
   /// Points plan Step 12: open premiekuponger from Ukens led.
@@ -75,9 +82,10 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
   }
 
   Future<void> _load() async {
-    final r = await Future.wait<Object?>([a3Try(_api.balance), a3Try(_api.shelf), a3Try(_api.claims), a3Try(A3Services.rules), a3Try(() => VoucherApi().list())]);
+    final r = await Future.wait<Object?>([a3Try(_api.balance), a3Try(_api.shelf), a3Try(_api.claims), a3Try(A3Services.rules), a3Try(() => VoucherApi().list()), a3Try(() => VelgerApi().pris())]);
     if (!mounted) return;
     setState(() {
+      _velger = r[5] as ({int points, bool available})? ?? _velger;
       _kuponger = (r[4] as List<PremieVoucher>?) ?? const [];
       _regler = r[3] as PointsRules? ?? _regler;
       _balance = r[0] as PointsBalance?;
@@ -144,7 +152,20 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
       return;
     }
     final claimed = await PremieArk.krev(context, p: p, poeng: _points, api: _api, gyldigDager: p.validDays ?? _regler?.claimExpiryDays);
-    if (claimed == true && mounted) _load();
+    if (claimed == true && mounted) {
+      await _load();
+      _visMinePremier();
+    }
+  }
+
+  /// T3 PRM-B06: after a claim the shelf was left scrolled down at the premie, so «Se Mine premier» closed the
+  /// celebration onto a screen without Mine premier. Bring the strip with the new claim into view behind it.
+  void _visMinePremier() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final c = _mineKey.currentContext;
+      if (c != null && c.mounted) Scrollable.ensureVisible(c, duration: const Duration(milliseconds: 350), curve: Curves.easeOutCubic, alignment: .05);
+    });
   }
 
   /// «Bruk premiekupongen?» — true when the customer chose it (claimed or refused); false lets the normal claim go on.
@@ -228,6 +249,8 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
     final ok = await showMegArk<bool>(
       context,
       key: const Key('cus-hylla-adresse-ark'),
+      // Four fields: the sheet must ride above the keyboard (T3 PRM-B06: the keyboard covered all of it).
+      tastatur: true,
       title: A4MegCopy.a4_hylla_send_adresse,
       subtitle: A4MegCopy.a4_hylla_send_adresse_sub,
       body: (ctx, _) => Column(children: [
@@ -364,7 +387,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
     final prizes = shelf?.prizes ?? const <Prize>[];
     final previews = shelf?.previews ?? const <PrizePreview>[];
     final locked = (shelf?.locked.isNotEmpty ?? false) ? shelf!.locked : previews;
-    final klare = prizes.where((p) => p.inStock && p.affordable).length;
+    final klare = prizes.where((p) => p.inStock && p.affordable && p.blockedReason != 'PREMIE_LIMIT').length;
     final byId = {for (final p in prizes) p.id: p};
     final cheapest = prizes.where((p) => p.inStock).map((p) => p.pointPrice).fold<int?>(null, (a, v) => a == null || v < a ? v : a);
     final aktive = _claims.where((c) => c.status == 'klar' || c.status == 'paa_vei').length;
@@ -409,6 +432,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
                   ),
                 if (_claims.isNotEmpty) ...[
                   Padding(
+                    key: _mineKey,
                     padding: const EdgeInsets.fromLTRB(2, 22, 2, 10),
                     child: Row(
                       children: [
@@ -508,6 +532,8 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
                         ),
                         poeng: _points,
                         ute: !p.inStock,
+                        hentetMnd: p.blockedReason == 'PREMIE_LIMIT',
+                        medKupong: _kuponger.any((k) => k.maxShelf >= p.tierBand),
                         erMaal: goal?.prizeId == p.id,
                         onHent: () => _hent(p),
                         onMaal: () => _setGoal(p),
@@ -517,10 +543,10 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
                       i: prizes.length,
                       navn: A4MegCopy.a4_hylla_velger,
                       linje: A4MegCopy.a4_hylla_velger_linje_l,
-                      pris: cheapest ?? 0,
+                      pris: _velger?.points ?? cheapest ?? 0,
                       art: const _VelgerArt(),
                       poeng: _points,
-                      ute: cheapest == null,
+                      ute: _velger == null ? cheapest == null : !_velger!.available,
                       erMaal: false,
                       velger: true,
                       onHent: _openVelger,
@@ -1260,7 +1286,7 @@ class _Billett extends StatelessWidget {
                               Text(c.prizeName ?? prize?.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(14, em: -.015, height: 1.2, color: lys ? LysPalett.tittel : Colors.white)),
                               const SizedBox(height: 2),
                               Text(
-                                PremieArk.hvordan(c.specType ?? prize?.specType ?? ''),
+                                brukt ? A4MegCopy.a4_hylla_ferdig(c.status) : PremieArk.hvordan(c.specType ?? prize?.specType ?? ''),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: inter(11, height: 1.35, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .72)),
@@ -1281,6 +1307,10 @@ class _Billett extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // A finished premie has no days left to count (it showed «59 dager igjen» and a full bar).
+                              if (brukt)
+                                Text(A4MegCopy.a4_hylla_chip_ferdig_tid, style: inter(10.5, weight: FontWeight.w800, color: lys ? LysPalett.sekundar : const Color(0xFFDCE9EC)))
+                              else ...[
                               Text(
                                 A4MegCopy.a4_hylla_dager_igjen(dager),
                                 // Lys: `m.tidC` has no `__aeM`; `--lys-gull-tekst` (as `.mk8l` turns `#F7D57E`) / `--lys-sekundar`.
@@ -1308,6 +1338,7 @@ class _Billett extends StatelessWidget {
                                   ),
                                 ),
                               ),
+                              ],
                             ],
                           ),
                         ),
@@ -1465,6 +1496,8 @@ class _PremieKort extends StatelessWidget {
     required this.art,
     required this.poeng,
     required this.ute,
+    this.hentetMnd = false,
+    this.medKupong = false,
     required this.erMaal,
     this.velger = false,
     required this.onHent,
@@ -1479,6 +1512,12 @@ class _PremieKort extends StatelessWidget {
   final Widget art;
   final int poeng;
   final bool ute;
+
+  /// T3: claimed up to the monthly limit — the claim would be refused, so no «Hent» (it offered one before).
+  final bool hentetMnd;
+
+  /// T3 #13: a premiekupong covers it — «Hent» for 0 points, not «Sett som mål» (the tap opened the coupon sheet).
+  final bool medKupong;
   final bool erMaal;
   final bool velger;
   final VoidCallback onHent;
@@ -1486,13 +1525,16 @@ class _PremieKort extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final raad = poeng >= pris && pris > 0;
-    final laast = !ute && !raad;
-    final glans = !ute && raad;
+    final raad = (poeng >= pris && pris > 0) || medKupong;
+    final av = ute || hentetMnd;
+    final laast = !av && !raad;
+    final glans = !av && raad;
     final bobD = (i % 4) * 400.0;
     final knTx = ute
         ? A4MegCopy.a4_hylla_utsolgt_mnd
-        : (raad ? A4MegCopy.a4_hylla_hent : (velger ? A4MegCopy.a4_hylla_la_aegil : (erMaal ? A4MegCopy.a4_hylla_er_maal_kn : A4MegCopy.a4_hylla_sett_som_maal)));
+        : hentetMnd
+        ? A4MegCopy.a4_hylla_hentet_mnd
+        : (medKupong && poeng < pris ? A4MegCopy.a4_hylla_hent_kupong : raad ? A4MegCopy.a4_hylla_hent : (velger ? A4MegCopy.a4_hylla_la_aegil : (erMaal ? A4MegCopy.a4_hylla_er_maal_kn : A4MegCopy.a4_hylla_sett_som_maal)));
     final visLinje = (linje ?? '').isNotEmpty && linje != 'Fra ${merke ?? ''}';
     final lys = context.lys;
 
@@ -1652,9 +1694,9 @@ class _PremieKort extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _Knapp(tekst: knTx, ute: ute, raad: raad, glans: glans, pulsDelay: (i % 3) * 450.0, onTap: onHent),
+                child: _Knapp(tekst: knTx, ute: av, raad: raad, glans: glans, pulsDelay: (i % 3) * 450.0, onTap: onHent),
               ),
-              if (raad && !ute && !velger) ...[
+              if (raad && !av && !velger) ...[
                 const SizedBox(width: 6),
                 AePress(
                   onTap: onMaal,
@@ -1697,7 +1739,7 @@ class _PremieKort extends StatelessWidget {
         ],
       ),
     );
-    if (ute)
+    if (av)
       kort = Opacity(
         opacity: .72,
         child: ColorFiltered(colorFilter: const ColorFilter.matrix(_mettet35), child: kort),

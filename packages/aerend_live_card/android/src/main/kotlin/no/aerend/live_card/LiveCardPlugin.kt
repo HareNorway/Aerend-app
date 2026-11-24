@@ -1,6 +1,8 @@
 package no.aerend.live_card
 
+import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
 import androidx.core.app.NotificationManagerCompat
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -45,6 +47,22 @@ class LiveCardPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             "cancel" -> {
                 val id = call.argument<Int>("id") ?: return result.error("args", "id", null)
                 context?.let { NotificationManagerCompat.from(it).cancel(id) }
+                result.success(null)
+            }
+            // The customer turned the card off (Meg › Konto): every card up, also one another engine posted or the
+            // «Levert på døra» card the app no longer remembers.
+            "cancelAll" -> {
+                context?.let { ctx ->
+                    val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+                    try {
+                        nm?.activeNotifications?.forEach { n ->
+                            val card = if (Build.VERSION.SDK_INT >= 26) n.notification.channelId == LiveCardRenderer.CHANNEL else n.id in 70000..79999
+                            if (card) nm.cancel(n.tag, n.id)
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.w("LiveCard", "cancelAll failed", e)
+                    }
+                }
                 result.success(null)
             }
             else -> result.notImplemented()

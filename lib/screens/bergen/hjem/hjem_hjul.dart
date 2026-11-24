@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import '../../common/home/bergen/bergen_copy.dart' show BergenCopy;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -825,7 +826,7 @@ class _SnartChip extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Text(
-              varsles ? 'Du får beskjed' : 'Kommer snart · Varsle meg',
+              varsles ? BergenCopy.duFaarBeskjed : BergenCopy.kommerSnartVarsle,
               style: inter(11, weight: FontWeight.w800, color: varsles ? const Color(0xFF0F3A40) : const Color(0xFF5A3C10)),
             ),
           ],

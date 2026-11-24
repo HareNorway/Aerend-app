@@ -304,6 +304,9 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   final TextEditingController _levNote = TextEditingController();
   final TextEditingController _pickupNote = TextEditingController();
   BergenStoreInfo? _store;
+
+  /// When [_store] was read: Kassen stays up as a tab, and a store can pause or reopen meanwhile (T1 ORD-12).
+  DateTime? _storeAt;
   bool _placing = false;
   List<KurvLine> _undone = const [];
 
@@ -486,25 +489,39 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       if (_tilbud.isEmpty) _loadTilbud();
       return;
     }
-    final results = await Future.wait([_api.preview(flex: _flex, useFreeDelivery: _brukPremie), _api.addresses()]);
+    final savedId = prefGetInt(prefNewDeliveryAddressId);
+    // T1 (2026-11-23): the saved address shows as soon as the list is in — it used to wait for the quote as well, so
+    // a slow `order-preview` left the row on «Velg adresse» meanwhile.
+    final addressesF = _api.addresses().then((addresses) {
+      if (mounted && _address == null) {
+        setState(() => _address = addresses.where((a) => a.addressId == savedId).firstOrNull ?? addresses.firstOrNull);
+      }
+      return addresses;
+    });
+    final results = await Future.wait([_api.preview(flex: _flex, useFreeDelivery: _brukPremie), addressesF]);
     if (!mounted) return;
     unawaited(_lastKodePremie(cart.storeId));
-    final addresses = results[1] as List<AddressListItem>;
-    final savedId = prefGetInt(prefNewDeliveryAddressId);
     setState(() {
       _preview = results[0] as OrderPreviewPojo?;
       _premieData = _api.lastFreeDeliveryPremie;
       _outOfCoverage = _api.lastPreviewError == 'OUT_OF_COVERAGE';
-      _address ??= addresses.where((a) => a.addressId == savedId).firstOrNull ?? addresses.firstOrNull;
     });
     if (_feeSettOre == null || cart.lines.length != _linjerSett) {
       _feeSettOre = _feeNaaOre;
       _linjerSett = cart.lines.length;
     }
     _afterQuote();
-    if (_store?.id != cart.storeId) {
+    // T1 ORD-12: read again for another store, or when the last read is 30 s old — Kassen stays up as a tab, and the
+    // store may have paused («Travelmodus») or reopened since; not on every − / + in between.
+    final at = _storeAt;
+    if (_store?.id != cart.storeId || at == null || DateTime.now().difference(at) > const Duration(seconds: 30)) {
       final store = await (widget.butikkApi ?? OpsButikkApi()).store(cart.storeId);
-      if (mounted && store != null) setState(() => _store = store);
+      if (mounted && store != null) {
+        setState(() {
+          _store = store;
+          _storeAt = DateTime.now();
+        });
+      }
       if (kDebugMode && HjemHarness.kurvKart && mounted && store != null) {
         HjemHarness.kurvKart = false;
         WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? visHentKart(context, store: store) : null);
@@ -534,6 +551,9 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   /// time zone); the API refuses a checkout while it is closed.
   bool get _stengt => _store != null && !_store!.open;
 
+  /// The «Stengt nå» slot's line: «Åpner igjen HH:MM» for a paused store (T1 ORD-12), else when the hours open it.
+  String get _stengtLine => (_store?.paused ?? false) ? KasseCopy.a1_kasse_apner_igjen(_store!.reopensAt) : KasseCopy.a1_kasse_stengt_line(_aapner);
+
   /// «12:30» from the API's opening time («12:30 PM», «12:30:00»).
   String? get _aapner {
     final t = _store?.openTime;
@@ -558,7 +578,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
         id: 'asap',
         label: _stengt ? KasseCopy.a1_kasse_stengt : KasseCopy.a1_kasse_tid_asap,
         line: _stengt
-            ? KasseCopy.a1_kasse_stengt_line(_aapner)
+            ? _stengtLine
             : KasseCopy.a1_kasse_tid_innen(hhmm(asapEnd), eta - 5, eta + 5),
       ),
       KasseSlot(id: 'slot1', label: hhmm(first), line: KasseCopy.a1_kasse_lev_middag_line, at: first),
@@ -859,7 +879,10 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     final cart = _cart;
     if (cart == null || cart.isEmpty || _placing) return false;
     if (_stengt) {
-      showBergenToast(context, KasseCopy.a1_kasse_stengt_toast(_store!.name, _aapner));
+      showBergenToast(
+        context,
+        _store!.paused ? KasseCopy.a1_kasse_pause_toast(_store!.name, _store!.reopensAt) : KasseCopy.a1_kasse_stengt_toast(_store!.name, _aapner),
+      );
       return false;
     }
     if (!await showGuestLoginSheet(context, prompt: GuestLoginPrompt.checkout)) return false;

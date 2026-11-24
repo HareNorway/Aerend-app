@@ -352,6 +352,8 @@ abstract final class SporingCopy {
     return _t('sykler siden ${no[siden.month - 1]}$aar', 'cycling since ${en[siden.month - 1]}$aar');
   }
   static String a1_sporing_er_budet(String navn) => _t('$navn er budet ditt', '$navn is your courier');
+  /// The contact card while the store has the order (`contact.message_target` = store: before pickup, no courier yet).
+  static String a1_sporing_har_bestillingen(String butikk) => _t('$butikk har bestillingen din', '$butikk has your order');
   static String a1_sporing_leverer_selv(String s) => _t('$s leverer selv', '$s delivers itself');
   static String get a1_sporing_ring_kort => _t('Ring', 'Call');
   static String get a1_sporing_send_melding => _t('Send melding', 'Send a message');
@@ -368,6 +370,10 @@ abstract final class SporingCopy {
   static String a1_sporing_skriv_til(String navn) => _t('Skriv til $navn …', 'Write to $navn …');
   static List<String> get a1_sporing_hurtig_launch =>
       _en ? const ['I am outside', 'Ring the bell', 'How long?', 'Leave it at the door'] : const ['Jeg står utenfor', 'Ring på', 'Hvor lang tid?', 'Legg den ved døra'];
+  /// «Melding til butikken» while the store has the order: the line under the title and the quick replies about the order.
+  static String get a1_sporing_til_butikken_linje => _t('Går til butikken · svaret kommer i Varsler', 'Goes to the shop · the answer comes in Notifications');
+  static List<String> get a1_sporing_hurtig_butikk =>
+      _en ? const ['When is it ready?', 'Can I add something?', 'Can I change the order?', 'Please add cutlery'] : const ['Når er den klar?', 'Kan jeg legge til noe?', 'Kan jeg endre bestillingen?', 'Husk bestikk, takk'];
   static String a1_sporing_dette_ser(String navn) => _t('Dette er det $navn ser nå.', 'This is what $navn sees now.');
   static String a1_sporing_send_veibeskrivelsen(String navn) => _t('Send veibeskrivelsen til $navn', 'Send the directions to $navn');
   static String get a1_sporing_hva_var_feil => _t('Hvilken vare var feil?', 'Which item was wrong?');

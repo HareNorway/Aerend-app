@@ -30,6 +30,10 @@ abstract final class SokCopy {
   static String get a1_sok_see => languages.ops_sok_see;
   static String get a1_sok_free => languages.ops_sok_free;
   static String get a1_sok_closed => languages.ops_sok_closed;
+  /// T1 ORD-12: a paused store — «Stengt · åpner igjen 10:19», or «Stengt · åpner igjen snart» without an end.
+  static String a1_sok_pauset(String? kl) => kl == null
+      ? _t('${languages.ops_sok_closed} · åpner igjen snart', '${languages.ops_sok_closed} · opening again soon')
+      : _t('${languages.ops_sok_closed} · åpner igjen $kl', '${languages.ops_sok_closed} · opens again $kl');
 
   // `sokVanlig` footer
   static String get a1_sok_ask_aegil => languages.ops_sok_ask_aegil;

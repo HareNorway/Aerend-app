@@ -27,10 +27,11 @@ import '../../../data/points/points_models.dart';
 import '../../../data/points/points_rules.dart';
 import '../../common/home/home_repo.dart';
 import '../../../utils/shared_pref_utill.dart';
-import '../../common/manageAddress/manage_address.dart';
-import '../../common/manageCard/manage_card.dart';
+import '../poeng/opprykk_screen.dart';
 import 'betaling_screen.dart';
-import '../../common/manageAddress/add_new_address.dart';
+import '../../common/home/bergen/bergen_adr_kilde.dart';
+import '../../common/home/home_bloc.dart';
+import '../adresse/adr_ark.dart' show visAdresseArk;
 import '../../common/manageAddress/manage_address_dl.dart';
 import '../../common/notifications/notifications_dl.dart';
 import '../../../utils/utils.dart' show setChangedLanguage, logout, isLoggedIn;
@@ -124,6 +125,9 @@ class _MegScreenBodyState extends State<MegScreenBody> {
 
   /// Debug harness: the points card opened (`megArk: poeng`).
   bool _poengApen = false;
+
+  /// The points card, scrolled to when Meg opens it from elsewhere (MegApne.poeng).
+  final GlobalKey _poengKey = GlobalKey();
   List<AddressListItem> _adresser = const [];
 
   /// Customer Step 5: this month's Tillitsregnskap (`agent/me/trust-ledger`).
@@ -338,6 +342,11 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       if (MegApne.poeng) {
         MegApne.poeng = false;
         _poengApen = true;
+        // T3 F02: «Se poengene dine» opened Meg at the top with the card below the fold — bring the open card in view.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final c = _poengKey.currentContext;
+          if (mounted && c != null && c.mounted) Scrollable.ensureVisible(c, duration: const Duration(milliseconds: 420), curve: Curves.easeOutCubic, alignment: .08);
+        });
       }
       // Customer v2 Step 6: a Varsler card («Endre» on the notice, the deep link) opens Ukeshandel on arrival.
       if (MegApne.ukeshandel case final steg?) {
@@ -350,6 +359,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       if (kDebugMode && HjemHarness.megOppdrag != null) _oppdrag = harnessOppdrag(HjemHarness.megOppdrag!);
       _loading = false;
     });
+    // T3 PTS-A06: a new level since Meg last saw one → Nivåopprykk, once (not in widget tests, which inject their api).
+    if (_brukerCache) unawaited(OpprykkVakt.sjekk(context, _balance));
     // Customer Step 14: the linked assistants for the rows; the harness opens a sheet (`ai`).
     unawaited(AiStore.instance.load());
     if (kDebugMode && HjemHarness.ai != null && !HjemHarness.ai!.startsWith('kurv')) {
@@ -467,6 +478,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     final navn = await showMegArk<String>(
       context,
       key: const Key('meg-baat-ark'),
+      // The field autofocuses: the sheet must ride above the keyboard (T3 PTS-D06: the keyboard covered all of it).
+      tastatur: true,
       title: A4MegCopy.a4_meg_baat_tittel,
       subtitle: A4MegCopy.a4_meg_baat_linje,
       body: (ctx, _) => TextField(key: const Key('meg-baat-felt'), controller: c, maxLength: 20, autofocus: true, textCapitalization: TextCapitalization.words),
@@ -555,10 +568,23 @@ class _MegScreenBodyState extends State<MegScreenBody> {
             if (rens(a.flatNo).isNotEmpty) rens(a.flatNo),
             if (merknad.isNotEmpty && !a.address.toLowerCase().startsWith(merknad.toLowerCase())) merknad,
           ].join(' · ');
-          return MegAdresse(gate: gate, detaljer: detaljer, type: switch (a.type) { 'home' => 'Hjem', 'work' => 'Jobb', _ => 'Annen' }, valgt: a.addressId == valgtId);
+          return MegAdresse(gate: gate, detaljer: detaljer, type: A4MegCopy.adrType(a.type), valgt: a.addressId == valgtId);
         }(),
     ];
-    await MegSheets.adresser(context, addresses: rader, onManage: () => _push(const ManageAddress()), onAdd: () => _push(const AddNewAddress()));
+    // T3 (Vivo): «Legg til adresse» opened the old purple «Ny adresse» screen; Hjem and Kassen use the Bergen sheet
+    // «Hvor skal ærendet?». Same here, for adding and for choosing another address.
+    await MegSheets.adresser(context, addresses: rader, onManage: () => _adresseArk(ny: false), onAdd: () => _adresseArk(ny: true));
+  }
+
+  /// The Bergen address sheet on a short-lived Hjem bloc (as Kassen's «Endre»); Meg reloads after.
+  Future<void> _adresseArk({required bool ny}) async {
+    final bloc = HomeBloc(context, this, false);
+    try {
+      await visAdresseArk(context, BergenAdrKilde(bloc), ny: ny);
+    } finally {
+      bloc.dispose();
+    }
+    if (mounted) _load();
   }
 
   Future<void> _openBetaling() async {
@@ -566,7 +592,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     final lagret = ClientFlags.on(ClientFlags.aiLinkedCheckout);
     final list = lagret ? ((await CusApi().savedCards())?.map((c) => c.navn).toList() ?? const <String>[]) : (await a3Try(A3Services.cards) ?? const <String>[]);
     if (!mounted) return;
-    await MegSheets.betaling(context, cards: list, onManage: () => _push(lagret ? const BetalingScreen() : const ManageCard()));
+    await MegSheets.betaling(context, cards: list, onManage: () => lagret ? _push(const BetalingScreen()) : MegSheets.kortIKassen(context));
   }
 
   Future<void> _openSpraak() async {
@@ -643,7 +669,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     final a = list.firstWhere((x) => x.addressId == id, orElse: () => list.first);
     String rens(String s) => s.trim().toUpperCase() == 'N/A' ? '' : s.trim();
     final deler = a.address.split(',').map(rens).where((d) => d.isNotEmpty).toList();
-    final type = switch (a.type) { 'home' => 'Hjem', 'work' => 'Jobb', _ => 'Annen' };
+    final type = A4MegCopy.adrType(a.type);
     return (type, '$type · ${deler.isEmpty ? a.address : deler.first} · ${A4MegCopy.a4_meg_steder(list.length)}');
   }
 
@@ -827,7 +853,11 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   // ── Launch layout (`erMeg`, L7339–7500, design px) ─────────────────────────
 
   /// `megBobleTx`: the goal first, then Ægil's tips, one per tap on him.
-  List<String> get _tips => [_bubble, A4MegCopy.a4_meg_tips_hylla, A4MegCopy.a4_meg_tips_nivaa, A4MegCopy.a4_meg_tips_verv, A4MegCopy.a4_meg_tips_trykk];
+  // T3 small fix #14: with points off (no balance, no points card) Ægil must not send the customer to Premiehylla
+  // or talk about points.
+  List<String> get _tips => _balance == null
+      ? [A4MegCopy.a4_meg_tips_bio]
+      : [_bubble, A4MegCopy.a4_meg_tips_hylla, A4MegCopy.a4_meg_tips_nivaa, A4MegCopy.a4_meg_tips_verv, A4MegCopy.a4_meg_tips_trykk];
 
   int _aegN = 0;
 
@@ -930,7 +960,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                               ),
                               const SizedBox(height: 14),
                               // --- Gullbilletten (L7439) --------------------------------
-                              MegGullBillett(kode: code, linje: A4MegCopy.a4_meg_gi_faa(give, get), onTap: _openBillett, onStubb: _share),
+                              MegGullBillett(kode: code, linje: _balance == null ? A4MegCopy.a4_meg_del_uten_poeng : A4MegCopy.a4_meg_gi_faa(give, get), onTap: _openBillett, onStubb: _share),
                               // --- Min Bio (L7458) --------------------------------------
                               const SizedBox(height: 14),
                               OnbMaal(id: 'bio', radius: 24, child: MinBioKort(bio: _bio, puls: _bioPuls, onTap: _openBio)),
@@ -939,6 +969,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                               if (b != null) ...[
                                 const SizedBox(height: 14),
                                 OnbMaal(
+                                  key: _poengKey,
                                   id: 'poeng',
                                   radius: 24,
                                   child: MegPoengKort(
@@ -1033,7 +1064,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     key: const Key('meg-rad-ordrer'),
                                     tile: const _GlassTile(rot: 3, d: 'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h4'),
                                     navn: A4MegCopy.a4_meg_ordrer,
-                                    under: _ordrer.isEmpty ? A4MegCopy.a4_meg_ordrer_tom : A4MegCopy.a4_meg_ordrer_sub(_ordrer.length, OhCopy.dag(DateTime.tryParse('${_ordrer.first['ordered_at'] ?? ''}')?.toLocal() ?? DateTime.now())),
+                                    under: _ordrer.isEmpty ? A4MegCopy.a4_meg_ordrer_tom : A4MegCopy.a4_meg_ordrer_sub(_ordrer.length, () { final d = DateTime.tryParse('${_ordrer.first['ordered_at'] ?? ''}')?.toLocal() ?? DateTime.now(); return A4MegCopy.sistDag(d, OhCopy.dag(d)); }()),
                                     onTap: () => _go('/bergen/meg/bestillinger'),
                                   ),
                                   // Payments plan Step 5: the numbered kvitteringer (spec v1.3 §5).
@@ -1061,8 +1092,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                       builder: (context, _) => _Rad(
                                         key: const Key('meg-rad-onb'),
                                         tile: const _GlassTile(rot: 2, d: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 8v.01M11 11.5h1v5h1'),
-                                        navn: 'Bli kjent med Ærend',
-                                        under: 'Ægil-runden · fem stopp i appen',
+                                        navn: A4MegCopy.a4_meg_bli_kjent,
+                                        under: A4MegCopy.a4_meg_bli_kjent_sub,
                                         merke: OnbStatus.instance.nyVersjon ? 'Nytt' : null,
                                         onTap: () => OnbRunde.instance.spillAv(),
                                       ),

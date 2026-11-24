@@ -2771,6 +2771,7 @@
   "lop_snart_fremme": "Budet er snart fremme",
   "lop_forsinket": "Ærendet er forsinket. Du får en ekstra seilas.",
   "lop_vest_tok": "Redningsvesten tok støyten",
+  "lop_styr_hint": "Trykk til venstre eller høyre for å styre",
   "lop_stengt": "Fjordløpet er åpent mens et ærend er på vei.",
   "lop_min_unna": "Budet er {p0} min unna",
   "lop_naere_paa": "Nære på",

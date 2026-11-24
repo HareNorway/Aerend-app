@@ -38,6 +38,39 @@ abstract final class NtfLiveCard {
   /// Show / cancel the card; the plugin on Android (see [installAndroid]), a recorder in tests.
   static Future<void> Function(int id, Map<String, Object?> view)? show;
   static Future<void> Function(int id)? cancel;
+  static Future<void> Function()? cancelAll;
+
+  /// 2026-11-23 (v3 T1 NTF-07): Meg › Konto › Innstillinger › «Varsler om krysningen · Live på låseskjermen». Set
+  /// (true) = the customer turned the card off: nothing posts or updates it, and the card is not read — so the server
+  /// never marks it up and sends no silent `customer.order.card` updates (the stage pushes stay ordinary alerts).
+  static const String prefAv = 'a3_konto_krysning_varsler_av';
+
+  /// The card is off on this phone. The engine a push wakes reloads the prefs first (see [onPush]).
+  static bool get av {
+    try {
+      return prefGetBool(prefAv);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// The Konto switch: off takes every card that is up away (any engine's, also «Levert på døra»); on lets the next
+  /// read or update show it again.
+  static Future<void> settAv(bool off) async {
+    try {
+      await prefSetBool(prefAv, off);
+    } catch (_) {}
+    if (!off) return;
+    final ids = <int>{for (final o in _shown) idFor(o), for (final k in _alle().keys) if (int.tryParse(k) case final o?) idFor(o)};
+    _shown.clear();
+    try {
+      unawaited(prefSetString(_prefKey, ''));
+    } catch (_) {}
+    for (final id in ids) {
+      await cancel?.call(id);
+    }
+    await cancelAll?.call();
+  }
 
   @visibleForTesting
   static CusApi Function() api = CusApi.new;
@@ -52,6 +85,8 @@ abstract final class NtfLiveCard {
     _shown.clear();
     show = null;
     cancel = null;
+    cancelAll = null;
+    reloadPrefs = prefReload;
     api = CusApi.new;
     now = DateTime.now;
   }
@@ -61,7 +96,13 @@ abstract final class NtfLiveCard {
     if (kIsWeb || !Platform.isAndroid) return;
     show = (id, view) => AerendLiveCard.show(id, view);
     cancel = AerendLiveCard.cancel;
+    cancelAll = AerendLiveCard.cancelAll;
   }
+
+  /// Re-reads the prefs from disk: the engine a push wakes can outlive many pushes, and its prefs are the ones it
+  /// loaded when it started — not the switch the customer flipped since in the app.
+  @visibleForTesting
+  static Future<void> Function() reloadPrefs = prefReload;
 
   static int idFor(int orderId) => 70000 + orderId % 10000;
 
@@ -163,6 +204,8 @@ abstract final class NtfLiveCard {
     // Only where the app can show the card (Android): reading it tells the server the card is up and turns the
     // stage pushes into silent updates — on iOS (no Live Activity yet) the customer keeps the pushes.
     if (show == null) return false;
+    // Turned off in Konto: not read either, so the server sends no card updates for it.
+    if (av) return false;
     final r = await api().liveCard(orderId).catchError((_) => null);
     if (r == null || !r.enabled) return false;
     return apply(orderId, r.card);
@@ -171,6 +214,13 @@ abstract final class NtfLiveCard {
   /// A card state (from the read or a silent push): shown while live, «Levert» when delivered, gone otherwise.
   static Future<bool> apply(int orderId, Map<String, dynamic> card) async {
     final id = idFor(orderId);
+    if (av) {
+      // Off in Konto: never posted or updated; one still up (another engine's) goes.
+      await cancel?.call(id);
+      _shown.remove(orderId);
+      _glem(orderId);
+      return false;
+    }
     final merged = <String, dynamic>{..._husket(orderId), ...card};
     if ('${merged['state'] ?? ''}' == 'delivered') {
       await show?.call(id, view(orderId, merged));
@@ -216,8 +266,12 @@ abstract final class NtfLiveCard {
   }
 
   /// Any push (the background handler): a card update or an order push.
-  static Future<void> onPush(Map<String, dynamic> d) =>
-      '${d['kind'] ?? ''}' == 'ntf.live_card' ? fromPush(d) : fromOrderPush(d);
+  static Future<void> onPush(Map<String, dynamic> d) async {
+    try {
+      await reloadPrefs();
+    } catch (_) {}
+    await ('${d['kind'] ?? ''}' == 'ntf.live_card' ? fromPush(d) : fromOrderPush(d));
+  }
 
   /// The order is delivered (Sporing shows it): «Levert på døra» for a while; cancelled: gone.
   static Future<void> end(int orderId, {bool delivered = false}) async {

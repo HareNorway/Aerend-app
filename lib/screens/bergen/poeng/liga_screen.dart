@@ -179,7 +179,8 @@ class _LigaScreenState extends State<LigaScreen> {
     final plass = own == null
         ? A3PoengCopy.a3_poeng_liga_ute
         : (own.rank > 0
-            ? A3PoengCopy.a3_poeng_liga_min_plass(own.rank, l?.displayName ?? _fornavn)
+            // Hidden: others see «Skjult klatrer», so that is what «vises som» says (T3 PTS-C01).
+            ? A3PoengCopy.a3_poeng_liga_min_plass(own.rank, l?.visibility == 'skjult' ? 'Skjult klatrer' : (l?.displayName ?? _fornavn))
             : (own.employee ? A3PoengCopy.a3_poeng_liga_ansatt : A3PoengCopy.a3_poeng_liga_ikke_rangert(own.orders, l?.minOrders ?? 3)));
     return Scaffold(
       backgroundColor: const Color(0xFF173E48),

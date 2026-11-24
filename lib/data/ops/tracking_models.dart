@@ -35,6 +35,8 @@ class OpsTracking {
   static const String modePickup = 'pickup';
   static const String actorCourier = 'aerend_courier';
   static const String actorPartner = 'partner';
+  static const String targetStore = 'store';
+  static const String targetCourier = 'courier';
 
   final String orderId;
   final String state;
@@ -75,6 +77,11 @@ class OpsTracking {
   bool get isDelivered => state == 'delivered';
   bool get isCancelled => state == 'cancelled';
   bool get hasWindow => promisedStart != null && promisedEnd != null;
+
+  /// The server's contact routing (`contact.message_target`, contract §5.1):
+  /// Ring / Send melding reach the store while the order is in the kitchen
+  /// and for partner orders, the courier once it is on its way.
+  bool get contactIsStore => isPartner || messageTarget != targetCourier;
 
   /// "kontaktRolle": butikken for partner orders, else bud.
   String get contactRole => isPartner ? 'butikken' : 'bud';

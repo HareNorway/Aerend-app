@@ -18,6 +18,7 @@ import 'package:aerend_customer/screens/bergen/kit/drape_route.dart';
 import 'package:aerend_customer/screens/common/home/home_dl.dart';
 import 'package:aerend_customer/screens/deliveryService/home/ds_home_store_list_pojo.dart';
 import 'package:aerend_customer/screens/deliveryService/searchStore/search_store_dl.dart';
+import 'package:aerend_customer/screens/deliveryService/storeDetail/store_detail_dl.dart';
 
 import '../layout/reduced_motion_harness.dart';
 
@@ -140,10 +141,13 @@ BergenMenuItem _item(int id, String name, double price, {double? was, String? ca
   description: 'Beskrivelse',
 );
 
-BergenStoreInfo _restaurant() => BergenStoreInfo(
+BergenStoreInfo _restaurant({bool paused = false, String? reopensAt}) => BergenStoreInfo(
   id: 7,
   name: 'Burger King',
   kind: BergenStoreKind.restaurant,
+  open: !paused,
+  paused: paused,
+  reopensAt: reopensAt,
   closeTime: '22:30',
   deliveryMinutes: 30,
   deliveryChargeKr: 39,
@@ -457,6 +461,53 @@ void main() {
       await tester.pump(const Duration(milliseconds: 600));
       expect(find.byKey(const Key('a1_butikk_info_sheet')), findsOneWidget);
       expect(find.text('10:00–22:30'), findsOneWidget);
+    });
+
+    testWidgets('T1 ORD-12: a paused store says «Åpner igjen HH:MM», not «Kjøkkenet er i gang» / «Åpent til»', (tester) async {
+      _frame(tester);
+      Future<void> pump(BergenStoreInfo store) async {
+        await tester.pumpWidget(
+          // A new key per store: the screen reads `preloaded` once.
+          _app(ButikkScreen(key: ValueKey('${store.paused}${store.reopensAt}'), storeId: 7, preloaded: store, api: _FakeButikk(), customerApi: _FakeCustomer(), kasseApi: _FakeKasse())),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+      }
+
+      String kjokken() => tester.widget<Text>(find.byKey(const Key('a1_butikk_kjokken'))).data!;
+
+      await pump(_restaurant());
+      expect(kjokken(), ButikkCopy.a1_butikk_kjokken);
+      expect(find.text(ButikkCopy.a1_butikk_open_til('22:30')), findsWidgets, reason: 'the hero line and the hours tile');
+
+      await pump(_restaurant(paused: true, reopensAt: '10:19'));
+      expect(kjokken(), 'Åpner igjen 10:19');
+      expect(find.text(ButikkCopy.a1_butikk_open_til('22:30')), findsNothing);
+      expect(find.text(ButikkCopy.a1_butikk_apner_igjen('10:19')), findsWidgets, reason: 'the pill and the hours tile');
+
+      // The auto-pause has no end: «Åpner igjen snart».
+      await pump(_restaurant(paused: true));
+      expect(kjokken(), 'Åpner igjen snart');
+    });
+
+    test('T1 ORD-12: the store page and the store list read the server\'s pause', () {
+      final info = BergenStoreInfo.fromPojo(StoreDetailsPojo.fromJson({
+        'status': 1, 'store_id': 95, 'store_name': 'Red Sun (Test)', 'store_status': 0, 'delivery_time': 15,
+        'open_time': '00:00', 'close_time': '23:59', 'ops_availability': 'paused_manual', 'reopens_at': '10:19',
+      }));
+      expect(info.open, isFalse);
+      expect(info.paused, isTrue);
+      expect(info.reopensAt, '10:19');
+
+      final open = BergenStoreInfo.fromPojo(StoreDetailsPojo.fromJson({'status': 1, 'store_id': 95, 'store_status': 1, 'delivery_time': 15, 'ops_availability': 'open', 'reopens_at': null}));
+      expect(open.open, isTrue);
+      expect(open.paused, isFalse);
+      // An older server without the keys: open as before.
+      expect(BergenStoreInfo.fromPojo(StoreDetailsPojo.fromJson({'status': 1, 'store_id': 95, 'store_status': 1, 'delivery_time': 15})).paused, isFalse);
+
+      final row = StoreListItem.fromJson({'store_id': 95, 'store_status': 0, 'ops_availability': 'paused_auto', 'reopens_at': null});
+      expect(row.paused, isTrue);
+      expect(row.reopensAt, isNull);
     });
 
     testWidgets('the menu: the orbs filter, the search pill finds dishes', (tester) async {

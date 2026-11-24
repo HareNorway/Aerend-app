@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../game/fjordlopet/haptics/game_haptics.dart';
 import '../../../game/fjordlopet/haptics/haptikk_moenster.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 import 'lopet_copy.dart';
 import 'lopet_liste.dart';
 
@@ -50,10 +52,14 @@ class _LopetLaastRadState extends State<LopetLaastRad> {
       key: const Key('lopet-laast-rad'),
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.fromLTRB(14, 11, 14, 11),
-      decoration: BoxDecoration(color: const Color(0x14FFFFFF), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0x29FFFFFF))),
+      // Lys: Premiehylla is light, so the row needs dark text on a light card (T3: white on white).
+      decoration: BoxDecoration(
+          color: context.aeM(const Color(0x14FFFFFF), Colors.white),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: context.aeM(const Color(0x29FFFFFF), LysPalett.kantFarge))),
       child: Row(
         children: [
-          const Icon(Icons.lock_rounded, color: Color(0xFFF7D57E), size: 18),
+          Icon(Icons.lock_rounded, color: context.aeM(const Color(0xFFF7D57E), LysPalett.gullTekst), size: 18),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -61,11 +67,11 @@ class _LopetLaastRadState extends State<LopetLaastRad> {
               children: [
                 Text(
                   [LopetCopy.megRad(best, (s['place'] as num?)?.toInt(), '${s['losgrad'] ?? ''}'), if (weeks > 0) LopetCopy.uker(weeks)].join(' · '),
-                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800),
+                  style: TextStyle(color: context.aeM(Colors.white, LysPalett.tittel), fontSize: 13, fontWeight: FontWeight.w800),
                 ),
                 if (maal != null)
-                  Text(maal, style: const TextStyle(color: Color(0xFF7FF0CB), fontSize: 12, fontWeight: FontWeight.w700)),
-                Text(LopetCopy.nesteSeilas, style: const TextStyle(color: Color(0xB3FFFFFF), fontSize: 11.5, fontWeight: FontWeight.w600)),
+                  Text(maal, style: TextStyle(color: context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst), fontSize: 12, fontWeight: FontWeight.w700)),
+                Text(LopetCopy.nesteSeilas, style: TextStyle(color: context.aeM(const Color(0xB3FFFFFF), LysPalett.sekundar), fontSize: 11.5, fontWeight: FontWeight.w600)),
               ],
             ),
           ),

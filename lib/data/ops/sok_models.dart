@@ -10,6 +10,8 @@ class SokButikk {
     this.feeText,
     this.bannerUrl,
     this.open = true,
+    this.paused = false,
+    this.reopensAt,
   });
 
   final int id;
@@ -20,6 +22,12 @@ class SokButikk {
   final String? feeText;
   final String? bannerUrl;
   final bool open;
+
+  /// T1 ORD-12: paused in ops (`ops_availability`); [open] is false then too.
+  final bool paused;
+
+  /// «HH:MM» when the pause ends (`reopens_at`), else null.
+  final String? reopensAt;
 }
 
 class SokProdukt {

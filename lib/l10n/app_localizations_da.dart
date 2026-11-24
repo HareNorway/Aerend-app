@@ -4930,7 +4930,7 @@ class AppLocalizationsDa extends AppLocalizations {
   String get aegil_sok_kat => 'Søk og kategorier';
 
   @override
-  String get aegil_spor => 'Hva trenger du i kveld?';
+  String get aegil_spor => 'What do you need tonight?';
 
   @override
   String get aegil_send => 'Send';
@@ -5097,7 +5097,7 @@ class AppLocalizationsDa extends AppLocalizations {
   String get aegil_brett_tom => 'Ingenting nytt akkurat nå.';
 
   @override
-  String get aegil_greeting => 'Hei! Hva trenger du i kveld?';
+  String get aegil_greeting => 'Hi! What do you need tonight?';
 
   @override
   String get pts_premiehylla_title => 'Premiehylla';
@@ -8600,6 +8600,9 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get lop_vest_tok => 'Your life vest took the hit';
+
+  @override
+  String get lop_styr_hint => 'Tap left or right to steer';
 
   @override
   String get lop_stengt => 'Fjordløpet is open while an order is on its way.';

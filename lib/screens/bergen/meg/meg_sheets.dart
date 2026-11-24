@@ -834,6 +834,20 @@ abstract final class MegSheets {
   /// `adresser`: the saved addresses — the delivery address chosen (street,
   /// the door details under it, its type as a pill, the check), the others
   /// open the address screen — and "Legg til adresse".
+  /// T3 (Vivo): «Legg til kort» opened the old purple card screens, which post the card number and CVC to Ærend's own
+  /// API (stored as-is in `card_details`). Without Stripe-saved cards (cus.ai.linked_checkout) a card is added where it
+  /// is used: Kassen's Stripe sheet. This sheet says so instead.
+  static Future<void> kortIKassen(BuildContext context) {
+    return showMegArk<void>(
+      context,
+      key: const Key('meg-kort-i-kassen'),
+      title: A4MegCopy.a4_meg_kort_tittel,
+      subtitle: A4MegCopy.a4_meg_kort_linje,
+      body: (ctx, _) => const SizedBox.shrink(),
+      primary: MegArkButton(key: const Key('meg-kort-ok'), label: A4MegCopy.a4_meg_kort_ok, onTap: () => Navigator.of(context).pop()),
+    );
+  }
+
   static Future<void> adresser(BuildContext context, {required List<MegAdresse> addresses, required VoidCallback onManage, required VoidCallback onAdd}) {
     return showMegArk<void>(
       context,

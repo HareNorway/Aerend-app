@@ -96,6 +96,15 @@ class StoreDetailsPojo {
   /// Forhåndsvisning, in its saved order (on-sale only; empty when none).
   List<int> get featuredProductIds => _featuredProductIds;
 
+  /// T1 ORD-12: `ops_availability` — `open`, `paused_manual` (Travelmodus) or `paused_auto`. A paused store is
+  /// `store_status` 0 too.
+  String opsAvailability = 'open';
+
+  /// `reopens_at`: when the pause ends, «HH:MM» in the store's time zone; null when it has no end.
+  String? reopensAt;
+
+  bool get paused => opsAvailability == 'paused_manual' || opsAvailability == 'paused_auto';
+
   int get messageCode => _messageCode ?? 0;
 
   int get storeId => _storeId ?? 0;
@@ -270,6 +279,8 @@ class StoreDetailsPojo {
     _storeBanner = json["store_banner"];
     _storeLogo = json["store_logo"];
     _storeStatus = json["store_status"];
+    opsAvailability = json["ops_availability"] is String ? json["ops_availability"] as String : 'open';
+    reopensAt = json["reopens_at"] is String && (json["reopens_at"] as String).isNotEmpty ? json["reopens_at"] as String : null;
     _cartsSelectedStoreCateId = json["carts_selected_store_cate_id"];
     _storeCatName = json["store_cat_name"];
     _storeCatIcon = json["store_cat_icon"];
@@ -356,6 +367,8 @@ class StoreDetailsPojo {
     map["is_fav_store"] = _isFavourite;
     map["taken_away_type"] = _takenAwayType;
     map["featured_product_ids"] = _featuredProductIds;
+    map["ops_availability"] = opsAvailability;
+    map["reopens_at"] = reopensAt;
     if (_categoryWiseProductList != null) {
       map["category_wise_product_list"] =
           _categoryWiseProductList?.map((v) => v.toJson()).toList();

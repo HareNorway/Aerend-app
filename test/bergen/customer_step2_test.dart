@@ -176,6 +176,18 @@ void main() {
     expect(find.byKey(const Key('cus-budchat')), findsNothing);
   });
 
+  test('v3 T1: the bud chat leaves out the questions to the store and its answers (they live in «Melding til butikken»)', () async {
+    final traad = BudChatTraad(orderId: 4471, api: _FakeOps(), cus: _FakeCus([
+      CusMelding(fraMeg: true, tekst: 'Har dere soyasaus?', at: DateTime(2026, 11, 23, 18, 1), fra: 'customer', til: 'store'),
+      CusMelding(fraMeg: false, tekst: 'Ja, i posen', at: DateTime(2026, 11, 23, 18, 2), fra: 'store', navn: 'Red Sun (Test)'),
+      CusMelding(fraMeg: true, tekst: 'Jeg står utenfor', at: DateTime(2026, 11, 23, 18, 20), fra: 'customer', til: 'courier'),
+      CusMelding(fraMeg: false, tekst: 'Kommer!', at: DateTime(2026, 11, 23, 18, 21), fra: 'courier'),
+    ]));
+    await traad.hent();
+    expect(traad.meldinger.map((m) => m.tekst), ['Jeg står utenfor', 'Kommer!']);
+    traad.dispose();
+  });
+
   test('a line that does not go is taken back and left in the field', () async {
     final ops = _FakeOps()..svar = null;
     final traad = BudChatTraad(orderId: 4471, api: ops, cus: _FakeCus(const []));

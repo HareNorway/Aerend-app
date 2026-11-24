@@ -902,24 +902,30 @@ class LfBalanced extends StatelessWidget {
 /// CSS `text-wrap: pretty` (the part that shows): no single word alone on
 /// the last line — the box narrows just enough to carry a second word down.
 class LfPretty extends StatelessWidget {
-  const LfPretty(this.text, {super.key, required this.style, this.align = TextAlign.start});
+  const LfPretty(this.text, {super.key, required this.style, this.align = TextAlign.start, this.maxLines});
 
   final String text;
   final TextStyle style;
   final TextAlign align;
+
+  /// Optional cap (with an ellipsis) for a box of fixed height.
+  final int? maxLines;
+
+  Text _t(String text) => Text(text, style: style, textAlign: align, maxLines: maxLines, overflow: maxLines == null ? null : TextOverflow.ellipsis);
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, box) {
         final max = box.maxWidth;
-        if (!max.isFinite || !text.contains(' ')) return Text(text, style: style, textAlign: align);
+        if (!max.isFinite || !text.contains(' ')) return _t(text);
         final scaler = MediaQuery.textScalerOf(context);
         (int, bool) probe(double w) {
           final tp = TextPainter(
             text: TextSpan(text: text, style: style),
             textDirection: TextDirection.ltr,
             textScaler: scaler,
+            maxLines: maxLines,
           )..layout(maxWidth: w);
           final lines = tp.computeLineMetrics();
           final n = lines.length;
@@ -933,19 +939,19 @@ class LfPretty extends StatelessWidget {
         }
 
         final (n, orphan) = probe(max);
-        if (!orphan) return Text(text, style: style, textAlign: align);
+        if (!orphan) return _t(text);
         var w = max;
         for (var i = 0; i < 40; i++) {
           w -= 4;
-          if (w < max * .6) return Text(text, style: style, textAlign: align);
+          if (w < max * .6) return _t(text);
           final (n2, o2) = probe(w);
-          if (n2 > n) return Text(text, style: style, textAlign: align);
+          if (n2 > n) return _t(text);
           if (!o2) break;
         }
         return Align(
           alignment: align == TextAlign.center ? Alignment.topCenter : Alignment.topLeft,
           widthFactor: 1,
-          child: SizedBox(width: w, child: Text(text, style: style, textAlign: align)),
+          child: SizedBox(width: w, child: _t(text)),
         );
       },
     );
