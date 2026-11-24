@@ -15728,6 +15728,12 @@ abstract class AppLocalizations {
   /// **'THE QUAY · START'**
   String get lop_kart_start;
 
+  /// No description provided for @lop_sporing_lenke.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking'**
+  String get lop_sporing_lenke;
+
   /// No description provided for @lop_kai_neste_maal.
   ///
   /// In en, this message translates to:

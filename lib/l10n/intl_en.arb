@@ -5452,6 +5452,7 @@
   "lop_kai_alt_take": "ALL IN FOG",
   "lop_kai_take": "Fog · sail further to see more",
   "lop_kart_start": "THE QUAY · START",
+  "lop_sporing_lenke": "Tracking",
   "lop_kai_neste_maal": "NEXT GOAL",
   "lop_kai_igjen": "{p0} m to go",
   "@lop_kai_igjen": {"placeholders": {"p0": {"type": "Object"}}},

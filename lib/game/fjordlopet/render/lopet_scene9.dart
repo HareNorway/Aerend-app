@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show Listenable;
 import 'package:flutter/rendering.dart';
 
 import '../sim/engine.dart';
@@ -177,66 +178,23 @@ class LopetFx9 {
 ///
 /// Units are the design's: x and y in logical px, distances in mm, the zoom m in px per metre (16.5 at the start, 12.5
 /// at full speed), sprite scale k = m / 17. The course is the app's (rows, crates, kayaks, landmarks — plan D3).
-class LopetScene9 extends CustomPainter {
-  LopetScene9({
-    required this.loop,
-    required this.atlas,
-    required this.sea,
-    required this.fx,
-    required this.flags,
-    required this.milestones,
-    required this.mode,
-    this.level = 'Bronse',
-    this.vimpel = '',
-    this.figur = '',
-    this.kjol = '',
-    this.rolig = false,
-    this.quality,
-    this.ghostLabelTicks = 170,
-    List<Map> landmarks = const [],
-  }) : super(repaint: loop) {
-    for (final l in landmarks) {
-      final id = _lmIds[l['k']];
-      if (id == null) continue;
-      _lm.add((((l['d'] as num?) ?? 0).toDouble(), id, ((l['s'] as num?)?.toInt() ?? -1) < 0 ? 0 : 1));
-    }
-  }
-
-  final FjordLoop loop;
-  final LopetAtlas9 atlas;
-  final LopetSea9? sea;
-  final LopetFx9 fx;
-  final LopetFlags9 flags;
-  final List<int> milestones;
-  final LopetMode mode;
-  final String level, vimpel, figur, kjol;
-  final bool rolig;
-  final LopetQuality? quality;
-  final int ghostLabelTicks;
-
-  static const Map<String, int> _lmIds = {'naust': 0, 'kran': 1, 'fyr': 2, 'akvariet': 3, 'festningen': 4, 'seilskute': 5, 'verftet': 6, 'sjobad': 7};
-  final List<(double, int, int)> _lm = [];
-
-  static const double m0 = 17, kant = 30;
-  static const List<int> bkLys = [68, 20, 104, 76, 0];
-  static const List<double> mint3 = [.361, .878, .722], gull3 = [.949, .757, .306], hvit3 = [1, 1, 1];
-  static const List<int> fxc = [0xFFFFFF, 0x7FF0CB, 0xF2C14E, 0x5CE0B8, 0x9A6A3C, 0xC99862, 0xF5F3EF, 0xFFE3A3];
-  static const List<int> gnKasse = [1, 2, 0], gnVest = [1, 0], ksGull = [2, 3, 0], ksMint = [3, 2, 0];
-
-  // ── the sprite batch (the design's `spr`/`sprV`) ─────────────────────────
-
+/// Design (9) 1:1 plan: the design's sprite batch (`spr`/`sprV` into one vertex buffer: a quad with UVs and a colour
+/// per sprite, the colour multiplied in, a negative alpha adding light), drawn with `drawVertices` in runs of one blend.
+mixin LopetSprBatch9 {
   static const int cap = 2400;
   static final Float32List _pos = Float32List(cap * 12), _uv = Float32List(cap * 12);
   static final Int32List _col = Int32List(cap * 6);
   static final Uint8List _add = Uint8List(cap);
   int _n = 0;
+  int get spriteCount => _n;
+  void resetSprites() => _n = 0;
   final Paint _norm = Paint()..filterQuality = FilterQuality.medium;
   final Paint _plus = Paint()
     ..filterQuality = FilterQuality.medium
     ..blendMode = BlendMode.plus;
 
-  late final Map<String, int> _id = atlas.ids;
-  int _a(String n) => _id[n] ?? -1;
+  LopetAtlas9 get atlas;
+  int _a(String n) => atlas.ids[n] ?? -1;
 
   void spr(int id, double x, double y, double sx, double sy, double rot, double r, double g, double b, double a) {
     final n = _n;
@@ -316,7 +274,7 @@ class LopetScene9 extends CustomPainter {
     _quad(n, x0, ya, x1, ya, x1, yb, x0, yb, S[o], t0, S[o + 2], t1, r, g, b, a);
   }
 
-  void _flush(Canvas canvas) {
+  void flushSprites(Canvas canvas) {
     if (_n == 0) return;
     final shader = ImageShader(atlas.image, TileMode.clamp, TileMode.clamp, Matrix4Identity.m, filterQuality: FilterQuality.medium);
     _norm.shader = shader;
@@ -339,6 +297,55 @@ class LopetScene9 extends CustomPainter {
       s = e;
     }
   }
+
+}
+
+class LopetScene9 extends CustomPainter with LopetSprBatch9 {
+  LopetScene9({
+    required this.loop,
+    required this.atlas,
+    required this.sea,
+    required this.fx,
+    required this.flags,
+    required this.milestones,
+    required this.mode,
+    this.level = 'Bronse',
+    this.vimpel = '',
+    this.figur = '',
+    this.kjol = '',
+    this.rolig = false,
+    this.quality,
+    this.ghostLabelTicks = 170,
+    List<Map> landmarks = const [],
+  }) : super(repaint: loop) {
+    for (final l in landmarks) {
+      final id = _lmIds[l['k']];
+      if (id == null) continue;
+      _lm.add((((l['d'] as num?) ?? 0).toDouble(), id, ((l['s'] as num?)?.toInt() ?? -1) < 0 ? 0 : 1));
+    }
+  }
+
+  final FjordLoop loop;
+  @override
+  final LopetAtlas9 atlas;
+  final LopetSea9? sea;
+  final LopetFx9 fx;
+  final LopetFlags9 flags;
+  final List<int> milestones;
+  final LopetMode mode;
+  final String level, vimpel, figur, kjol;
+  final bool rolig;
+  final LopetQuality? quality;
+  final int ghostLabelTicks;
+
+  static const Map<String, int> _lmIds = {'naust': 0, 'kran': 1, 'fyr': 2, 'akvariet': 3, 'festningen': 4, 'seilskute': 5, 'verftet': 6, 'sjobad': 7};
+  final List<(double, int, int)> _lm = [];
+
+  static const double m0 = 17, kant = 30;
+  static const List<int> bkLys = [68, 20, 104, 76, 0];
+  static const List<double> mint3 = [.361, .878, .722], gull3 = [.949, .757, .306], hvit3 = [1, 1, 1];
+  static const List<int> fxc = [0xFFFFFF, 0x7FF0CB, 0xF2C14E, 0x5CE0B8, 0x9A6A3C, 0xC99862, 0xF5F3EF, 0xFFE3A3];
+  static const List<int> gnKasse = [1, 2, 0], gnVest = [1, 0], ksGull = [2, 3, 0], ksMint = [3, 2, 0];
 
   // ── frame state (fields: nothing allocated per object) ───────────────────
 
@@ -445,7 +452,7 @@ class LopetScene9 extends CustomPainter {
     _lys = mode != LopetMode.dag;
     final regn = mode == LopetMode.regn;
     _rimA = regn ? .6 : 0;
-    _n = 0;
+    resetSprites();
     _obN = 0;
     _ob.fillRange(0, 48, 0);
 
@@ -735,8 +742,8 @@ class LopetScene9 extends CustomPainter {
     } else {
       canvas.drawRect(Offset.zero & size, Paint()..color = Color(_lowDeep[mode] ?? 0xFF19434F));
     }
-    lastCount = _n;
-    _flush(canvas);
+    lastCount = spriteCount;
+    flushSprites(canvas);
   }
 
   static const Map<LopetMode, int> _lowDeep = {LopetMode.dag: 0xFF2F7384, LopetMode.kveld: 0xFF1E4F5C, LopetMode.regn: 0xFF2B5661};
@@ -1051,4 +1058,79 @@ class LopetScene9 extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant LopetScene9 old) => old.atlas != atlas || old.sea != sea || old.mode != mode || old.level != level;
+}
+
+
+/// Design (9) 1:1 plan Step 4: the quay's boat (the design's `kaiSprites`): moored to a buoy by a sagging rope in Vågen,
+/// bobbing and rolling in the shared wave field, the oars resting, with its shadow and reflection. Drawn over Home's
+/// scene; [repaint] ticks it (30 frames a second is plenty, as the design's idle loop).
+class LopetKaiBaat9 extends CustomPainter with LopetSprBatch9 {
+  LopetKaiBaat9({required this.atlas, required this.mode, this.level = 'Bronse', this.vimpel = '', this.figur = '', this.rolig = false, required Listenable repaint}) : super(repaint: repaint);
+
+  @override
+  final LopetAtlas9 atlas;
+  final LopetMode mode;
+  final String level, vimpel, figur;
+  final bool rolig;
+
+  static double _hoyde(double x, double t, double ph) => 2.4 * math.sin(t * 1.05 + x * .017 + ph) + 1.3 * math.sin(t * 1.73 - x * .031 + ph * 1.7) + .6 * math.sin(t * 2.9 + x * .07);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    resetSprites();
+    final w = size.width, t = (DateTime.now().microsecondsSinceEpoch / 1e6) % 3600;
+    final s = math.min(1.1, w / 390), m = 15.0, k = m / LopetScene9.m0, bx = w / 2, yW = 200 * s, by = yW + 64 * s;
+    final hy = _hoyde(bx, t, .7), hL = _hoyde(bx - 8, t, .7), hR = _hoyde(bx + 8, t, .7);
+    final bob = rolig ? 0.0 : hy * .45, rull = rolig ? 0.0 : math.atan2(hR - hL, 16) * .55;
+    final bx0 = bx - 74 * s, by0 = yW + 16 * s + (rolig ? 0 : math.sin(t * 1.3) * 1.2);
+    final ax = bx + math.sin(rull) * 2.3 * m, ay = by + bob - 2.3 * m * math.cos(rull), sag = 9 * s;
+    final hv = _a('hvitM');
+    for (var i = 0; i < 12; i++) {
+      final u0 = i / 12, u1 = (i + 1) / 12;
+      final p0x = bx0 + (ax - bx0) * u0, p0y = by0 + (ay - by0) * u0 + math.sin(u0 * math.pi) * sag;
+      final p1x = bx0 + (ax - bx0) * u1, p1y = by0 + (ay - by0) * u1 + math.sin(u1 * math.pi) * sag;
+      spr(hv, (p0x + p1x) / 2, (p0y + p1y) / 2, math.sqrt((p1x - p0x) * (p1x - p0x) + (p1y - p0y) * (p1y - p0y)) + .6, 1.3, math.atan2(p1y - p0y, p1x - p0x), .906, .851, .749, .95);
+    }
+    spr(_a('prikk'), bx0 + 2, by0 + 4, .5, .25, 0, .02, .07, .1, .35);
+    spr(_a('flott0'), bx0, by0, 1.3 * s, 1.3 * s, 0, 1, 1, 1, 1);
+    spr(_a('prikk'), bx + 3, by + bob + 4, 1.6 * k, 3.1 * k, rull, .02, .07, .1, .3);
+    sprV(_a('skrog'), bx, by + bob + 2.55 * m, k, -k * .4, 0, .5, .45, .58, .64, .22);
+    _baat(bx, by + bob, rull, t * 60, m);
+    flushSprites(canvas);
+  }
+
+  /// `baatGL` with no run: the oars resting (phase 1.95), no vest.
+  void _baat(double x, double y, double tilt, double tk, double m) {
+    final ro = level != 'Gull' && level != 'Platina';
+    const ph = 1.95;
+    final rot = tilt + math.sin(tk * .05) * .02, sc = m / LopetScene9.m0;
+    final c = math.cos(rot), s = math.sin(rot), u = LopetScene9.m0 * sc;
+    spr(_a('skrog'), x, y, sc, sc, rot, 1, 1, 1, 1);
+    if (mode != LopetMode.dag) {
+      final lx = x - 2.0 * s * u, ly = y + 2.0 * c * u;
+      spr(_a('glod'), lx, ly, .9 * sc, .9 * sc, 0, 1, .84, .55, -.8);
+      spr(_a('prikk'), lx, ly, .14 * sc, .14 * sc, 0, 1, .96, .82, 1);
+    }
+    if (ro) {
+      final a0 = math.sin(ph) * .5, inn = math.cos(ph) > 0;
+      for (var side = -1; side <= 1; side += 2) {
+        final lx = side.toDouble(), ly = .05, px = x + (lx * c - ly * s) * u, py = y + (lx * s + ly * c) * u, an = rot + (side > 0 ? a0 : math.pi - a0);
+        if (!inn) spr(_a('aareSk'), px + (.1 * c - .25 * s) * u, py + (.1 * s + .25 * c) * u, sc, sc, an, 1, 1, 1, 1);
+        spr(_a(inn ? 'aareInn' : 'aareUt'), px, py, sc, sc, an, 1, 1, 1, 1);
+      }
+    }
+    final vp = vimpel.isNotEmpty ? vimpel : (level == 'Sølv' ? 'mint' : '');
+    if (vp.isNotEmpty) spr(_a('vimpel_$vp'), x - 1.85 * s * u, y + 1.85 * c * u, sc, sc, rot + math.sin(tk * .3) * .04, 1, 1, 1, 1);
+    final bob = ro ? -math.sin(ph) * .07 : math.sin(tk * .08) * .025, sq = ro ? 1 - .025 * math.cos(ph) : 1.0, ly = .34 + bob;
+    spr(_a('aegil'), x - ly * s * u, y + ly * c * u, sc, sc * sq, rot, 1, 1, 1, 1);
+    spr(_a('toft'), x - .33 * s * u, y + .33 * c * u, sc, sc, rot, 1, 1, 1, 1);
+    if (figur == 'brygga') {
+      spr(_a('fig_brygga'), x + 2.28 * s * u, y - 2.28 * c * u, sc, sc, rot, 1, 1, 1, 1);
+    } else if (figur == 'stjerne') {
+      spr(_a('fig_stjerne'), x + 2.62 * s * u, y - 2.62 * c * u, sc, sc, rot, 1, 1, 1, 1);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant LopetKaiBaat9 old) => old.atlas != atlas || old.level != level || old.vimpel != vimpel || old.figur != figur;
 }

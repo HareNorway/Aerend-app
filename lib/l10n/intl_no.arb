@@ -2861,6 +2861,7 @@
   "lop_kai_alt_take": "ALT LIGGER I TÅKE",
   "lop_kai_take": "Tåke · seil lenger for å se mer",
   "lop_kart_start": "KAIEN · START",
+  "lop_sporing_lenke": "Sporing",
   "lop_kai_neste_maal": "NESTE MÅL",
   "lop_kai_igjen": "{p0} m igjen",
   "@lop_kai_igjen": {"placeholders": {"p0": {"type": "Object"}}},

@@ -102,6 +102,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   LopetSea9? _water;
   final LopetFx9 _fx = LopetFx9();
   final LopetMode _mode = LopetLook.now();
+  final ValueNotifier<int> _kaiTikk = ValueNotifier<int>(0);
+  Timer? _kaiTimer;
   bool _overgang = false; // the ≤ 0.6 s move from the quay into play
   final ValueNotifier<LopetState?> _sVn = ValueNotifier<LopetState?>(null);
   final ValueNotifier<bool> _vestMelding = ValueNotifier<bool>(false);
@@ -207,6 +209,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _doraTimer?.cancel();
     // Leaving mid-run (the route replaced, the app closing the screen): the run is kept and its token spent.
     if ((_fase == _Fase.spill || _fase == _Fase.pause) && _token != null) unawaited(_avslutt('forlatt', vis: false));
+    _kaiTimer?.cancel();
+    _kaiTikk.dispose();
     _ticker.dispose();
     _perf.stop();
     _loop?.dispose();
@@ -916,20 +920,27 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       child: Scaffold(
       backgroundColor: const Color(0xFF0C2A38),
       body: SafeArea(
-        child: Column(
+        // Design (9) 1:1 plan Step 4: the delivery strip floats over the scene, as the design's (46 px on the quay and
+        // the end screen, the slim 28 px one in play).
+        child: Stack(
           children: [
-            ValueListenableBuilder<LopetState?>(
-              valueListenable: _sVn,
-              builder: (_, sv, __) => _Stripe(s: sv ?? _s, stengt: _stengt, onTap: _tilSporing, onTilbake: _tilbake),
-            ),
-            Expanded(
+            Positioned.fill(
               child: _laster
                   ? const Center(child: CircularProgressIndicator(color: Color(0xFF7FF0CB)))
                   : switch (_fase) {
                       _Fase.start => _start(),
                       _Fase.spill || _Fase.pause => _spill(),
-                      _Fase.slutt => _slutt(),
+                      _Fase.slutt => Padding(padding: const EdgeInsets.only(top: 64), child: _slutt()),
                     },
+            ),
+            Positioned(
+              left: iLop ? 8 : 12,
+              right: iLop ? 8 : 12,
+              top: iLop ? 6 : 12,
+              child: ValueListenableBuilder<LopetState?>(
+                valueListenable: _sVn,
+                builder: (_, sv, __) => _Stripe(s: sv ?? _s, stengt: _stengt, smal: iLop, onTap: _tilSporing, onTilbake: _tilbake),
+              ),
             ),
           ],
         ),
@@ -964,10 +975,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     final b = beste ?? 0;
     // Short screens (the iPhone SE) keep the quay as a band behind the title, so the start fits as before (T24).
     final kort = MediaQuery.sizeOf(context).height < 720;
-    final kaiH = kort ? _kaiHKort : _kaiH;
     final liste = ListView(
       key: const Key('lopet-start'),
-      padding: EdgeInsets.fromLTRB(16, kort ? 12 : _kaiTopp, 16, 24),
+      padding: const EdgeInsets.fromLTRB(14, 16, 14, 4),
       children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -976,15 +986,15 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(LopetCopy.ukensLed, style: BergenTokens.display(28, weight: FontWeight.w800, color: Colors.white, letterSpacingEm: -0.03)),
-                  const SizedBox(height: 2),
+                  Text(LopetCopy.ukensLed, style: BergenTokens.display(24, weight: FontWeight.w800, color: const Color(0xFFF5F3EF), letterSpacingEm: -0.025)),
+                  const SizedBox(height: 4),
                   // Points plan Step 13 (game spec §5.3): the Platina boat sails under its own name.
                   Text([LopetCopy.kaiUke(s.week), if (s.weeksSailed > 0) LopetCopy.uker(s.weeksSailed), if ((s.boatName ?? '').isNotEmpty) s.boatName!].join(' · '),
-                      style: BergenTokens.text(13, weight: FontWeight.w600, color: Colors.white.withValues(alpha: .76))),
+                      style: BergenTokens.display(12.5, weight: FontWeight.w600, color: const Color(0xFFC9DADF))),
                 ],
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             LopetLosgrad(s: s),
           ],
         ),
@@ -997,9 +1007,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
           const SizedBox(height: 10),
           Align(alignment: Alignment.centerLeft, child: _Chip(key: const Key('lopet-bonus'), tekst: LopetCopy.forsinket, farge: const Color(0xFFF2C14E))),
         ],
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         LopetKaiSjokort(s: s, besteM: b),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1036,10 +1046,17 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         ),
       ],
     );
-    // Fjordløpet v1.3 plan Step 9 (spec §12.2): the start screen on Home's Bryggen and Vågen scene, the boat moored in
-    // it; from «Sett seil» the picture moves up into play in [LopetScreen.overgang] (≤ 0.6 s). A Transform, not a
-    // fade: no Opacity layer anywhere near the scene.
+    // Design (9) 1:1 plan Step 4 (design «Fjordløpet · Start»): Home's Bryggen and Vågen with the boat moored, and over
+    // it the sheet from 302 px (28 px corners, the dark-teal gradient, a light top edge). From «Sett seil» the picture
+    // moves up into play in [LopetScreen.overgang] (≤ 0.6 s). A Transform, not a fade: no Opacity layer near the scene.
     final look = LopetLook.of(_mode);
+    if (LopetScreen.hjemScene && !MediaQuery.disableAnimationsOf(context)) {
+      _kaiTimer ??= Timer.periodic(const Duration(milliseconds: 33), (_) {
+        if (_fase == _Fase.start) _kaiTikk.value++;
+      });
+    }
+    // Short screens (the iPhone SE, T24) keep the quay as a band behind the strip and the sheet right under it.
+    final arkTopp = kort ? 64.0 : 302.0 - 12;
     return ClipRect(
       child: TweenAnimationBuilder<double>(
         key: const Key('lopet-kai'),
@@ -1049,40 +1066,50 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         builder: (_, v, child) => v == 0 ? child! : ClipPath(clipper: _Bolge(v), child: FractionalTranslation(translation: Offset(0, -v * .35), child: child)),
         child: Stack(
           children: [
-            Positioned(left: 0, right: 0, top: 0, height: kaiH, child: IgnorePointer(child: RepaintBoundary(child: _kaiScene(look, kaiH)))),
+            Positioned(left: 0, right: 0, top: 0, height: arkTopp + 40, child: IgnorePointer(child: RepaintBoundary(child: _kaiScene(look, arkTopp + 40)))),
             Positioned(
               left: 0,
               right: 0,
-              top: kort ? 0 : kaiH - 120,
-              height: kort ? kaiH : 120,
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [kort ? const Color(0x990C2A38) : const Color(0x000C2A38), const Color(0xFF0C2A38)]),
-                  ),
+              top: arkTopp,
+              bottom: 0,
+              child: DecoratedBox(
+                key: const Key('lopet-start-ark'),
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                  gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF1F5260), Color(0xFF173F4A)]),
+                  border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .2))),
+                  boxShadow: [BoxShadow(color: Color.fromRGBO(4, 18, 26, .75), offset: Offset(0, -16), blurRadius: 30, spreadRadius: -14)],
                 ),
+                child: ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(28)), child: liste),
               ),
             ),
-            Positioned.fill(child: liste),
-            if (!kort) Positioned(right: 16, top: 14, child: LopetPyntKnapp(onTap: _pynt)),
+            if (!kort) Positioned(right: 14, top: 72 - 12, child: LopetPyntKnapp(onTap: _pynt)),
           ],
         ),
       ),
     );
   }
 
-  static const double _kaiH = 230;
-  static const double _kaiHKort = 120;
-  static const double _kaiTopp = 96;
 
   /// Home's scene (the same widget, as a window onto Vågen: no floats, raft or Fjordfiske pill), with the boat moored
   /// at the quay; in widget tests a plain sky-over-water stand-in.
   Widget _kaiScene(LopetLook look, double kaiH) {
-    final boat = Positioned(
-      left: 0,
-      right: 0,
-      top: kaiH * .35,
-      child: Center(child: Icon(Icons.sailing_rounded, key: const Key('lopet-kai-baat'), size: 34, color: Colors.white.withValues(alpha: .92))),
+    final atlas = _atlas, s = _s;
+    final boat = Positioned.fill(
+      key: const Key('lopet-kai-baat'),
+      child: atlas == null || s == null
+          ? const SizedBox()
+          : CustomPaint(
+              painter: LopetKaiBaat9(
+                atlas: atlas,
+                mode: _mode,
+                level: _nivaa(s.boat),
+                vimpel: _pyntId(s.equipped['pennant']),
+                figur: _pyntId(s.equipped['figurehead']),
+                rolig: MediaQuery.disableAnimationsOf(context),
+                repaint: _kaiTikk,
+              ),
+            ),
     );
     if (!LopetScreen.hjemScene) {
       return Stack(
@@ -1180,9 +1207,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
           ),
         ),
         Positioned(
-          left: 16,
-          top: 12,
-          right: 16,
+          left: 12,
+          top: 42 - 6,
+          right: 12,
           child: RepaintBoundary(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1601,10 +1628,11 @@ class _Maaler extends StatelessWidget {
 
 /// The delivery strip (game spec §7): stage, window, the courier's minutes; a tap pauses and opens Sporing.
 class _Stripe extends StatelessWidget {
-  const _Stripe({required this.s, required this.stengt, required this.onTap, required this.onTilbake});
+  const _Stripe({required this.s, required this.stengt, required this.onTap, required this.onTilbake, this.smal = false});
 
   final LopetState? s;
   final bool stengt;
+  final bool smal;
   final VoidCallback onTap;
   final VoidCallback onTilbake;
 
@@ -1613,44 +1641,80 @@ class _Stripe extends StatelessWidget {
     return d == null ? '' : '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
   }
 
+  /// Design (9) 1:1 plan Step 4: «Leveringsstripe» — a back chevron, the pulsing dot, «Tilberedes · 18:12–18:22» over the
+  /// courier line, «Sporing» on the right; in play the slim one: the dot, the status, the courier line, «Sporing».
   @override
   Widget build(BuildContext context) {
     final d = s?.delivery ?? const {};
     final vindu = [_kl(d['promised_start']), _kl(d['promised_end'])].where((x) => x.isNotEmpty).join('–');
     final eta = d['courier_eta_minutes'];
-    final linje = [
-      if ('${d['stage_label'] ?? ''}'.isNotEmpty) '${d['stage_label']}',
-      if (vindu.isNotEmpty) vindu,
-      // Only a plausible ETA (a stale or far-off courier position says nothing useful).
-      if (eta is num && eta <= 120) LopetCopy.minUnna(eta.toInt()),
-    ].join(' · ');
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 6, 12, 6),
-      child: Row(
-        children: [
-          IconButton(key: const Key('lopet-tilbake'), onPressed: onTilbake, icon: const Icon(Icons.arrow_back_rounded, color: Colors.white)),
-          Expanded(
-            child: GestureDetector(
-              key: const Key('lopet-stripe'),
-              onTap: onTap,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(color: Colors.white.withValues(alpha: .1), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white24)),
-                child: Row(
-                  children: [
-                    const Icon(Icons.delivery_dining_rounded, color: Color(0xFF7FF0CB), size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(linje.isEmpty ? LopetCopy.navn : linje, maxLines: 1, overflow: TextOverflow.ellipsis,
-                          style: BergenTokens.text(13, weight: FontWeight.w700, color: Colors.white)),
-                    ),
-                    const Icon(Icons.chevron_right_rounded, color: Colors.white70),
-                  ],
-                ),
+    final status = [if ('${d['stage_label'] ?? ''}'.isNotEmpty) '${d['stage_label']}', if (vindu.isNotEmpty) vindu].join(' · ');
+    // Only a plausible ETA (a stale or far-off courier position says nothing useful).
+    final bud = eta is num && eta <= 120 ? LopetCopy.minUnna(eta.toInt()) : '';
+    final tittel = status.isEmpty ? LopetCopy.navn : status;
+    const mint = Color(0xFF7FF0CB);
+    if (smal) {
+      return GestureDetector(
+        key: const Key('lopet-stripe'),
+        onTap: onTap,
+        child: Container(
+          height: 28,
+          padding: const EdgeInsets.fromLTRB(9, 0, 10, 0),
+          decoration: BoxDecoration(color: const Color.fromRGBO(10, 33, 40, .74), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .14))),
+          child: Row(children: [
+            Container(width: 7, height: 7, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF5CE0B8))),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Text.rich(
+                TextSpan(children: [
+                  TextSpan(text: tittel, style: BergenTokens.display(11.5, weight: FontWeight.w800, color: const Color(0xFFF5F3EF))),
+                  if (bud.isNotEmpty) TextSpan(text: ' · $bud'),
+                ]),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: BergenTokens.display(11.5, weight: FontWeight.w700, color: const Color(0xFFD5E3E7)),
               ),
             ),
+            const SizedBox(width: 7),
+            Text(LopetCopy.sporingLenke, style: BergenTokens.display(11.5, weight: FontWeight.w800, color: mint)),
+          ]),
+        ),
+      );
+    }
+    return GestureDetector(
+      key: const Key('lopet-stripe'),
+      onTap: onTap,
+      child: Container(
+        height: 46,
+        padding: const EdgeInsets.fromLTRB(0, 0, 12, 0),
+        decoration: BoxDecoration(
+          color: const Color.fromRGBO(10, 33, 40, .78),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
+          boxShadow: const [BoxShadow(color: Color.fromRGBO(4, 18, 26, .9), offset: Offset(0, 10), blurRadius: 20, spreadRadius: -14)],
+        ),
+        child: Row(children: [
+          Semantics(
+            button: true,
+            label: MaterialLocalizations.of(context).backButtonTooltip,
+            child: GestureDetector(
+              key: const Key('lopet-tilbake'),
+              behavior: HitTestBehavior.opaque,
+              onTap: onTilbake,
+              child: const SizedBox(width: 34, height: 46, child: Icon(Icons.chevron_left_rounded, size: 24, color: Color(0xFFF5F3EF))),
+            ),
           ),
-        ],
+          Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF5CE0B8))),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(tittel, maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.display(12.5, weight: FontWeight.w800, color: const Color(0xFFF5F3EF))),
+              if (bud.isNotEmpty) Text(bud, maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.display(11, weight: FontWeight.w600, color: const Color(0xFFB9CDD4))),
+            ]),
+          ),
+          const SizedBox(width: 9),
+          Text(LopetCopy.sporingLenke, style: BergenTokens.display(11.5, weight: FontWeight.w800, color: mint)),
+        ]),
       ),
     );
   }

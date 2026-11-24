@@ -44,6 +44,7 @@ abstract final class LopetCopy {
   static String get fortsett => languages.lop_fortsett;
   static String fortsettOm(int n) => languages.lop_fortsett_om(n);
   static String get tilSporing => languages.lop_til_sporing;
+  static String get sporingLenke => languages.lop_sporing_lenke;
 
   static String get over => languages.lop_over;
   static String fraRekorden(int m) => languages.lop_fra_rekorden(m);
