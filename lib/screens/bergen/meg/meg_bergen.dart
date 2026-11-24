@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../utils/shared_pref_utill.dart' show resolveSelectedLanguage;
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -20,21 +21,31 @@ import '../../../theme/lys/modus_scope.dart';
 // confirm.
 
 abstract final class MegB8Copy {
+  static bool get _en {
+    try {
+      return resolveSelectedLanguage() == 'en';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static String _t(String no, String en) => _en ? en : no;
+
   static const String gullbilletten = 'GULLBILLETTEN';
   static const String delingskode = 'DIN DELINGSKODE';
   static const String duOgVennen = 'Du og vennen får 200 poeng hver';
   static String duOgVennenN(int n) => 'Du og vennen får $n poeng hver';
   static const String del = 'Del';
   static const String kopier = 'Kopier';
-  static const String poengKicker = 'POENG, NIVÅ OG KONKURRANSER';
-  static const String poeng = 'poeng';
-  static String liga(int plass) => 'Liga · $plass. plass';
-  static const String ikkeILiga = 'Ikke i ligaen';
-  static const String loggUt = 'Logg ut';
-  static const String loggeUt = 'Logge ut?';
-  static const String loggeUtLinje = 'Poengene, Min Bio og bestillingene dine ligger trygt her til du kommer tilbake.';
-  static const String avbryt = 'Avbryt';
-  static String loggetInn(String navn, String kontakt) => kontakt.isEmpty ? 'Logget inn som $navn' : 'Logget inn som $navn · $kontakt';
+  static String get poengKicker => _t('POENG, NIVÅ OG KONKURRANSER', 'POINTS, LEVEL AND COMPETITIONS');
+  static String get poeng => _t('poeng', 'points');
+  static String liga(int plass) => _t('Liga · $plass. plass', 'League · #$plass');
+  static String get ikkeILiga => _t('Ikke i ligaen', 'Not in the league');
+  static String get loggUt => _t('Logg ut', 'Log out');
+  static String get loggeUt => _t('Logge ut?', 'Log out?');
+  static String get loggeUtLinje => _t('Poengene, Min Bio og bestillingene dine ligger trygt her til du kommer tilbake.', 'Your points, My Bio and your orders stay safe here until you come back.');
+  static String get avbryt => _t('Avbryt', 'Cancel');
+  static String loggetInn(String navn, String kontakt) => _t(kontakt.isEmpty ? 'Logget inn som $navn' : 'Logget inn som $navn · $kontakt', kontakt.isEmpty ? 'Logged in as $navn' : 'Logged in as $navn · $kontakt');
 
   /// The head over the rows the design took out of Meg (D2): kept until the
   /// manager approves removing them.

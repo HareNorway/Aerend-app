@@ -1,15 +1,27 @@
 // ignore_for_file: constant_identifier_names, non_constant_identifier_names
 import '../../../data/aegil/aegil_app_models.dart';
+import '../../../utils/shared_pref_utill.dart' show resolveSelectedLanguage;
 
 /// Copy for the rebuilt Meg tab (agil-4). Keys `a4_meg_*`; the design's
 /// wording (`Ærend Kunde Bergen.dc.html` `meg` ≈L5912–6124 and the Ark
 /// sheets `slikPoeng`, `nivaa`, `ligaNavn`, `kodeInnst`, `anledninger`,
 /// `ukeshandel`, `nivaa4`, `sprak`, `support`, `ai`) verbatim.
 abstract final class A4MegCopy {
+  // T3 (Vivo, English mode): the Meg list's rows were Norwegian-only while the rows around them followed the language.
+  static bool get _en {
+    try {
+      return resolveSelectedLanguage() == 'en';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static String _t(String no, String en) => _en ? en : no;
+
   // Hero bubble (maalBoble)
-  static String a4_meg_boble_til(int n, String label) => '${_nf(n)} poeng til ${label.toLowerCase()}.';
-  static String a4_meg_boble_klar(String label) => '$label er klar å hente.';
-  static const String a4_meg_boble_ingen = 'Sett et mål på Premiehylla.';
+  static String a4_meg_boble_til(int n, String label) => _t('${_nf(n)} poeng til ${label.toLowerCase()}.', '${_nf(n)} points to ${label.toLowerCase()}.');
+  static String a4_meg_boble_klar(String label) => _t('$label er klar å hente.', '$label is ready to claim.');
+  static String get a4_meg_boble_ingen => _t('Sett et mål på Premiehylla.', 'Set a goal on the prize shelf.');
 
   // Header
   static String a4_meg_fra(String name, String bydel) => '$name fra $bydel';
@@ -29,7 +41,7 @@ abstract final class A4MegCopy {
   // Poeng card
   static const String a4_meg_ditt_nivaa = 'DITT NIVÅ';
   static String a4_meg_til_neste(int n, String next) => '${_nf(n)} poeng til $next';
-  static const String a4_meg_hoyeste = 'Høyeste nivå';
+  static String get a4_meg_hoyeste => _t('Høyeste nivå', 'Highest level');
   static const String a4_meg_naa = 'NÅ';
   static const String a4_meg_poeng_bruke = 'POENG Å BRUKE';
   static String a4_meg_opptjent(int n) => 'Opptjent i alt: ${_nf(n)} poeng';
@@ -47,7 +59,7 @@ abstract final class A4MegCopy {
   // Meg-rader
   static const String a4_meg_rad_nivaa = 'Nivå';
   static const String a4_meg_nivaa_note = 'Nivået påvirkes aldri av at du bruker poeng';
-  static String a4_meg_avstand(int n, String next) => '${_nf(n)} til $next';
+  static String a4_meg_avstand(int n, String next) => _t('${_nf(n)} til $next', '${_nf(n)} to $next');
   static const String a4_meg_rad_liga = 'Bergen-ligaen';
   static const String a4_meg_liga_med = 'Du klatrer denne måneden';
   static const String a4_meg_liga_ute = 'Ikke med · bli med når du vil';
@@ -134,42 +146,57 @@ abstract final class A4MegCopy {
   ];
   static const String a4_meg_av = 'Av';
   static String a4_meg_varsel_lagret(String navn, bool paa) => 'Varsler om ${navn.toLowerCase()}: ${paa ? 'på' : 'av'}';
-  static const String a4_meg_adresser = 'Adresser';
+  static String get a4_meg_adresser => _t('Adresser', 'Addresses');
   static const String a4_meg_kort_tittel = 'Kort legger du til i kassen';
   static const String a4_meg_kort_linje = 'Velg «Kort» når du betaler. Kortet lagres hos Stripe, aldri hos Ærend.';
   static const String a4_meg_kort_ok = 'Skjønner';
-  static const String a4_meg_adresser_bare = 'bare for deg';
-  static String a4_meg_steder(int n) => n == 1 ? '1 sted' : '$n steder';
-  static const String a4_meg_adresser_tom = 'Legg til adresse';
+  static String get a4_meg_adresser_bare => _t('bare for deg', 'only for you');
+  static String a4_meg_steder(int n) => _t(n == 1 ? '1 sted' : '$n steder', n == 1 ? '1 place' : '$n places');
+  static String get a4_meg_adresser_tom => _t('Legg til adresse', 'Add address');
   static const String a4_meg_adresser_dor = 'Adresser og dørtekst';
-  static const String a4_meg_ordrer = 'Ordrehistorikk';
-  static const String a4_meg_ordrer_tom = 'Ingen bestillinger ennå';
-  static String a4_meg_ordrer_sub(int n, String sist) => '$n ${n == 1 ? 'bestilling' : 'bestillinger'} · sist $sist';
+  static String get a4_meg_ordrer => _t('Ordrehistorikk', 'Order history');
+  static String get a4_meg_ordrer_tom => _t('Ingen bestillinger ennå', 'No orders yet');
+  static String a4_meg_ordrer_sub(int n, String sist) => _t('$n ${n == 1 ? 'bestilling' : 'bestillinger'} · sist $sist', '$n ${n == 1 ? 'order' : 'orders'} · last $sist');
   static String a4_meg_sparte(int kr) => 'Ægil sparte deg ${_nf(kr)} kr';
   static String a4_meg_tillit_sub(int n) => 'Tillitsregnskap · $n råd mot egen interesse';
   static const String a4_meg_support = 'Support';
   static const String a4_meg_support_sub = 'Chat med Ærend · et menneske er alltid ett trykk unna';
-  static const String a4_meg_konto = 'Konto';
-  static const String a4_meg_konto_sub = 'Innlogging, varsler og personvern';
+  static String get a4_meg_konto => _t('Konto', 'Account');
+  static String get a4_meg_konto_sub => _t('Innlogging, varsler og personvern', 'Sign-in, notifications and privacy');
 
   // Ægil's tips on the Meg hero (`megBobleTx`, one per tap on him).
-  static const String a4_meg_tips_hylla = 'Poengene bytter du i premier på hylla.';
-  static const String a4_meg_tips_nivaa = 'Du går opp i nivå når du handler hos butikkene i Bergen.';
-  static const String a4_meg_tips_verv = 'Verv en venn, så får dere poeng begge to.';
-  static const String a4_meg_tips_trykk = 'Trykk på meg når du vil ha et nytt tips.';
+  static String get a4_meg_tips_hylla => _t('Poengene bytter du i premier på hylla.', 'You trade your points for prizes on the shelf.');
+  static String get a4_meg_tips_nivaa => _t('Du går opp i nivå når du handler hos butikkene i Bergen.', 'You level up when you shop at the stores in Bergen.');
+  static String get a4_meg_tips_verv => _t('Verv en venn, så får dere poeng begge to.', 'Invite a friend and you both get points.');
+  static String get a4_meg_tips_trykk => _t('Trykk på meg når du vil ha et nytt tips.', 'Tap me when you want a new tip.');
   // With points off: no points talk (T3 small fix #14).
-  static const String a4_meg_tips_bio = 'Fortell meg hva du liker, så tilpasser jeg appen til deg.';
+  static String get a4_meg_tips_bio => _t('Fortell meg hva du liker, så tilpasser jeg appen til deg.', 'Tell me what you like and I will tailor the app to you.');
   static const String a4_meg_betaling = 'Betaling';
   static const String a4_meg_betaling_vipps = 'Vipps';
-  static const String a4_meg_varsler = 'Varsler';
-  static const String a4_meg_varsler_sub = 'Oppdrag, premier og verving';
-  static const String a4_meg_navn_liga = 'Navn i ligaen';
-  static const String a4_meg_navn_liga_ute = 'Ikke med i Bergen-ligaen';
-  static const String a4_meg_velg_navn = 'Velg navn';
-  static const String a4_meg_spraak = 'Språk';
-  static const String a4_meg_favoritter = 'Favoritter';
-  static const String a4_meg_nytt = 'Nytt fra butikkene';
-  static const String a4_meg_hjelp = 'Hjelp og kontakt';
+  static String get a4_meg_varsler => _t('Varsler', 'Notifications');
+  static String get a4_meg_varsler_sub => _t('Oppdrag, premier og verving', 'Missions, prizes and referrals');
+  static String get a4_meg_navn_liga => _t('Navn i ligaen', 'Name in the league');
+  static String get a4_meg_navn_liga_ute => _t('Ikke med i Bergen-ligaen', 'Not in the Bergen league');
+  static String get a4_meg_velg_navn => _t('Velg navn', 'Choose name');
+  static String get a4_meg_spraak => _t('Språk', 'Language');
+  static String get a4_meg_favoritter => _t('Favoritter', 'Favourites');
+  static String get a4_meg_nytt => _t('Nytt fra butikkene', 'News from the shops');
+  static String get a4_meg_bli_kjent => _t('Bli kjent med Ærend', 'Get to know Ærend');
+  static String get a4_meg_bli_kjent_sub => _t('Ægil-runden · fem stopp i appen', 'The Ægil tour · five stops in the app');
+  /// «i dag» / «today» for the Ordrehistorikk row (OhCopy.dag is Norwegian-only, as that screen).
+  static String sistDag(DateTime d, String nb) {
+    if (!_en) return nb;
+    final n = DateTime.now();
+    final diff = DateTime(n.year, n.month, n.day).difference(DateTime(d.year, d.month, d.day)).inDays;
+    const dager = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    if (diff <= 0) return 'today';
+    if (diff == 1) return 'yesterday';
+    if (diff < 7) return dager[d.weekday - 1];
+    return '${d.day}.${d.month}.';
+  }
+
+  static String adrType(String t) => switch (t) { 'home' => _t('Hjem', 'Home'), 'work' => _t('Jobb', 'Work'), _ => _t('Annen', 'Other') };
+  static String get a4_meg_hjelp => _t('Hjelp og kontakt', 'Help and contact');
 
   // Ark · Slik får du poeng (slikPoeng)
   static const String a4_meg_slik_title = 'Slik får du poeng';
