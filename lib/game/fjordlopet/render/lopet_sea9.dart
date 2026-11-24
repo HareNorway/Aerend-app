@@ -189,7 +189,24 @@ class LopetSea9 {
 
   static const int fw = 128, fh = 512;
   ui.Image? _foam;
+
+  /// A new run starts on clean water: the map is anchored to the course and every run starts at 0 m, so the last run's
+  /// rings and streaks (its crash among them) would come back ahead of the boat (2026-11-24, emulator).
+  void clearFoam() {
+    final f = _foam;
+    if (f != null) {
+      f.dispose();
+      liveImages--;
+      _foam = null;
+    }
+    _nSt = 0;
+  }
+
+  /// The foam map now (tests).
+  ui.Image? get foamImage => _foam;
   final Paint _fadePaint = Paint();
+  final Paint _mulPaint = Paint()..blendMode = BlendMode.modulate;
+  final Paint _subPaint = Paint()..blendMode = BlendMode.difference;
   final Paint _stampPaint = Paint()..blendMode = BlendMode.plus;
   final Paint _blit = Paint()..filterQuality = FilterQuality.low;
 
@@ -222,9 +239,14 @@ class LopetSea9 {
     final c = Canvas(rec, Rect.fromLTWH(0, 0, fw.toDouble(), fh.toDouble()));
     final old = _foam;
     if (old != null) {
-      final k = .0055 * dtf, f = math.pow(.985, dtf).toDouble();
-      _fadePaint.colorFilter = ColorFilter.matrix(<double>[f, 0, 0, 0, -k * f * 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255]);
+      // The design's fade, max(t − 0.0055·dt, 0) · 0.985^dt, with plain blend modes: a colour matrix on this offscreen
+      // image did nothing under Impeller (2026-11-24, emulator: every ring and streak stayed on the water).
+      final f = math.pow(.985, dtf).toDouble(), k = (.0055 * dtf * 255).ceil().clamp(1, 255);
       c.drawImage(old, Offset.zero, _fadePaint);
+      _mulPaint.color = Color.fromARGB(255, (f * 255).floor(), 0, 0);
+      c.drawRect(Rect.fromLTWH(0, 0, fw.toDouble(), fh.toDouble()), _mulPaint);
+      _subPaint.color = Color.fromARGB(255, k, 0, 0);
+      c.drawRect(Rect.fromLTWH(0, 0, fw.toDouble(), fh.toDouble()), _subPaint);
     } else {
       c.drawColor(const Color(0xFF000000), BlendMode.src);
     }

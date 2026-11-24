@@ -454,6 +454,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _perf.start();
     _q?.runStarted();
     _fx.clear();
+    _water?.clearFoam();
     _rammer = 0;
     loop.resetClock();
     _ticker.start();
