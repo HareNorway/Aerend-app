@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:io' show Platform;
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -15,12 +14,12 @@ import '../../../game/fjordlopet/haptics/haptikk_moenster.dart';
 import '../../../game/fjordlopet/input/lopet_input.dart';
 import '../../../game/fjordlopet/lopet_lyd.dart';
 import '../../../game/fjordlopet/nearest_goal.dart';
-import '../../../game/fjordlopet/render/lopet_atlas.dart';
-import '../../../game/fjordlopet/render/lopet_field_painter.dart';
+import '../../../game/fjordlopet/render/lopet_atlas9.dart';
 import '../../../game/fjordlopet/render/lopet_look.dart';
 import '../../../game/fjordlopet/render/lopet_loop.dart';
 import '../../../game/fjordlopet/render/lopet_quality.dart';
-import '../../../game/fjordlopet/render/lopet_water.dart';
+import '../../../game/fjordlopet/render/lopet_scene9.dart';
+import '../../../game/fjordlopet/render/lopet_sea9.dart';
 import '../hjem/hjem_hero.dart';
 import '../../common/auth/launch/lf_css.dart' show LfFrame;
 import '../../../game/fjordlopet/sim/engine.dart';
@@ -91,18 +90,17 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
 
   // Fjordløpet v1.3 plan Step 5 (spec §12.2–12.4): the fixed-step loop, the atlas, the flags and the frame numbers.
   FjordLoop? _loop;
-  LopetAtlas? _atlas;
+  LopetAtlas9? _atlas;
   bool _atlasLaster = false;
-  final LopetFlags _flags = LopetFlags();
+  final LopetFlags9 _flags = LopetFlags9();
   final FramePerf _perf = FramePerf();
 
   // Fjordløpet v1.3 plan Step 9 (spec §12.2, §12.5, §12.6): the quality level, the shader water, the particle pool,
   // Home's sea mode and Ægil's back for the boat sprite — all made when the session opens.
   LopetQuality? _q;
-  LopetWater? _water;
-  final LopetFx _fx = LopetFx();
+  LopetSea9? _water;
+  final LopetFx9 _fx = LopetFx9();
   final LopetMode _mode = LopetLook.now();
-  ui.Image? _aegil;
   bool _overgang = false; // the ≤ 0.6 s move from the quay into play
   final ValueNotifier<LopetState?> _sVn = ValueNotifier<LopetState?>(null);
   final ValueNotifier<bool> _vestMelding = ValueNotifier<bool>(false);
@@ -213,7 +211,6 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _loop?.dispose();
     _atlas?.dispose();
     _water?.dispose();
-    _aegil?.dispose();
     _sVn.dispose();
     _vestMelding.dispose();
     _perfTekst.dispose();
@@ -298,16 +295,31 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
 
   // ── the run ──────────────────────────────────────────────────────────────
 
-  /// The atlas is made when the session opens, before «Sett seil» (spec §12.2): nothing decodes during a run.
+  /// The atlas is made when the session opens, before «Sett seil» (spec §12.2): nothing decodes during a run. Design
+  /// (9) 1:1 plan D1: the design's own atlas, with the gate labels, flags, landmark tags and the customer's hull drawn in.
   Future<void> _byggAtlas(LopetState s) async {
     if (_atlas != null || _atlasLaster) return;
     _atlasLaster = true;
     try {
       final dpr = WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
-      final labels = [for (var k = 0; k < 3; k++) k < s.milestones.length ? '${LopetCopy.porter[k]} · ${s.milestones[k]} m' : ''];
-      _aegil ??= await _lastAegil();
-      final program = await LopetWater.load();
-      final a = await LopetAtlas.build(density: dpr >= 2.5 ? 3 : 2, labels: labels, mode: _mode, aegil: _aegil);
+      final program = await LopetSea9.load();
+      final lm = <int, String>{};
+      for (final l in s.landmarks) {
+        final id = _lmId[l['k']];
+        if (id == null) continue;
+        final n = s.landmarkName('${l['k']}') ?? '';
+        lm[id] = n.isEmpty ? n : n[0].toUpperCase() + n.substring(1);
+      }
+      final a = await LopetAtlas9.build(
+        density: dpr.clamp(2.0, 3.0).toDouble(),
+        mode: _mode,
+        level: _nivaa(s.boat),
+        labels: LopetCopy.porter,
+        flags: [LopetCopy.dinBeste, s.rival?.name ?? '', LopetCopy.ukensBeste],
+        ghost: LopetCopy.dinBeste,
+        name: s.boatName ?? '',
+        landmarks: lm,
+      );
       if (!mounted) {
         a.dispose();
         return;
@@ -316,7 +328,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       if (program == null) {
         _q?.markShaderFailed();
       } else {
-        _water ??= LopetWater(program, LopetLook.of(_mode));
+        _water ??= LopetSea9(program, _mode);
       }
       setState(() => _atlas = a);
     } catch (_) {
@@ -326,18 +338,21 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     }
   }
 
-  /// Ægil from behind (`assets/images/aegil/rear.png`), decoded once for the atlas; null if it cannot be read.
-  static Future<ui.Image?> _lastAegil() async {
-    try {
-      final data = await rootBundle.load('assets/images/aegil/rear.png');
-      final codec = await ui.instantiateImageCodec(data.buffer.asUint8List(), targetWidth: 180);
-      final frame = await codec.getNextFrame();
-      codec.dispose();
-      return frame.image;
-    } catch (_) {
-      return null;
-    }
-  }
+  static const Map<String, int> _lmId = {'naust': 0, 'kran': 1, 'fyr': 2, 'akvariet': 3, 'festningen': 4, 'seilskute': 5, 'verftet': 6, 'sjobad': 7};
+
+  /// The level boats (spec §5.7) as the design's levels: robåt Bronse, robåt med vimpel Sølv, snekke Gull, egen båt Platina.
+  static String _nivaa(String boat) => switch (boat) { 'vimpel' => 'Sølv', 'snekke' => 'Gull', 'egen' => 'Platina', _ => 'Bronse' };
+
+  /// The equipped cosmetics as the design's ids (pennant gull|striper, wake mint|gull, figurehead brygga|stjerne).
+  static String _pyntId(String? item) => switch (item) {
+        'pennant_gull' => 'gull',
+        'pennant_stripes' => 'striper',
+        'wake_mint' => 'mint',
+        'wake_gull' => 'gull',
+        'figurehead_bryggen' => 'brygga',
+        'figurehead_star' => 'stjerne',
+        _ => '',
+      };
 
   /// «Sett seil»: the quay moves up and the play view comes in (at most 0.6 s, spec §12.2), then the run starts.
   void _settSeilMedOvergang() {
@@ -1140,17 +1155,21 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                 child: atlas == null
                     ? const ColoredBox(color: Color(0xFF155A70))
                     : CustomPaint(
-                        painter: LopetFieldPainter(
+                        painter: LopetScene9(
                           loop: loop,
                           atlas: atlas,
-                          boat: s.boat,
-                          milestones: s.milestones,
+                          sea: _water,
+                          fx: _fx,
                           flags: _flags,
+                          milestones: s.milestones,
+                          mode: _mode,
+                          level: _nivaa(s.boat),
+                          vimpel: _pyntId(s.equipped['pennant']),
+                          kjol: _pyntId(s.equipped['wake']),
+                          figur: _pyntId(s.equipped['figurehead']),
                           rolig: rolig,
                           quality: _q,
-                          water: _water,
-                          fx: _fx,
-                          landmarks: [for (final l in (s.course['landmarks'] as List? ?? const [])) if (l is Map) Map<String, dynamic>.from(l)],
+                          landmarks: s.landmarks,
                         ),
                       ),
               ),

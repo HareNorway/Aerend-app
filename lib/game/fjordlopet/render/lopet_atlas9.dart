@@ -86,7 +86,8 @@ class LopetAtlas9 {
     final d = density.clamp(1.0, r0).toDouble();
     final sc = d / r0;
     final base = await _decode(mode == LopetMode.dag ? 'assets/game/fjordlopet/atlas9_dag.png' : 'assets/game/fjordlopet/atlas9_kveld.png');
-    final hull = level == 'Gull' || level == 'Platina' ? await _decode('assets/game/fjordlopet/skrog_${level.toLowerCase()}.png') : null;
+    // The exported atlas carries the design demo's hull (Gull); the customer's own level's hull always replaces it.
+    final hull = await _decode('assets/game/fjordlopet/skrog_${level == 'Gull' || level == 'Platina' ? level.toLowerCase() : 'bronse'}.png');
     ui.Image? aegil;
     try {
       aegil = await _decode('assets/images/aegil/rear.png');
@@ -220,8 +221,8 @@ class LopetAtlas9 {
     final c = Canvas(rec);
     final hq = Paint()..filterQuality = FilterQuality.high;
     c.drawImageRect(base, Rect.fromLTWH(0, 0, iw, ih), Rect.fromLTWH(0, 0, iw * sc, ih * sc), hq);
-    // The hull for Gull and Platina (Bronse and Sølv share the exported one).
-    if (hull != null) {
+    // The level's hull (Bronse and Sølv share one).
+    {
       final i = ids['skrog']!;
       final r = Rect.fromLTRB(srcL[i * 4], srcL[i * 4 + 1], srcL[i * 4 + 2], srcL[i * 4 + 3]).inflate(2 * sc);
       c.drawRect(r, Paint()..blendMode = BlendMode.clear);
@@ -244,7 +245,7 @@ class LopetAtlas9 {
     }
     final img = await rec.endRecording().toImage(maxW.ceil(), outH);
     base.dispose();
-    hull?.dispose();
+    hull.dispose();
     aegil?.dispose();
     live++;
     return LopetAtlas9._(img, d, ids, Float32List.fromList(srcL), Float32List.fromList(geoL));
