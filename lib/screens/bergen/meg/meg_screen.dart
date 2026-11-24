@@ -28,10 +28,10 @@ import '../../../data/points/points_rules.dart';
 import '../../common/home/home_repo.dart';
 import '../../../utils/shared_pref_utill.dart';
 import '../poeng/opprykk_screen.dart';
-import '../../common/manageAddress/manage_address.dart';
-import '../../common/manageCard/manage_card.dart';
 import 'betaling_screen.dart';
-import '../../common/manageAddress/add_new_address.dart';
+import '../../common/home/bergen/bergen_adr_kilde.dart';
+import '../../common/home/home_bloc.dart';
+import '../adresse/adr_ark.dart' show visAdresseArk;
 import '../../common/manageAddress/manage_address_dl.dart';
 import '../../common/notifications/notifications_dl.dart';
 import '../../../utils/utils.dart' show setChangedLanguage, logout, isLoggedIn;
@@ -571,7 +571,20 @@ class _MegScreenBodyState extends State<MegScreenBody> {
           return MegAdresse(gate: gate, detaljer: detaljer, type: switch (a.type) { 'home' => 'Hjem', 'work' => 'Jobb', _ => 'Annen' }, valgt: a.addressId == valgtId);
         }(),
     ];
-    await MegSheets.adresser(context, addresses: rader, onManage: () => _push(const ManageAddress()), onAdd: () => _push(const AddNewAddress()));
+    // T3 (Vivo): «Legg til adresse» opened the old purple «Ny adresse» screen; Hjem and Kassen use the Bergen sheet
+    // «Hvor skal ærendet?». Same here, for adding and for choosing another address.
+    await MegSheets.adresser(context, addresses: rader, onManage: () => _adresseArk(ny: false), onAdd: () => _adresseArk(ny: true));
+  }
+
+  /// The Bergen address sheet on a short-lived Hjem bloc (as Kassen's «Endre»); Meg reloads after.
+  Future<void> _adresseArk({required bool ny}) async {
+    final bloc = HomeBloc(context, this, false);
+    try {
+      await visAdresseArk(context, BergenAdrKilde(bloc), ny: ny);
+    } finally {
+      bloc.dispose();
+    }
+    if (mounted) _load();
   }
 
   Future<void> _openBetaling() async {
@@ -579,7 +592,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     final lagret = ClientFlags.on(ClientFlags.aiLinkedCheckout);
     final list = lagret ? ((await CusApi().savedCards())?.map((c) => c.navn).toList() ?? const <String>[]) : (await a3Try(A3Services.cards) ?? const <String>[]);
     if (!mounted) return;
-    await MegSheets.betaling(context, cards: list, onManage: () => _push(lagret ? const BetalingScreen() : const ManageCard()));
+    await MegSheets.betaling(context, cards: list, onManage: () => lagret ? _push(const BetalingScreen()) : MegSheets.kortIKassen(context));
   }
 
   Future<void> _openSpraak() async {

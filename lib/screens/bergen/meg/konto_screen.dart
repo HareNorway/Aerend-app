@@ -10,9 +10,11 @@ import '../../../screens/common/home/home_repo.dart';
 import '../../../utils/utils.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/editProfile/edit_profile.dart';
-import '../../common/manageAddress/add_new_address.dart';
+import '../../common/home/bergen/bergen_adr_kilde.dart';
+import '../../common/home/home_bloc.dart';
+import '../adresse/adr_ark.dart' show visAdresseArk;
+import 'meg_sheets.dart' show MegSheets;
 import '../../common/manageAddress/manage_address_dl.dart';
-import '../../common/manageCard/manage_card.dart';
 import '../../../networking/ops/cus_api.dart';
 import '../../../services/customer/client_flags.dart';
 import '../../../services/ntf/ntf_live_card.dart';
@@ -117,6 +119,17 @@ class _KontoScreenState extends State<KontoScreen> {
     });
   }
 
+  /// T3: the Bergen sheet «Hvor skal ærendet?» (as Hjem and Kassen), not the old «Ny adresse» screen.
+  Future<void> _nyAdresse() async {
+    final bloc = HomeBloc(context, this, false);
+    try {
+      await visAdresseArk(context, BergenAdrKilde(bloc), ny: true);
+    } finally {
+      bloc.dispose();
+    }
+    if (mounted) _hent();
+  }
+
   Future<void> _push(Widget w) async {
     await Navigator.of(context).push(BergenRoutes.rute<void>((_) => w));
     if (!mounted) return;
@@ -198,7 +211,7 @@ class _KontoScreenState extends State<KontoScreen> {
                     tittel: A3MegCopy.a3_meg_konto_legg_adresse,
                     pluss: true,
                     siste: true,
-                    onTap: () => _push(const AddNewAddress()),
+                    onTap: _nyAdresse,
                   ),
                 ],
               ),
@@ -210,9 +223,9 @@ class _KontoScreenState extends State<KontoScreen> {
                 children: [
                   const _Rad(tittel: vipps, under: A3MegCopy.a3_meg_konto_vipps_std, radio: true),
                   for (final k in _kort)
-                    _Rad(tittel: k, under: KontoTekst.kortUnder, radio: false, onTap: () => _push(_lagret ? BetalingScreen(api: widget.cusApi) : const ManageCard())),
+                    _Rad(tittel: k, under: KontoTekst.kortUnder, radio: false, onTap: () => _lagret ? _push(BetalingScreen(api: widget.cusApi)) : MegSheets.kortIKassen(context)),
                   if (_kort.isEmpty)
-                    _Rad(key: const Key('konto-kort'), tittel: KontoTekst.leggKort, pluss: true, onTap: () => _push(_lagret ? BetalingScreen(api: widget.cusApi) : const ManageCard())),
+                    _Rad(key: const Key('konto-kort'), tittel: KontoTekst.leggKort, pluss: true, onTap: () => _lagret ? _push(BetalingScreen(api: widget.cusApi)) : MegSheets.kortIKassen(context)),
                   const _Rad(tittel: KontoTekst.applePay, under: KontoTekst.applePaySub, radio: false, siste: true),
                 ],
               ),

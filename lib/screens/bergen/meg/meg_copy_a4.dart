@@ -135,6 +135,9 @@ abstract final class A4MegCopy {
   static const String a4_meg_av = 'Av';
   static String a4_meg_varsel_lagret(String navn, bool paa) => 'Varsler om ${navn.toLowerCase()}: ${paa ? 'på' : 'av'}';
   static const String a4_meg_adresser = 'Adresser';
+  static const String a4_meg_kort_tittel = 'Kort legger du til i kassen';
+  static const String a4_meg_kort_linje = 'Velg «Kort» når du betaler. Kortet lagres hos Stripe, aldri hos Ærend.';
+  static const String a4_meg_kort_ok = 'Skjønner';
   static const String a4_meg_adresser_bare = 'bare for deg';
   static String a4_meg_steder(int n) => n == 1 ? '1 sted' : '$n steder';
   static const String a4_meg_adresser_tom = 'Legg til adresse';
