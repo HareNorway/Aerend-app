@@ -33,6 +33,7 @@ import 'lopet_kai.dart';
 import '../kit/ae_primitiver.dart' show AeKnappPille, AeKollaps;
 import '../kit/ae_mynt.dart' show AeMynt;
 import 'lopet_data.dart';
+import '../../../utils/shared_pref_utill.dart' show prefGetBoolOr, prefSetBool;
 
 enum _Fase { start, spill, pause, slutt }
 
@@ -116,6 +117,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
 
   // Fjordløpet v1.3 plan Step 6 (spec §12.1, §4.6): flashes on the water, the near-miss zoom, the end screen's lines.
   final ValueNotifier<String?> _flash = ValueNotifier<String?>(null);
+  /// T3 Vivo: «Tap left or right to steer» on the first runs, until a run gets past the first obstacle.
+  final ValueNotifier<bool> _styrHint = ValueNotifier(false);
+  static const _styrHintPref = 'lopetStyrHintLaert';
   final ValueNotifier<double> _zoom = ValueNotifier<double>(1);
   Timer? _flashTimer;
   Timer? _zoomTimer;
@@ -216,6 +220,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _flashTimer?.cancel();
     _zoomTimer?.cancel();
     _flash.dispose();
+    _styrHint.dispose();
     unawaited(_lyder.dispose());
     // The shared instance outlives the screen: stopped, and free to play elsewhere.
     _hap
@@ -374,6 +379,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _flash.value = null;
     loop.onTickEvents = _hap.tickEvents;
     _hap.newRun();
+    _styrHint.value = !_styrHintLaert();
     setState(() {
       _token = ledige.first;
       _loop = loop;
@@ -455,6 +461,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     final s = _s;
     if (s == null) return;
     final m = loop.sim.sailedM;
+    // The steer hint: gone by the first obstacle (40 m); past 60 m the player has learned it — not shown again.
+    if (_styrHint.value && m >= 45) _styrHint.value = false;
+    if (m >= 60 && !_styrHintLaert()) unawaited(prefSetBool(_styrHintPref, true));
     while (_porterVist < s.milestones.length && _porterVist < 3 && m >= s.milestones[_porterVist]) {
       final p = s.pointsFor(s.milestones.sublist(0, _porterVist + 1));
       _vis(LopetCopy.portPoeng(LopetCopy.porter[_porterVist], p));
@@ -585,8 +594,18 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _flashTimer = Timer(const Duration(milliseconds: 1200), () => _flash.value = null);
   }
 
+  /// Whether the player has steered past the first obstacle once (prefs missing in tests: treat as learned).
+  bool _styrHintLaert() {
+    try {
+      return prefGetBoolOr(_styrHintPref, false);
+    } catch (_) {
+      return true;
+    }
+  }
+
   void _styr(int dir) {
     if (_fase != _Fase.spill) return;
+    _styrHint.value = false;
     _loop?.input(dir);
     _hap.touch();
     _lyder.spill('bytte'); // H01 plays when the change is carried out (evLane, DH1)
@@ -1180,6 +1199,34 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                   icon: const Icon(Icons.pause_circle_filled_rounded, color: Colors.white, size: 36),
                 ),
               ],
+            ),
+          ),
+        ),
+        // T3 Vivo: the first runs say how to steer (new players tapped one side into the first buoy).
+        Positioned(
+          left: 24,
+          right: 24,
+          bottom: 48 + MediaQuery.paddingOf(context).bottom,
+          child: IgnorePointer(
+            child: ValueListenableBuilder<bool>(
+              valueListenable: _styrHint,
+              // Shown or gone, no fade: nothing over the scene may be an opacity layer during play (T30, perf).
+              builder: (_, on, __) => !on
+                  ? const SizedBox.shrink()
+                  : Center(
+                  child: Container(
+                    key: const Key('lopet-styr-hint'),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(color: const Color(0xCC0C2A38), borderRadius: BorderRadius.circular(99), border: Border.all(color: Colors.white24)),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      const Icon(Icons.touch_app_rounded, size: 18, color: Color(0xFF7FF0CB)),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.chevron_left_rounded, size: 18, color: Colors.white70),
+                      Flexible(child: Text(LopetCopy.styrHint, textAlign: TextAlign.center, style: BergenTokens.text(13.5, weight: FontWeight.w800, color: Colors.white))),
+                      const Icon(Icons.chevron_right_rounded, size: 18, color: Colors.white70),
+                    ]),
+                  ),
+                ),
             ),
           ),
         ),

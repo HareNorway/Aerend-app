@@ -8604,6 +8604,9 @@ class AppLocalizationsNo extends AppLocalizations {
   String get lop_vest_tok => 'Redningsvesten tok støyten';
 
   @override
+  String get lop_styr_hint => 'Trykk til venstre eller høyre for å styre';
+
+  @override
   String get lop_stengt => 'Fjordløpet er åpent mens et ærend er på vei.';
 
   @override

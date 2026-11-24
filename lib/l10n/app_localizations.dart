@@ -9179,7 +9179,7 @@ abstract class AppLocalizations {
   /// No description provided for @aegil_spor.
   ///
   /// In en, this message translates to:
-  /// **'Hva trenger du i kveld?'**
+  /// **'What do you need tonight?'**
   String get aegil_spor;
 
   /// No description provided for @aegil_send.
@@ -9479,7 +9479,7 @@ abstract class AppLocalizations {
   /// No description provided for @aegil_greeting.
   ///
   /// In en, this message translates to:
-  /// **'Hei! Hva trenger du i kveld?'**
+  /// **'Hi! What do you need tonight?'**
   String get aegil_greeting;
 
   /// No description provided for @pts_premiehylla_title.
@@ -15247,6 +15247,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your life vest took the hit'**
   String get lop_vest_tok;
+
+  /// Fjordløpet: shown on the first runs until the player gets past the first obstacle
+  ///
+  /// In en, this message translates to:
+  /// **'Tap left or right to steer'**
+  String get lop_styr_hint;
 
   /// No description provided for @lop_stengt.
   ///

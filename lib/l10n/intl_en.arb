@@ -5346,6 +5346,8 @@
   "lop_snart_fremme": "Your courier is almost there",
   "lop_forsinket": "Your order is late. You get an extra run.",
   "lop_vest_tok": "Your life vest took the hit",
+  "lop_styr_hint": "Tap left or right to steer",
+  "@lop_styr_hint": {"description": "Fjordl\u00f8pet: shown on the first runs until the player gets past the first obstacle"},
   "lop_stengt": "Fjordløpet is open while an order is on its way.",
   "lop_min_unna": "Courier {p0} min away",
   "@lop_min_unna": {"placeholders": {"p0": {"type": "Object"}}},

@@ -135,6 +135,7 @@ abstract final class LopetCopy {
   static String get pyntKort => languages.lop_kai_pynt;
   static String seilt(int m) => languages.lop_kai_seilt(tallTekst(m));
   static String get altTake => languages.lop_kai_alt_take;
+  static String get styrHint => languages.lop_styr_hint;
   static String get take => languages.lop_kai_take;
   static String get nesteMaal => languages.lop_kai_neste_maal;
   static String igjen(int m) => languages.lop_kai_igjen(tallTekst(m));
