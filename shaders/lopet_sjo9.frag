@@ -48,10 +48,35 @@ uniform vec3 uSkum;
 uniform vec3 uLX;
 uniform vec2 uZr;
 uniform vec4 uZs;
-uniform vec4 uTr4[2];
-uniform vec4 uPh4[5];
-uniform vec4 uO[12];
-uniform vec4 uRip[8];
+// No uniform arrays: under Impeller their layout differed and the object list read other uniforms (giant foam
+// outlines on the water, 2026-11-24). The same floats in the same order, one vec4 each.
+uniform vec4 uTrA;
+uniform vec4 uTrB;
+uniform vec4 uPhA;
+uniform vec4 uPhB;
+uniform vec4 uPhC;
+uniform vec4 uPhD;
+uniform vec4 uPhE;
+uniform vec4 uO0;
+uniform vec4 uO1;
+uniform vec4 uO2;
+uniform vec4 uO3;
+uniform vec4 uO4;
+uniform vec4 uO5;
+uniform vec4 uO6;
+uniform vec4 uO7;
+uniform vec4 uO8;
+uniform vec4 uO9;
+uniform vec4 uO10;
+uniform vec4 uO11;
+uniform vec4 uRp0;
+uniform vec4 uRp1;
+uniform vec4 uRp2;
+uniform vec4 uRp3;
+uniform vec4 uRp4;
+uniform vec4 uRp5;
+uniform vec4 uRp6;
+uniform vec4 uRp7;
 uniform sampler2D uSk;
 
 out vec4 fragColor;
@@ -86,6 +111,21 @@ void wave(float phs, float fp0, inout vec2 q, inout vec2 d, inout vec2 g, inout 
   d = vec2(d.x * -.7374 - d.y * .6755, d.x * .6755 + d.y * -.7374);
 }
 
+vec2 rip(vec4 R, float xm, float zl) {
+  if (R.w <= 0.) return vec2(0.);
+  vec2 dv = vec2(xm, zl) - R.xy; float r = length(dv) + 1e-4, rad = R.z * 2.6;
+  float env = exp(-pow((r - rad) * 1.1, 2.)) * exp(-R.z * 1.3) * R.w;
+  return dv / r * cos((r - rad) * 5.5) * env * .35;
+}
+// Foam round one object (x, y, half width, half height); .z = 0 means none.
+void obj(vec4 o, vec2 px, float fn, float t, inout float foam, inout float sk) {
+  if (o.z <= 0.) return;
+  float dd = sdb(px - o.xy, o.zw);
+  foam += ss(6., 1.2, dd) * ss(-3., 0., dd) * (.5 + .5 * fn);
+  foam += ss(26., 7., dd) * ss(1., 6., dd) * (.5 + .5 * sin(dd * .5 - t * 4.5)) * .18;
+  sk = max(sk, ss(8., -4., sdb(px - o.xy - vec2(5., 7.), o.zw)) * .8);
+}
+
 void main() {
   vec2 px = FlutterFragCoord().xy / uS - uOf;
   float xm = (px.x - uW * .5) / uM, zl = (uBy - px.y) / uM, t = uT, fp0 = 1. / (uM * uS), zz = uZs.y + zl, zf = uZs.x + zl;
@@ -94,15 +134,24 @@ void main() {
   float calm = 1. - .3 * exp(-dl * dl / (uLw * uLw * .07));
   vec2 q = vec2(xm, zl), d = vec2(.6442, .7648), g = vec2(0.);
   float fr = .34, sp = 1.2, w = 1., sw = 0., h = 0., lost = 0.;
-  for (int j = 0; j < 5; j++) {
-    vec4 p4 = uPh4[j];
-    wave(p4.x, fp0, q, d, g, fr, sp, w, sw, h, lost);
-    wave(p4.y, fp0, q, d, g, fr, sp, w, sw, h, lost);
-    if (j < 4) {
-      wave(p4.z, fp0, q, d, g, fr, sp, w, sw, h, lost);
-      wave(p4.w, fp0, q, d, g, fr, sp, w, sw, h, lost);
-    }
-  }
+  wave(uPhA.x, fp0, q, d, g, fr, sp, w, sw, h, lost);
+  wave(uPhA.y, fp0, q, d, g, fr, sp, w, sw, h, lost);
+  wave(uPhA.z, fp0, q, d, g, fr, sp, w, sw, h, lost);
+  wave(uPhA.w, fp0, q, d, g, fr, sp, w, sw, h, lost);
+  wave(uPhB.x, fp0, q, d, g, fr, sp, w, sw, h, lost);
+  wave(uPhB.y, fp0, q, d, g, fr, sp, w, sw, h, lost);
+  wave(uPhB.z, fp0, q, d, g, fr, sp, w, sw, h, lost);
+  wave(uPhB.w, fp0, q, d, g, fr, sp, w, sw, h, lost);
+  wave(uPhC.x, fp0, q, d, g, fr, sp, w, sw, h, lost);
+  wave(uPhC.y, fp0, q, d, g, fr, sp, w, sw, h, lost);
+  wave(uPhC.z, fp0, q, d, g, fr, sp, w, sw, h, lost);
+  wave(uPhC.w, fp0, q, d, g, fr, sp, w, sw, h, lost);
+  wave(uPhD.x, fp0, q, d, g, fr, sp, w, sw, h, lost);
+  wave(uPhD.y, fp0, q, d, g, fr, sp, w, sw, h, lost);
+  wave(uPhD.z, fp0, q, d, g, fr, sp, w, sw, h, lost);
+  wave(uPhD.w, fp0, q, d, g, fr, sp, w, sw, h, lost);
+  wave(uPhE.x, fp0, q, d, g, fr, sp, w, sw, h, lost);
+  wave(uPhE.y, fp0, q, d, g, fr, sp, w, sw, h, lost);
   h /= sw; lost /= sw;
   float slick = .7 + .6 * vnP(vec2(xm * .034, zz * .125), 125.);
   vec2 s = g / sw * uAmp * slick * calm;
@@ -117,14 +166,14 @@ void main() {
       s += dv / r * ring * .2 * uRegn;
     }
   }
-  for (int i = 0; i < 8; i++) {
-    vec4 R = uRip[i];
-    if (R.w > 0.) {
-      vec2 dv = vec2(xm, zl) - R.xy; float r = length(dv) + 1e-4, rad = R.z * 2.6;
-      float env = exp(-pow((r - rad) * 1.1, 2.)) * exp(-R.z * 1.3) * R.w;
-      s += dv / r * cos((r - rad) * 5.5) * env * .35;
-    }
-  }
+  s += rip(uRp0, xm, zl);
+  s += rip(uRp1, xm, zl);
+  s += rip(uRp2, xm, zl);
+  s += rip(uRp3, xm, zl);
+  s += rip(uRp4, xm, zl);
+  s += rip(uRp5, xm, zl);
+  s += rip(uRp6, xm, zl);
+  s += rip(uRp7, xm, zl);
   vec3 N = normalize(vec3(-s.x, 1., -s.y));
   vec3 V = normalize(vec3((px.x - uW * .5) / uW * .4, -1., .45 + .5 * (1. - px.y / uH)));
   vec3 Rf = reflect(V, N); float ci = max(dot(N, -V), 0.);
@@ -153,7 +202,7 @@ void main() {
   float sb = (px.y - uBy) / uM - 1.5; float wl = 15. + 15. * uV;
   if (uBaat > 0. && sb > 0. && sb < wl) {
     float u = sb / 2.2; float fi = u < uFr ? u / max(uFr, .001) : u - uFr + 1.;
-    vec4 ta = uTr4[0], tb = uTr4[1];
+    vec4 ta = uTrA, tb = uTrB;
     float tx = ta.x;
     tx = mix(tx, ta.y, clamp(fi, 0., 1.)); tx = mix(tx, ta.z, clamp(fi - 1., 0., 1.)); tx = mix(tx, ta.w, clamp(fi - 2., 0., 1.));
     tx = mix(tx, tb.x, clamp(fi - 3., 0., 1.)); tx = mix(tx, tb.y, clamp(fi - 4., 0., 1.)); tx = mix(tx, tb.z, clamp(fi - 5., 0., 1.));
@@ -163,15 +212,18 @@ void main() {
     float kj = ss(hb * .85, 0., dx) * ss(6. + 6. * uV, 0., sb);
     wk = (arm * ss(.2, .55, fn + arm * .35) * 1.1 + kj * ss(.25, .55, fn + kj * .3)) * (.7 + .4 * uV) * uBaat * ss(70., 14., abs(tx - ta.x));
   }
-  for (int i = 0; i < 12; i++) {
-    vec4 o = uO[i];
-    if (o.z > 0.) {
-      float dd = sdb(px - o.xy, o.zw);
-      foam += ss(6., 1.2, dd) * ss(-3., 0., dd) * (.5 + .5 * fn);
-      foam += ss(26., 7., dd) * ss(1., 6., dd) * (.5 + .5 * sin(dd * .5 - t * 4.5)) * .18;
-      sk = max(sk, ss(8., -4., sdb(px - o.xy - vec2(5., 7.), o.zw)) * .8);
-    }
-  }
+  obj(uO0, px, fn, t, foam, sk);
+  obj(uO1, px, fn, t, foam, sk);
+  obj(uO2, px, fn, t, foam, sk);
+  obj(uO3, px, fn, t, foam, sk);
+  obj(uO4, px, fn, t, foam, sk);
+  obj(uO5, px, fn, t, foam, sk);
+  obj(uO6, px, fn, t, foam, sk);
+  obj(uO7, px, fn, t, foam, sk);
+  obj(uO8, px, fn, t, foam, sk);
+  obj(uO9, px, fn, t, foam, sk);
+  obj(uO10, px, fn, t, foam, sk);
+  obj(uO11, px, fn, t, foam, sk);
   // The foam map is stored top-down: row 0 is the far end of its 128 m loop (the design's texture is bottom-up).
   float fm = texture(uSk, vec2(px.x / uW, 1. - fract(zf / 128.))).r;
   foam += fm * (.45 + .75 * fn);

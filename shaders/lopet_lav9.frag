@@ -26,14 +26,33 @@ uniform vec3 uGrunn;
 uniform vec3 uMur;
 uniform vec3 uSkum;
 uniform vec3 uLX;
-uniform vec4 uTr4[2];
-uniform vec4 uO[12];
+uniform vec4 uTrA;
+uniform vec4 uTrB;
+uniform vec4 uO0;
+uniform vec4 uO1;
+uniform vec4 uO2;
+uniform vec4 uO3;
+uniform vec4 uO4;
+uniform vec4 uO5;
+uniform vec4 uO6;
+uniform vec4 uO7;
+uniform vec4 uO8;
+uniform vec4 uO9;
+uniform vec4 uO10;
+uniform vec4 uO11;
 uniform sampler2D uTx;
 
 out vec4 fragColor;
 
 float ss(float a, float b, float x) { float t = clamp((x - a) / (b - a), 0., 1.); return t * t * (3. - 2. * t); }
 float sdb(vec2 p, vec2 b) { float r = min(b.x, b.y); vec2 q = abs(p) - b + r; return length(max(q, 0.)) + min(max(q.x, q.y), 0.) - r; }
+
+void obj(vec4 o, vec2 px, inout float foam, inout float sk) {
+  if (o.z <= 0.) return;
+  float dd = sdb(px - o.xy, o.zw);
+  foam += ss(5., 1., dd) * ss(-3., 0., dd) * .6;
+  sk = max(sk, ss(8., -4., sdb(px - o.xy - vec2(5., 7.), o.zw)) * .8);
+}
 
 void main() {
   vec2 px = FlutterFragCoord().xy / uS - uOf;
@@ -49,7 +68,7 @@ void main() {
   float sb = (px.y - uBy) / uM - 1.5, wl = 15. + 15. * uV;
   if (uBaat > 0. && sb > 0. && sb < wl) {
     float u = sb / 2.2; float fi = u < uFr ? u / max(uFr, .001) : u - uFr + 1.;
-    vec4 ta = uTr4[0], tb = uTr4[1];
+    vec4 ta = uTrA, tb = uTrB;
     float tx = ta.x;
     tx = mix(tx, ta.y, clamp(fi, 0., 1.)); tx = mix(tx, ta.z, clamp(fi - 1., 0., 1.)); tx = mix(tx, ta.w, clamp(fi - 2., 0., 1.));
     tx = mix(tx, tb.x, clamp(fi - 3., 0., 1.)); tx = mix(tx, tb.y, clamp(fi - 4., 0., 1.)); tx = mix(tx, tb.z, clamp(fi - 5., 0., 1.));
@@ -58,14 +77,18 @@ void main() {
     foam += (ss(.75, 0., abs(dx - hb)) * ss(wl, 2., sb) + ss(hb * .85, 0., dx) * ss(8., 0., sb) * .6) * .8 * uBaat;
   }
   float sk = 0.;
-  for (int i = 0; i < 12; i++) {
-    vec4 o = uO[i];
-    if (o.z > 0.) {
-      float dd = sdb(px - o.xy, o.zw);
-      foam += ss(5., 1., dd) * ss(-3., 0., dd) * .6;
-      sk = max(sk, ss(8., -4., sdb(px - o.xy - vec2(5., 7.), o.zw)) * .8);
-    }
-  }
+  obj(uO0, px, foam, sk);
+  obj(uO1, px, foam, sk);
+  obj(uO2, px, foam, sk);
+  obj(uO3, px, foam, sk);
+  obj(uO4, px, foam, sk);
+  obj(uO5, px, foam, sk);
+  obj(uO6, px, foam, sk);
+  obj(uO7, px, foam, sk);
+  obj(uO8, px, foam, sk);
+  obj(uO9, px, foam, sk);
+  obj(uO10, px, foam, sk);
+  obj(uO11, px, foam, sk);
   col *= 1. - .3 * sk;
   col = mix(col, uSkum, clamp(foam, 0., 1.) * .85);
   if (dpx < 0.) col = mix(col, uMur * .8, ss(0., -2., dpx));
