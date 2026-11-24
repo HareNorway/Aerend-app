@@ -947,7 +947,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                               ),
                               const SizedBox(height: 14),
                               // --- Gullbilletten (L7439) --------------------------------
-                              MegGullBillett(kode: code, linje: A4MegCopy.a4_meg_gi_faa(give, get), onTap: _openBillett, onStubb: _share),
+                              MegGullBillett(kode: code, linje: _balance == null ? A4MegCopy.a4_meg_del_uten_poeng : A4MegCopy.a4_meg_gi_faa(give, get), onTap: _openBillett, onStubb: _share),
                               // --- Min Bio (L7458) --------------------------------------
                               const SizedBox(height: 14),
                               OnbMaal(id: 'bio', radius: 24, child: MinBioKort(bio: _bio, puls: _bioPuls, onTap: _openBio)),
