@@ -522,7 +522,7 @@ abstract final class A4MegCopy {
   static const String a4_hylla_er_maal = 'Er allerede målet ditt';
   static String a4_hylla_satt_maal(int igjen) => 'Satt som mål · ${_nf(igjen < 0 ? 0 : igjen)} poeng igjen';
   static const String a4_hylla_utsolgt_mnd = 'Utsolgt denne måneden';
-  static const String a4_hylla_hentet_mnd = 'Hentet denne måneden';
+  static const String a4_hylla_hentet_mnd = 'Allerede hentet';
   static const String a4_hylla_hent_kupong = 'Hent med kupong';
   static String a4_hylla_utsolgt_toast(String name) => '$name er utsolgt denne måneden';
   static String a4_hylla_igjen(int n) => '${_nf(n)} poeng igjen';
