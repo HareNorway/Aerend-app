@@ -28,6 +28,8 @@ abstract final class LopetCopy {
   static String get ukensLed => languages.lop_ukens_led;
   static String get settSeil => languages.lop_sett_seil;
   static String get dinBeste => languages.lop_din_beste;
+  /// Design (9): the short label on the water (the flag and over the ghost), «Din beste».
+  static String get dinBesteKort => languages.lop_flagg_din_beste;
   static String get ukensBeste => languages.lop_ukens_beste;
   static String get sjokort => languages.lop_sjokort;
   static String get takeUkjent => languages.lop_take_ukjent;
@@ -44,9 +46,11 @@ abstract final class LopetCopy {
   static String get fortsett => languages.lop_fortsett;
   static String fortsettOm(int n) => languages.lop_fortsett_om(n);
   static String get tilSporing => languages.lop_til_sporing;
+  static String get sporingLenke => languages.lop_sporing_lenke;
 
   static String get over => languages.lop_over;
   static String fraRekorden(int m) => languages.lop_fra_rekorden(m);
+  static String rekordOm(int m) => languages.lop_rekord_om(m);
   static String get nyRekord => languages.lop_ny_rekord;
   static String poengVedLevering(int p) => languages.lop_poeng_ved_levering(p);
   static String seilIgjen(int n) => languages.lop_seil_igjen(n);
@@ -137,6 +141,7 @@ abstract final class LopetCopy {
   static String get altTake => languages.lop_kai_alt_take;
   static String get styrHint => languages.lop_styr_hint;
   static String get take => languages.lop_kai_take;
+  static String get kartStart => languages.lop_kart_start;
   static String get nesteMaal => languages.lop_kai_neste_maal;
   static String igjen(int m) => languages.lop_kai_igjen(tallTekst(m));
   static String get ingenForan => languages.lop_kai_ingen_foran;

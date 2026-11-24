@@ -81,6 +81,7 @@ class HjemHero extends StatefulWidget {
     this.ekstra,
     this.extraHeight = 0,
     this.vindu = false,
+    this.utenAegil = false,
   });
 
   final HjemVaer vaer;
@@ -109,6 +110,10 @@ class HjemHero extends StatefulWidget {
   /// no floats, raft, quay or Fjordfiske pill; Ægil small out on the water
   /// to the left (right 300, top 522, 32px, `aegBob`).
   final bool vindu;
+
+  /// Design (9) 1:1 plan Step 4: Fjordløpet's quay shows Bryggen and Vågen only — no Ægil fishing on the water (the
+  /// moored boat is drawn over the scene).
+  final bool utenAegil;
 
   @override
   State<HjemHero> createState() => _HjemHeroState();
@@ -339,6 +344,7 @@ class _HjemHeroState extends State<HjemHero> {
                 ),
               ),
             ),
+          if (!widget.utenAegil)
           Positioned(
             left: stangL,
             top: stangT,
@@ -355,6 +361,7 @@ class _HjemHeroState extends State<HjemHero> {
               ),
             ),
           ),
+          if (!widget.utenAegil)
           Positioned(
             left: aegL,
             top: aegT,
@@ -382,6 +389,7 @@ class _HjemHeroState extends State<HjemHero> {
             ),
           ),
           // Tap target over Ægil (margin -6 -2 0 0), scaled with him.
+          if (!widget.utenAegil)
           Positioned(
             left: vi ? aegL : aegL - (aegW + 2) * (sk - 1) / 2,
             top: vi ? aegT - 6 : aegT + aegW - (aegW + 4) * sk + 4,

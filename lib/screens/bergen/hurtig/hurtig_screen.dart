@@ -686,6 +686,12 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     final topp = mq.padding.top;
     final bunn = math.max(mq.padding.bottom, mq.viewInsets.bottom);
     final d = _d;
+    // Design (9) 1:1 plan Step 6 (2026-11-24, phone): the sheet covered the hero text when it wrapped to more lines
+    // than the design's three (a larger font setting, a narrower glyph run). The sheet starts at the design's 176 px or,
+    // when the title block is taller, 12 px under it.
+    double hoyde(String t, TextStyle st) => (TextPainter(text: TextSpan(text: t, style: st), textDirection: TextDirection.ltr, textScaler: mq.textScaler)..layout(maxWidth: 238)).height;
+    final tittelBunn = 68 + hoyde(HurtigCopy.kicker, hbI(10.5, weight: FontWeight.w800, em: .1)) + 5 + hoyde(HurtigCopy.tittel, hbJ(27, em: -.03, height: 1.05)) + 6 + hoyde(HurtigCopy.under, hbI(12.5, height: 1.4));
+    final arkTopp = math.max(176.0, tittelBunn + 12);
     return Stack(
       children: [
         const Positioned.fill(
@@ -792,13 +798,14 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
           top: 68 + topp,
           width: 238,
           child: Column(
+            key: const Key('hb-tittel'),
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   const HbIkon(HbIkoner.lyn, size: 11, fill: Color(0xFFF2C14E)),
                   const SizedBox(width: 6),
-                  Text(HurtigCopy.kicker, style: hbI(10.5, weight: FontWeight.w800, em: .1, color: kHbMintPale)),
+                  Flexible(child: Text(HurtigCopy.kicker, maxLines: 1, overflow: TextOverflow.ellipsis, style: hbI(10.5, weight: FontWeight.w800, em: .1, color: kHbMintPale))),
                 ],
               ),
               const SizedBox(height: 5),
@@ -833,9 +840,10 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
         Positioned(
           left: 0,
           right: 0,
-          top: 176 + topp,
+          top: arkTopp + topp,
           bottom: 0,
           child: CssBox(
+            key: const Key('hb-ark'),
             radius: const BorderRadius.vertical(top: Radius.circular(30)),
             bg: context.aeM(
               const [
@@ -916,7 +924,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(HurtigCopy.tarHensyn, style: hbI(10, weight: FontWeight.w800, em: .1, color: context.aeM(const Color.fromRGBO(255, 255, 255, .58), LysPalett.dempet))),
+                Flexible(child: Text(HurtigCopy.tarHensyn, maxLines: 1, overflow: TextOverflow.ellipsis, style: hbI(10, weight: FontWeight.w800, em: .1, color: context.aeM(const Color.fromRGBO(255, 255, 255, .58), LysPalett.dempet)))),
                 HbPress(
                   dy: 1.5,
                   onTap: _ny,

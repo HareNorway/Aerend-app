@@ -8892,6 +8892,20 @@ class AppLocalizationsNo extends AppLocalizations {
   String get lop_kai_take => 'Tåke · seil lenger for å se mer';
 
   @override
+  String get lop_kart_start => 'KAIEN · START';
+
+  @override
+  String get lop_sporing_lenke => 'Sporing';
+
+  @override
+  String get lop_flagg_din_beste => 'Din beste';
+
+  @override
+  String lop_rekord_om(Object p0) {
+    return 'Rekorden din om $p0 m';
+  }
+
+  @override
   String get lop_kai_neste_maal => 'NESTE MÅL';
 
   @override

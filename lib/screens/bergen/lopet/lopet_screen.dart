@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:io' show Platform;
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -15,18 +14,19 @@ import '../../../game/fjordlopet/haptics/haptikk_moenster.dart';
 import '../../../game/fjordlopet/input/lopet_input.dart';
 import '../../../game/fjordlopet/lopet_lyd.dart';
 import '../../../game/fjordlopet/nearest_goal.dart';
-import '../../../game/fjordlopet/render/lopet_atlas.dart';
-import '../../../game/fjordlopet/render/lopet_field_painter.dart';
+import '../../../game/fjordlopet/render/lopet_atlas9.dart';
 import '../../../game/fjordlopet/render/lopet_look.dart';
 import '../../../game/fjordlopet/render/lopet_loop.dart';
 import '../../../game/fjordlopet/render/lopet_quality.dart';
-import '../../../game/fjordlopet/render/lopet_water.dart';
+import '../../../game/fjordlopet/render/lopet_scene9.dart';
+import '../../../game/fjordlopet/render/lopet_sea9.dart';
 import '../hjem/hjem_hero.dart';
 import '../../common/auth/launch/lf_css.dart' show LfFrame;
 import '../../../game/fjordlopet/sim/engine.dart';
 import '../kit/bergen_kit.dart';
 import '../../../services/lopet_utboks.dart';
 import 'lopet_copy.dart';
+import 'lopet_kart9.dart';
 import 'lopet_liste.dart';
 import 'lopet_vibrasjon.dart';
 import 'lopet_kai.dart';
@@ -91,18 +91,19 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
 
   // Fjordløpet v1.3 plan Step 5 (spec §12.2–12.4): the fixed-step loop, the atlas, the flags and the frame numbers.
   FjordLoop? _loop;
-  LopetAtlas? _atlas;
+  LopetAtlas9? _atlas;
   bool _atlasLaster = false;
-  final LopetFlags _flags = LopetFlags();
+  final LopetFlags9 _flags = LopetFlags9();
   final FramePerf _perf = FramePerf();
 
   // Fjordløpet v1.3 plan Step 9 (spec §12.2, §12.5, §12.6): the quality level, the shader water, the particle pool,
   // Home's sea mode and Ægil's back for the boat sprite — all made when the session opens.
   LopetQuality? _q;
-  LopetWater? _water;
-  final LopetFx _fx = LopetFx();
+  LopetSea9? _water;
+  final LopetFx9 _fx = LopetFx9();
   final LopetMode _mode = LopetLook.now();
-  ui.Image? _aegil;
+  final ValueNotifier<int> _kaiTikk = ValueNotifier<int>(0);
+  Timer? _kaiTimer;
   bool _overgang = false; // the ≤ 0.6 s move from the quay into play
   final ValueNotifier<LopetState?> _sVn = ValueNotifier<LopetState?>(null);
   final ValueNotifier<bool> _vestMelding = ValueNotifier<bool>(false);
@@ -208,12 +209,14 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _doraTimer?.cancel();
     // Leaving mid-run (the route replaced, the app closing the screen): the run is kept and its token spent.
     if ((_fase == _Fase.spill || _fase == _Fase.pause) && _token != null) unawaited(_avslutt('forlatt', vis: false));
+    _kaiTimer?.cancel();
+    _kaiTikk.dispose();
     _ticker.dispose();
     _perf.stop();
     _loop?.dispose();
+    if (LopetSjokortStor.atlas == _atlas) LopetSjokortStor.atlas = null;
     _atlas?.dispose();
     _water?.dispose();
-    _aegil?.dispose();
     _sVn.dispose();
     _vestMelding.dispose();
     _perfTekst.dispose();
@@ -298,16 +301,31 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
 
   // ── the run ──────────────────────────────────────────────────────────────
 
-  /// The atlas is made when the session opens, before «Sett seil» (spec §12.2): nothing decodes during a run.
+  /// The atlas is made when the session opens, before «Sett seil» (spec §12.2): nothing decodes during a run. Design
+  /// (9) 1:1 plan D1: the design's own atlas, with the gate labels, flags, landmark tags and the customer's hull drawn in.
   Future<void> _byggAtlas(LopetState s) async {
     if (_atlas != null || _atlasLaster) return;
     _atlasLaster = true;
     try {
       final dpr = WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
-      final labels = [for (var k = 0; k < 3; k++) k < s.milestones.length ? '${LopetCopy.porter[k]} · ${s.milestones[k]} m' : ''];
-      _aegil ??= await _lastAegil();
-      final program = await LopetWater.load();
-      final a = await LopetAtlas.build(density: dpr >= 2.5 ? 3 : 2, labels: labels, mode: _mode, aegil: _aegil);
+      final program = await LopetSea9.load();
+      final lm = <int, String>{};
+      for (final l in s.landmarks) {
+        final id = _lmId[l['k']];
+        if (id == null) continue;
+        final n = s.landmarkName('${l['k']}') ?? '';
+        lm[id] = n.isEmpty ? n : n[0].toUpperCase() + n.substring(1);
+      }
+      final a = await LopetAtlas9.build(
+        density: dpr.clamp(2.0, 3.0).toDouble(),
+        mode: _mode,
+        level: _nivaa(s.boat),
+        labels: LopetCopy.porter,
+        flags: [LopetCopy.dinBesteKort, s.rival?.name ?? '', LopetCopy.ukensBeste],
+        ghost: LopetCopy.dinBesteKort,
+        name: s.boatName ?? '',
+        landmarks: lm,
+      );
       if (!mounted) {
         a.dispose();
         return;
@@ -316,8 +334,10 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       if (program == null) {
         _q?.markShaderFailed();
       } else {
-        _water ??= LopetWater(program, LopetLook.of(_mode));
+        final w = _water ??= LopetSea9(program, _mode, lav: await LopetSea9.loadLav());
+        await w.makeLavTex();
       }
+      LopetSjokortStor.atlas = a;
       setState(() => _atlas = a);
     } catch (_) {
       // Without an atlas the field draws only the water (the run itself does not depend on it).
@@ -326,18 +346,61 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     }
   }
 
-  /// Ægil from behind (`assets/images/aegil/rear.png`), decoded once for the atlas; null if it cannot be read.
-  static Future<ui.Image?> _lastAegil() async {
-    try {
-      final data = await rootBundle.load('assets/images/aegil/rear.png');
-      final codec = await ui.instantiateImageCodec(data.buffer.asUint8List(), targetWidth: 180);
-      final frame = await codec.getNextFrame();
-      codec.dispose();
-      return frame.image;
-    } catch (_) {
-      return null;
-    }
+  static const Map<String, int> _lmId = {'naust': 0, 'kran': 1, 'fyr': 2, 'akvariet': 3, 'festningen': 4, 'seilskute': 5, 'verftet': 6, 'sjobad': 7};
+
+  /// The play field for [loop] (Design (9) 1:1: the design's scene); also behind the end of a run, frozen.
+  LopetScene9 _felt(FjordLoop loop, LopetAtlas9 atlas, LopetState s, bool rolig) => LopetScene9(
+        loop: loop,
+        atlas: atlas,
+        sea: _water,
+        fx: _fx,
+        flags: _flags,
+        milestones: s.milestones,
+        mode: _mode,
+        level: _nivaa(s.boat),
+        vimpel: _pyntId(s.equipped['pennant']),
+        kjol: _pyntId(s.equipped['wake']),
+        figur: _pyntId(s.equipped['figurehead']),
+        rolig: rolig,
+        quality: _q,
+        landmarks: s.landmarks,
+      );
+
+  /// Design (9) 1:1 plan Step 5 («Fjordløpet · Slutt på seilas»): the end of the run over the frozen field, under the
+  /// design's veil (rgba(8,26,33) .5 → .84 → .95).
+  Widget _sluttOverFelt() {
+    final loop = _loop, atlas = _atlas, s = _s;
+    return Stack(
+      children: [
+        if (loop != null && atlas != null && s != null)
+          Positioned.fill(child: IgnorePointer(child: RepaintBoundary(child: CustomPaint(painter: _felt(loop, atlas, s, true))))),
+        const Positioned.fill(
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(8, 26, 33, .5), Color.fromRGBO(8, 26, 33, .84), Color.fromRGBO(8, 26, 33, .95)], stops: [0, .4, 1]),
+              ),
+            ),
+          ),
+        ),
+        Positioned.fill(child: Padding(padding: const EdgeInsets.only(top: 58), child: _slutt())),
+      ],
+    );
   }
+
+  /// The level boats (spec §5.7) as the design's levels: robåt Bronse, robåt med vimpel Sølv, snekke Gull, egen båt Platina.
+  static String _nivaa(String boat) => switch (boat) { 'vimpel' => 'Sølv', 'snekke' => 'Gull', 'egen' => 'Platina', _ => 'Bronse' };
+
+  /// The equipped cosmetics as the design's ids (pennant gull|striper, wake mint|gull, figurehead brygga|stjerne).
+  static String _pyntId(String? item) => switch (item) {
+        'pennant_gull' => 'gull',
+        'pennant_stripes' => 'striper',
+        'wake_mint' => 'mint',
+        'wake_gull' => 'gull',
+        'figurehead_bryggen' => 'brygga',
+        'figurehead_star' => 'stjerne',
+        _ => '',
+      };
 
   /// «Sett seil»: the quay moves up and the play view comes in (at most 0.6 s, spec §12.2), then the run starts.
   void _settSeilMedOvergang() {
@@ -391,6 +454,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _perf.start();
     _q?.runStarted();
     _fx.clear();
+    _water?.clearFoam();
     _rammer = 0;
     loop.resetClock();
     _ticker.start();
@@ -898,20 +962,27 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       child: Scaffold(
       backgroundColor: const Color(0xFF0C2A38),
       body: SafeArea(
-        child: Column(
+        // Design (9) 1:1 plan Step 4: the delivery strip floats over the scene, as the design's (46 px on the quay and
+        // the end screen, the slim 28 px one in play).
+        child: Stack(
           children: [
-            ValueListenableBuilder<LopetState?>(
-              valueListenable: _sVn,
-              builder: (_, sv, __) => _Stripe(s: sv ?? _s, stengt: _stengt, onTap: _tilSporing, onTilbake: _tilbake),
-            ),
-            Expanded(
+            Positioned.fill(
               child: _laster
                   ? const Center(child: CircularProgressIndicator(color: Color(0xFF7FF0CB)))
                   : switch (_fase) {
                       _Fase.start => _start(),
                       _Fase.spill || _Fase.pause => _spill(),
-                      _Fase.slutt => _slutt(),
+                      _Fase.slutt => _sluttOverFelt(),
                     },
+            ),
+            Positioned(
+              left: iLop ? 8 : 12,
+              right: iLop ? 8 : 12,
+              top: iLop ? 6 : 12,
+              child: ValueListenableBuilder<LopetState?>(
+                valueListenable: _sVn,
+                builder: (_, sv, __) => _Stripe(s: sv ?? _s, stengt: _stengt, smal: iLop, onTap: _tilSporing, onTilbake: _tilbake),
+              ),
             ),
           ],
         ),
@@ -946,10 +1017,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     final b = beste ?? 0;
     // Short screens (the iPhone SE) keep the quay as a band behind the title, so the start fits as before (T24).
     final kort = MediaQuery.sizeOf(context).height < 720;
-    final kaiH = kort ? _kaiHKort : _kaiH;
     final liste = ListView(
       key: const Key('lopet-start'),
-      padding: EdgeInsets.fromLTRB(16, kort ? 12 : _kaiTopp, 16, 24),
+      padding: const EdgeInsets.fromLTRB(14, 16, 14, 4),
       children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -958,15 +1028,15 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(LopetCopy.ukensLed, style: BergenTokens.display(28, weight: FontWeight.w800, color: Colors.white, letterSpacingEm: -0.03)),
-                  const SizedBox(height: 2),
+                  Text(LopetCopy.ukensLed, style: BergenTokens.display(24, weight: FontWeight.w800, color: const Color(0xFFF5F3EF), letterSpacingEm: -0.025)),
+                  const SizedBox(height: 4),
                   // Points plan Step 13 (game spec §5.3): the Platina boat sails under its own name.
                   Text([LopetCopy.kaiUke(s.week), if (s.weeksSailed > 0) LopetCopy.uker(s.weeksSailed), if ((s.boatName ?? '').isNotEmpty) s.boatName!].join(' · '),
-                      style: BergenTokens.text(13, weight: FontWeight.w600, color: Colors.white.withValues(alpha: .76))),
+                      style: BergenTokens.display(12.5, weight: FontWeight.w600, color: const Color(0xFFC9DADF))),
                 ],
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             LopetLosgrad(s: s),
           ],
         ),
@@ -979,9 +1049,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
           const SizedBox(height: 10),
           Align(alignment: Alignment.centerLeft, child: _Chip(key: const Key('lopet-bonus'), tekst: LopetCopy.forsinket, farge: const Color(0xFFF2C14E))),
         ],
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         LopetKaiSjokort(s: s, besteM: b),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1018,10 +1088,17 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         ),
       ],
     );
-    // Fjordløpet v1.3 plan Step 9 (spec §12.2): the start screen on Home's Bryggen and Vågen scene, the boat moored in
-    // it; from «Sett seil» the picture moves up into play in [LopetScreen.overgang] (≤ 0.6 s). A Transform, not a
-    // fade: no Opacity layer anywhere near the scene.
+    // Design (9) 1:1 plan Step 4 (design «Fjordløpet · Start»): Home's Bryggen and Vågen with the boat moored, and over
+    // it the sheet from 302 px (28 px corners, the dark-teal gradient, a light top edge). From «Sett seil» the picture
+    // moves up into play in [LopetScreen.overgang] (≤ 0.6 s). A Transform, not a fade: no Opacity layer near the scene.
     final look = LopetLook.of(_mode);
+    if (LopetScreen.hjemScene && !MediaQuery.disableAnimationsOf(context)) {
+      _kaiTimer ??= Timer.periodic(const Duration(milliseconds: 33), (_) {
+        if (_fase == _Fase.start) _kaiTikk.value++;
+      });
+    }
+    // Short screens (the iPhone SE, T24) keep the quay as a band behind the strip and the sheet right under it.
+    final arkTopp = kort ? 64.0 : 302.0;
     return ClipRect(
       child: TweenAnimationBuilder<double>(
         key: const Key('lopet-kai'),
@@ -1031,40 +1108,51 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         builder: (_, v, child) => v == 0 ? child! : ClipPath(clipper: _Bolge(v), child: FractionalTranslation(translation: Offset(0, -v * .35), child: child)),
         child: Stack(
           children: [
-            Positioned(left: 0, right: 0, top: 0, height: kaiH, child: IgnorePointer(child: RepaintBoundary(child: _kaiScene(look, kaiH)))),
+            Positioned(left: 0, right: 0, top: 0, height: arkTopp + 40, child: IgnorePointer(child: RepaintBoundary(child: _kaiScene(look, arkTopp + 40)))),
             Positioned(
               left: 0,
               right: 0,
-              top: kort ? 0 : kaiH - 120,
-              height: kort ? kaiH : 120,
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [kort ? const Color(0x990C2A38) : const Color(0x000C2A38), const Color(0xFF0C2A38)]),
-                  ),
+              top: arkTopp,
+              bottom: 0,
+              child: DecoratedBox(
+                key: const Key('lopet-start-ark'),
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                  gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF1F5260), Color(0xFF173F4A)]),
+                  border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .2))),
+                  boxShadow: [BoxShadow(color: Color.fromRGBO(4, 18, 26, .75), offset: Offset(0, -16), blurRadius: 30, spreadRadius: -14)],
                 ),
+                child: ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(28)), child: liste),
               ),
             ),
-            Positioned.fill(child: liste),
-            if (!kort) Positioned(right: 16, top: 14, child: LopetPyntKnapp(onTap: _pynt)),
+            if (!kort) Positioned(right: 14, top: 72, child: LopetPyntKnapp(onTap: _pynt)),
           ],
         ),
       ),
     );
   }
 
-  static const double _kaiH = 230;
-  static const double _kaiHKort = 120;
-  static const double _kaiTopp = 96;
 
   /// Home's scene (the same widget, as a window onto Vågen: no floats, raft or Fjordfiske pill), with the boat moored
   /// at the quay; in widget tests a plain sky-over-water stand-in.
   Widget _kaiScene(LopetLook look, double kaiH) {
-    final boat = Positioned(
-      left: 0,
-      right: 0,
-      top: kaiH * .35,
-      child: Center(child: Icon(Icons.sailing_rounded, key: const Key('lopet-kai-baat'), size: 34, color: Colors.white.withValues(alpha: .92))),
+    final atlas = _atlas, s = _s;
+    final boat = Positioned.fill(
+      key: const Key('lopet-kai-baat'),
+      child: atlas == null || s == null
+          ? const SizedBox()
+          : CustomPaint(
+              painter: LopetKaiBaat9(
+                atlas: atlas,
+                mode: _mode,
+                level: _nivaa(s.boat),
+                vimpel: _pyntId(s.equipped['pennant']),
+                figur: _pyntId(s.equipped['figurehead']),
+                rolig: MediaQuery.disableAnimationsOf(context),
+                vannTopp: LopetScreen.hjemScene ? 127 : 200,
+                repaint: _kaiTikk,
+              ),
+            ),
     );
     if (!LopetScreen.hjemScene) {
       return Stack(
@@ -1079,13 +1167,18 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         ],
       );
     }
+    // Design (9) 1:1 plan Step 4: the design's quay is Home's scene with its 73 px offset (`uOff −73`): Bryggen from 73 to
+    // 200, Vågen under it, and the hill's colour above (Bryggen's top row) behind the strip.
+    // Home's scene as on Home (its Bryggen shader draws in screen space, so it is not moved); the moored boat lies on
+    // its waterline (127 design px) as the design's lies on its own.
+    final vaer = _hjemVaer();
     return Stack(
       children: [
         Positioned.fill(
           child: LfFrame(
             child: HjemHero(
               key: const Key('lopet-kai-scene'),
-              vaer: _hjemVaer(),
+              vaer: vaer,
               floats: const [],
               onFloatAdd: (_) {},
               onFloatSink: (_) {},
@@ -1094,6 +1187,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
               onFjordfiske: () {},
               nappAvailable: false,
               vindu: true,
+              utenAegil: true,
             ),
           ),
         ),
@@ -1139,28 +1233,15 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                 builder: (_, z, child) => Transform.scale(scale: z, child: child),
                 child: atlas == null
                     ? const ColoredBox(color: Color(0xFF155A70))
-                    : CustomPaint(
-                        painter: LopetFieldPainter(
-                          loop: loop,
-                          atlas: atlas,
-                          boat: s.boat,
-                          milestones: s.milestones,
-                          flags: _flags,
-                          rolig: rolig,
-                          quality: _q,
-                          water: _water,
-                          fx: _fx,
-                          landmarks: [for (final l in (s.course['landmarks'] as List? ?? const [])) if (l is Map) Map<String, dynamic>.from(l)],
-                        ),
-                      ),
+                    : CustomPaint(painter: _felt(loop, atlas, s, rolig)),
               ),
             ),
           ),
         ),
         Positioned(
-          left: 16,
-          top: 12,
-          right: 16,
+          left: 12,
+          top: 42 - 6,
+          right: 12,
           child: RepaintBoundary(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1168,18 +1249,28 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                 ValueListenableBuilder<int>(
                   valueListenable: loop.metres,
                   builder: (_, m, __) {
+                    // Design (9) 1:1 plan Step 5 (design `nesteTx`): the record within 80 m in gold, else the next gate in
+                    // pale mint.
                     String? neste;
-                    for (var k = 0; k < s.milestones.length && k < 3; k++) {
-                      if (m < s.milestones[k]) {
-                        neste = LopetCopy.omMeter(LopetCopy.porter[k], s.milestones[k] - m);
-                        break;
+                    var nesteFarge = const Color(0xFFD4FBEB);
+                    final til = (_forBesteRun ?? 0) - m;
+                    if (til > 0 && til <= 80) {
+                      neste = LopetCopy.rekordOm(til);
+                      nesteFarge = const Color(0xFFF2C14E);
+                    } else {
+                      for (var k = 0; k < s.milestones.length && k < 3; k++) {
+                        if (m < s.milestones[k]) {
+                          neste = LopetCopy.omMeter(LopetCopy.porter[k], s.milestones[k] - m);
+                          break;
+                        }
                       }
                     }
+                    const skygge = [Shadow(color: Color.fromRGBO(4, 18, 26, .8), blurRadius: 12, offset: Offset(0, 2))];
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('$m m', key: const Key('lopet-meter'), style: BergenTokens.display(30, weight: FontWeight.w800, color: Colors.white)),
-                        if (neste != null) Text(neste, style: BergenTokens.text(12.5, weight: FontWeight.w700, color: const Color(0xFFF7D57E))),
+                        Text('${LopetCopy.tallTekst(m)} m', key: const Key('lopet-meter'), style: BergenTokens.display(40, weight: FontWeight.w800, color: const Color(0xFFF5F3EF), letterSpacingEm: -.03).copyWith(height: 1.02, shadows: skygge, fontFeatures: const [FontFeature.tabularFigures()])),
+                        if (neste != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(neste, style: BergenTokens.display(13, weight: FontWeight.w800, color: nesteFarge).copyWith(shadows: const [Shadow(color: Color.fromRGBO(4, 18, 26, .9), blurRadius: 6, offset: Offset(0, 1))]))),
                         const SizedBox(height: 6),
                         _Maaler(loop: loop),
                         ValueListenableBuilder<bool>(
@@ -1193,10 +1284,19 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                   },
                 ),
                 const Spacer(),
-                IconButton(
-                  key: const Key('lopet-pause-knapp'),
-                  onPressed: () => _pause('manuell'),
-                  icon: const Icon(Icons.pause_circle_filled_rounded, color: Colors.white, size: 36),
+                Semantics(
+                  button: true,
+                  label: LopetCopy.pause,
+                  child: GestureDetector(
+                    key: const Key('lopet-pause-knapp'),
+                    onTap: () => _pause('manuell'),
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: const Color.fromRGBO(10, 33, 40, .74), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2))),
+                      child: const Icon(Icons.pause_rounded, color: Color(0xFFF5F3EF), size: 22),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -1554,35 +1654,96 @@ class _Maaler extends StatelessWidget {
 
   final FjordLoop loop;
 
+  /// Design (9) 1:1 plan Step 5 (design «Måler»): a glass pill with the crate, the eight fields (mint with a glow when
+  /// filled) and the life ring that lights when the meter is full.
   @override
   Widget build(BuildContext context) => ValueListenableBuilder<int>(
         valueListenable: loop.meter,
         builder: (_, m, __) {
           final full = loop.sim.full;
-          return Row(
+          return Container(
             key: const Key('lopet-maaler'),
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (var i = 0; i < full; i++)
-                Container(
-                  width: 10,
-                  height: 8,
-                  margin: const EdgeInsets.only(right: 3),
-                  decoration: BoxDecoration(color: i < m ? const Color(0xFFE5532D) : Colors.white24, borderRadius: BorderRadius.circular(2)),
-                ),
-              if (m >= full) const Icon(Icons.radio_button_checked_rounded, key: Key('lopet-livboye'), size: 16, color: Color(0xFFE5532D)),
-            ],
+            padding: const EdgeInsets.fromLTRB(9, 5, 7, 5),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(10, 33, 40, .76), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .18))),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CustomPaint(size: Size(13, 13), painter: _KasseIkon()),
+                const SizedBox(width: 7),
+                for (var i = 0; i < full; i++)
+                  Container(
+                    width: 13,
+                    height: 10,
+                    margin: EdgeInsets.only(right: i == full - 1 ? 0 : 3),
+                    decoration: BoxDecoration(
+                      color: i < m ? const Color(0xFF5CE0B8) : const Color.fromRGBO(255, 255, 255, .16),
+                      borderRadius: BorderRadius.circular(3),
+                      boxShadow: i < m ? const [BoxShadow(color: Color.fromRGBO(92, 224, 184, .85), blurRadius: 8)] : null,
+                    ),
+                  ),
+                const SizedBox(width: 7),
+                // Always there (dim until full), as the design.
+                CustomPaint(key: m >= full ? const Key('lopet-livboye') : null, size: const Size(18, 18), painter: _Livring(paa: m >= full)),
+              ],
+            ),
           );
         },
       );
 }
 
+/// The crate in the meter (the design's icon: a box with two slats).
+class _KasseIkon extends CustomPainter {
+  const _KasseIkon();
+
+  @override
+  void paint(Canvas c, Size z) {
+    final k = z.width / 24;
+    final p = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.4 * k
+      ..strokeJoin = StrokeJoin.round
+      ..color = const Color(0xFFE7BE82);
+    c.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(4 * k, 4 * k, 16 * k, 16 * k), Radius.circular(2 * k)), p);
+    c.drawLine(Offset(4 * k, 10 * k), Offset(20 * k, 10 * k), p);
+    c.drawLine(Offset(4 * k, 15 * k), Offset(20 * k, 15 * k), p);
+  }
+
+  @override
+  bool shouldRepaint(_KasseIkon old) => false;
+}
+
+/// The life ring (cream with four mint quarters), dim until the meter is full.
+class _Livring extends CustomPainter {
+  const _Livring({required this.paa});
+  final bool paa;
+
+  @override
+  void paint(Canvas c, Size z) {
+    final k = z.width / 32, o = Offset(16 * k, 16 * k), r = 10 * k, a = paa ? 1.0 : .36;
+    c.drawCircle(o, r, Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 7 * k
+      ..color = Color.fromRGBO(245, 243, 239, a));
+    final mint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 7 * k
+      ..color = Color.fromRGBO(92, 224, 184, a);
+    for (var i = 0; i < 4; i++) {
+      c.drawArc(Rect.fromCircle(center: o, radius: r), (22.5 + 90 * i) * math.pi / 180, math.pi / 4, false, mint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_Livring old) => old.paa != paa;
+}
+
 /// The delivery strip (game spec §7): stage, window, the courier's minutes; a tap pauses and opens Sporing.
 class _Stripe extends StatelessWidget {
-  const _Stripe({required this.s, required this.stengt, required this.onTap, required this.onTilbake});
+  const _Stripe({required this.s, required this.stengt, required this.onTap, required this.onTilbake, this.smal = false});
 
   final LopetState? s;
   final bool stengt;
+  final bool smal;
   final VoidCallback onTap;
   final VoidCallback onTilbake;
 
@@ -1591,44 +1752,80 @@ class _Stripe extends StatelessWidget {
     return d == null ? '' : '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
   }
 
+  /// Design (9) 1:1 plan Step 4: «Leveringsstripe» — a back chevron, the pulsing dot, «Tilberedes · 18:12–18:22» over the
+  /// courier line, «Sporing» on the right; in play the slim one: the dot, the status, the courier line, «Sporing».
   @override
   Widget build(BuildContext context) {
     final d = s?.delivery ?? const {};
     final vindu = [_kl(d['promised_start']), _kl(d['promised_end'])].where((x) => x.isNotEmpty).join('–');
     final eta = d['courier_eta_minutes'];
-    final linje = [
-      if ('${d['stage_label'] ?? ''}'.isNotEmpty) '${d['stage_label']}',
-      if (vindu.isNotEmpty) vindu,
-      // Only a plausible ETA (a stale or far-off courier position says nothing useful).
-      if (eta is num && eta <= 120) LopetCopy.minUnna(eta.toInt()),
-    ].join(' · ');
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 6, 12, 6),
-      child: Row(
-        children: [
-          IconButton(key: const Key('lopet-tilbake'), onPressed: onTilbake, icon: const Icon(Icons.arrow_back_rounded, color: Colors.white)),
-          Expanded(
-            child: GestureDetector(
-              key: const Key('lopet-stripe'),
-              onTap: onTap,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(color: Colors.white.withValues(alpha: .1), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white24)),
-                child: Row(
-                  children: [
-                    const Icon(Icons.delivery_dining_rounded, color: Color(0xFF7FF0CB), size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(linje.isEmpty ? LopetCopy.navn : linje, maxLines: 1, overflow: TextOverflow.ellipsis,
-                          style: BergenTokens.text(13, weight: FontWeight.w700, color: Colors.white)),
-                    ),
-                    const Icon(Icons.chevron_right_rounded, color: Colors.white70),
-                  ],
-                ),
+    final status = [if ('${d['stage_label'] ?? ''}'.isNotEmpty) '${d['stage_label']}', if (vindu.isNotEmpty) vindu].join(' · ');
+    // Only a plausible ETA (a stale or far-off courier position says nothing useful).
+    final bud = eta is num && eta <= 120 ? LopetCopy.minUnna(eta.toInt()) : '';
+    final tittel = status.isEmpty ? LopetCopy.navn : status;
+    const mint = Color(0xFF7FF0CB);
+    if (smal) {
+      return GestureDetector(
+        key: const Key('lopet-stripe'),
+        onTap: onTap,
+        child: Container(
+          height: 28,
+          padding: const EdgeInsets.fromLTRB(9, 0, 10, 0),
+          decoration: BoxDecoration(color: const Color.fromRGBO(10, 33, 40, .74), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .14))),
+          child: Row(children: [
+            Container(width: 7, height: 7, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF5CE0B8))),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Text.rich(
+                TextSpan(children: [
+                  TextSpan(text: tittel, style: BergenTokens.display(11.5, weight: FontWeight.w800, color: const Color(0xFFF5F3EF))),
+                  if (bud.isNotEmpty) TextSpan(text: ' · $bud'),
+                ]),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: BergenTokens.display(11.5, weight: FontWeight.w700, color: const Color(0xFFD5E3E7)),
               ),
             ),
+            const SizedBox(width: 7),
+            Text(LopetCopy.sporingLenke, style: BergenTokens.display(11.5, weight: FontWeight.w800, color: mint)),
+          ]),
+        ),
+      );
+    }
+    return GestureDetector(
+      key: const Key('lopet-stripe'),
+      onTap: onTap,
+      child: Container(
+        height: 46,
+        padding: const EdgeInsets.fromLTRB(0, 0, 12, 0),
+        decoration: BoxDecoration(
+          color: const Color.fromRGBO(10, 33, 40, .78),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
+          boxShadow: const [BoxShadow(color: Color.fromRGBO(4, 18, 26, .9), offset: Offset(0, 10), blurRadius: 20, spreadRadius: -14)],
+        ),
+        child: Row(children: [
+          Semantics(
+            button: true,
+            label: MaterialLocalizations.of(context).backButtonTooltip,
+            child: GestureDetector(
+              key: const Key('lopet-tilbake'),
+              behavior: HitTestBehavior.opaque,
+              onTap: onTilbake,
+              child: const SizedBox(width: 34, height: 46, child: Icon(Icons.chevron_left_rounded, size: 24, color: Color(0xFFF5F3EF))),
+            ),
           ),
-        ],
+          Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF5CE0B8))),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(tittel, maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.display(12.5, weight: FontWeight.w800, color: const Color(0xFFF5F3EF))),
+              if (bud.isNotEmpty) Text(bud, maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.display(11, weight: FontWeight.w600, color: const Color(0xFFB9CDD4))),
+            ]),
+          ),
+          const SizedBox(width: 9),
+          Text(LopetCopy.sporingLenke, style: BergenTokens.display(11.5, weight: FontWeight.w800, color: mint)),
+        ]),
       ),
     );
   }
@@ -1636,149 +1833,91 @@ class _Stripe extends StatelessWidget {
 
 /// Sjøkortet in full screen (spec §5.2): the landmarks by name, the gates, and where each of this week's runs ended.
 class LopetSjokortStor {
+  /// The session's atlas (the landmarks' figures); set by the game screen while it has one.
+  static LopetAtlas9? atlas;
+
+  /// Design (9) 1:1 plan Step 4: «Fjordløpet · Sjøkortet» — title and week, the close button, the legend, and the
+  /// vertical chart (the design's `tegnStorKart`, 2 200 px high) scrolled so the best distance sits at 58 %.
   static void vis(BuildContext context, LopetState s, int besteM) {
+    const h = 2200.0;
+    final ctrl = ScrollController();
     showDialog<void>(
       context: context,
       useSafeArea: true,
-      builder: (ctx) => Dialog.fullscreen(
-        backgroundColor: const Color(0xFF0C2A38),
-        child: Column(
-          key: const Key('lopet-sjokort-stor'),
-          children: [
-            Row(
-              children: [
-                const SizedBox(width: 16),
-                Expanded(child: Text(LopetCopy.sjokort, style: BergenTokens.display(20, weight: FontWeight.w800, color: Colors.white))),
-                TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(LopetCopy.kartLukk, style: BergenTokens.text(13, weight: FontWeight.w700, color: const Color(0xFF7FF0CB)))),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                child: CustomPaint(
-                  size: Size.infinite,
-                  painter: LopetSjokortMaler(s: s, besteM: besteM, merker: [for (final r in s.myRuns) r.distanceM], navn: true),
+      builder: (ctx) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!ctrl.hasClients) return;
+          final yb = LopetStorKart9Maler.bestY(s, besteM, h);
+          ctrl.jumpTo((yb - ctrl.position.viewportDimension * .58).clamp(0.0, ctrl.position.maxScrollExtent));
+        });
+        Widget prikk(Color c) => Container(width: 9, height: 9, decoration: BoxDecoration(shape: BoxShape.circle, color: c));
+        final legend = BergenTokens.text(12, weight: FontWeight.w700, color: const Color(0xFFD5E3E7));
+        final rv = s.rival != null && !s.rival!.me ? s.rival : null;
+        return Dialog.fullscreen(
+          backgroundColor: const Color(0xFF123A45),
+          child: Column(
+            key: const Key('lopet-sjokort-stor'),
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 14, 14, 8),
+                child: Row(children: [
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(LopetCopy.sjokort, style: BergenTokens.display(21, weight: FontWeight.w800, color: const Color(0xFFF5F3EF))),
+                      Text(LopetCopy.kaiUke(s.week), style: BergenTokens.text(12.5, weight: FontWeight.w600, color: const Color(0xFFB9CDD4))),
+                    ]),
+                  ),
+                  Semantics(
+                    button: true,
+                    label: LopetCopy.kartLukk,
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(ctx).pop(),
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .1)),
+                        child: const Icon(Icons.close_rounded, size: 18, color: Color(0xFFF5F3EF)),
+                      ),
+                    ),
+                  ),
+                ]),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 0, 18, 10),
+                child: Wrap(spacing: 14, runSpacing: 6, children: [
+                  Row(mainAxisSize: MainAxisSize.min, children: [prikk(const Color(0xFF5CE0B8)), const SizedBox(width: 6), Text(LopetCopy.dinBeste, style: legend)]),
+                  if (rv != null) Row(mainAxisSize: MainAxisSize.min, children: [prikk(const Color(0xFFF5F3EF)), const SizedBox(width: 6), Text(rv.name, style: legend)]),
+                  Row(mainAxisSize: MainAxisSize.min, children: [prikk(const Color(0xFFF2C14E)), const SizedBox(width: 6), Text(LopetCopy.ukensBeste, style: legend)]),
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    Container(
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFF23201D), border: Border.all(color: const Color(0xFFF5F3EF), width: 1.5)),
+                      child: const Icon(Icons.close_rounded, size: 9, color: Color(0xFFF5F3EF)),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(LopetCopy.herGikkDetGalt, style: legend),
+                  ]),
+                ]),
+              ),
+              Expanded(
+                child: DecoratedBox(
+                  decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .1)))),
+                  child: SingleChildScrollView(
+                    controller: ctrl,
+                    child: CustomPaint(size: const Size(double.infinity, h), painter: LopetStorKart9Maler(s: s, bestM: besteM, atlas: atlas)),
+                  ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.close_rounded, size: 14, color: Color(0xFFFF6B5A)),
-                  const SizedBox(width: 6),
-                  Text(LopetCopy.herGikkDetGalt, style: BergenTokens.text(12, weight: FontWeight.w700, color: Colors.white70)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
-class LopetSjokortMaler extends CustomPainter {
-  LopetSjokortMaler({required this.s, required this.besteM, this.merker = const [], this.navn = false, this.visM});
-
-  final LopetState s;
-  final int besteM;
-
-  /// Distances where runs ended («Her gikk det galt»).
-  final List<int> merker;
-
-  /// Full screen: the landmarks by name.
-  final bool navn;
-
-  /// The metres shown (Design 21 Nov: the quay's card shows 1 200 m, turned on its side).
-  final int? visM;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Full screen (T3 Vivo): scale to what was sailed and the next gate. A fixed 400 m minimum put a 40 m run in the
-    // bottom tenth, so the chart read as an empty grey box with the ✕ under it.
-    final ende = merker.isEmpty ? 0 : merker.reduce(math.max);
-    final naadd = math.max(besteM, ende);
-    final nesteGate = s.milestones.where((g) => g > naadd).fold<int?>(null, (a, g) => a == null || g < a ? g : a);
-    final visM = this.visM?.toDouble() ?? (navn ? (math.max(naadd, nesteGate ?? naadd) * 1.15).clamp(120, 5000).toDouble() : 1200.0);
-    double y(num m) => size.height - 10 - (m / visM) * (size.height - 20);
-    final seen = besteM.clamp(0, visM.toInt());
-    // In full screen also what stopped you, just past the ✕.
-    final synlig = navn ? math.max(seen, ende) + 8 : seen;
-    final rows = (s.course['rows'] as List?) ?? const [];
-    for (final r in rows) {
-      final m = ((r as Map)['d'] as num) / 1000;
-      if (m > visM) break;
-      if (m > synlig) continue;
-      final lanes = [for (final l in ((r['l'] as List?) ?? const [])) (l as num).toInt()];
-      final lane = lanes.isNotEmpty ? lanes.first : ((((r['p'] as Map?)?['lane']) as num?)?.toInt() ?? 1);
-      final x = size.width * (lane + .5) / 3;
-      canvas.drawCircle(Offset(x, y(m)), navn ? 3.4 : 2.6, Paint()..color = r['t'] == 'boye' ? const Color(0xFFE5532D) : Colors.white70);
-    }
-    final gates = [...s.milestones]..sort();
-    for (var i = 0; i < gates.length; i++) {
-      final g = gates[i];
-      if (g > visM) continue;
-      canvas.drawLine(Offset(6, y(g)), Offset(size.width - 6, y(g)), Paint()..color = const Color(0xFFF2C14E)..strokeWidth = 2);
-      if (navn) {
-        // The gate's name and distance above its line (it was an unlabelled gold line).
-        final tp = TextPainter(
-          text: TextSpan(text: '${LopetCopy.porter[i.clamp(0, 2)]} · $g m', style: const TextStyle(color: Color(0xFFF2C14E), fontSize: 11.5, fontWeight: FontWeight.w800)),
-          textDirection: TextDirection.ltr,
-        )..layout(maxWidth: size.width / 2);
-        tp.paint(canvas, Offset((size.width - tp.width) / 2, y(g) - tp.height - 3));
-      }
-    }
-    if (navn) {
-      for (final lm in s.landmarks) {
-        final m = ((lm['d'] as num) / 1000);
-        if (m > seen || m > visM) continue;
-        final tp = TextPainter(
-          text: TextSpan(text: s.landmarkName('${lm['k']}'), style: const TextStyle(color: Color(0xFFB8E6F0), fontSize: 11, fontWeight: FontWeight.w700)),
-          textDirection: TextDirection.ltr,
-        )..layout(maxWidth: size.width / 3);
-        final right = (lm['s'] as num? ?? 1) > 0;
-        tp.paint(canvas, Offset(right ? size.width - tp.width - 2 : 2, y(m) - tp.height / 2));
-      }
-    }
-    // The ✕ in the lane of what stopped the run (the first row just past it), not always mid-chart.
-    double xFor(int m) {
-      if (!navn) return size.width / 2;
-      for (final r in rows) {
-        final d = ((r as Map)['d'] as num) / 1000;
-        if (d < m) continue;
-        if (d > m + 8) break;
-        final lanes = [for (final l in ((r['l'] as List?) ?? const [])) (l as num).toInt()];
-        final lane = lanes.isNotEmpty ? lanes.first : ((((r['p'] as Map?)?['lane']) as num?)?.toInt() ?? 1);
-        return size.width * (lane + .5) / 3;
-      }
-      return size.width / 2;
-    }
-    final x = Paint()..color = const Color(0xFFFF6B5A)..strokeWidth = 2.2;
-    for (final m in merker) {
-      if (m > visM) continue;
-      final c = Offset(xFor(m), y(m) + (navn ? 9 : 0));
-      canvas.drawLine(c + const Offset(-5, -5), c + const Offset(5, 5), x);
-      canvas.drawLine(c + const Offset(-5, 5), c + const Offset(5, -5), x);
-    }
-    // Fog above the best distance.
-    final fog = Rect.fromLTRB(0, 0, size.width, y(seen));
-    canvas.drawRect(fog, Paint()..shader = LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Colors.white.withValues(alpha: .08), Colors.white.withValues(alpha: .45)]).createShader(fog));
-    if (navn && fog.height > 60) {
-      // Say what the grey is, as the small card does.
-      final tp = TextPainter(
-        text: TextSpan(text: LopetCopy.take, style: const TextStyle(color: Color(0xCCFFFFFF), fontSize: 13, fontWeight: FontWeight.w700)),
-        textDirection: TextDirection.ltr,
-        textAlign: TextAlign.center,
-      )..layout(maxWidth: size.width - 40);
-      tp.paint(canvas, Offset((size.width - tp.width) / 2, fog.bottom - fog.height * .45));
-    }
-  }
-
-  @override
-  bool shouldRepaint(LopetSjokortMaler old) => old.besteM != besteM || old.merker.length != merker.length;
-}
 
 class _Chip extends StatelessWidget {
   const _Chip({super.key, required this.tekst, required this.farge});

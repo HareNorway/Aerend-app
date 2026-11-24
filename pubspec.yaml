@@ -124,6 +124,7 @@ flutter:
     - assets/images/service-category/
     - assets/gifs/
     - assets/game/sounds/
+    - assets/game/fjordlopet/
     - assets/svgs/
     - assets/svgs/icons/
     - assets/svgs/onboarding/
@@ -161,7 +162,8 @@ flutter:
     - shaders/scene_gl_bake.frag
     - shaders/scene_gl_delt.frag
     # Fjordløpet v1.3 plan Step 9: the game's water, seen from above.
-    - shaders/lopet_sjo.frag
+    - shaders/lopet_sjo9.frag
+    - shaders/lopet_lav9.frag
 
   fonts:
     - family: CustomIcons

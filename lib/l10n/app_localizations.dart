@@ -15722,6 +15722,30 @@ abstract class AppLocalizations {
   /// **'Fog · sail further to see more'**
   String get lop_kai_take;
 
+  /// No description provided for @lop_kart_start.
+  ///
+  /// In en, this message translates to:
+  /// **'THE QUAY · START'**
+  String get lop_kart_start;
+
+  /// No description provided for @lop_sporing_lenke.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking'**
+  String get lop_sporing_lenke;
+
+  /// No description provided for @lop_flagg_din_beste.
+  ///
+  /// In en, this message translates to:
+  /// **'Your best'**
+  String get lop_flagg_din_beste;
+
+  /// No description provided for @lop_rekord_om.
+  ///
+  /// In en, this message translates to:
+  /// **'Your record in {p0} m'**
+  String lop_rekord_om(Object p0);
+
   /// No description provided for @lop_kai_neste_maal.
   ///
   /// In en, this message translates to:

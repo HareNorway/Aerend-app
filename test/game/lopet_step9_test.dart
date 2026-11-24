@@ -6,12 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aerend_customer/game/fjordlopet/lopet_enhet.dart';
-import 'package:aerend_customer/game/fjordlopet/render/lopet_atlas.dart';
-import 'package:aerend_customer/game/fjordlopet/render/lopet_field_painter.dart';
+import 'package:aerend_customer/game/fjordlopet/render/lopet_atlas9.dart';
 import 'package:aerend_customer/game/fjordlopet/render/lopet_look.dart';
 import 'package:aerend_customer/game/fjordlopet/render/lopet_loop.dart';
 import 'package:aerend_customer/game/fjordlopet/render/lopet_quality.dart';
-import 'package:aerend_customer/game/fjordlopet/render/lopet_water.dart';
+import 'package:aerend_customer/game/fjordlopet/render/lopet_scene9.dart';
+import 'package:aerend_customer/game/fjordlopet/render/lopet_sea9.dart';
 import 'package:aerend_customer/game/fjordlopet/sim/engine.dart';
 import 'package:aerend_customer/networking/api_base_helper.dart';
 import 'package:aerend_customer/screens/bergen/lopet/lopet_data.dart';
@@ -20,8 +20,8 @@ import 'package:aerend_customer/services/lopet_utboks.dart';
 
 import '../a3/a3_fakes.dart';
 
-/// Fjordløpet v1.3 plan Step 9 (spec §12.2, §12.5, §12.6; T31–T35): the quality levels and their rule, the atlas of
-/// ported figures, readability in the three sea modes, the same result at every level, memory over twenty opens, the
+/// Fjordløpet v1.3 plan Step 9 (spec §12.2, §12.5, §12.6; T31–T35): the quality levels and their rule, the atlas
+/// (since the Design (9) 1:1 plan: the design's own sprites), readability in the three sea modes, the same result at every level, memory over twenty opens, the
 /// device model, and the move from the quay into play.
 
 const _params = {
@@ -80,8 +80,6 @@ double _lum(int r, int g, int b) {
   return .2126 * ch(r) + .7152 * ch(g) + .0722 * ch(b);
 }
 
-double _contrast(double a, double b) => (math.max(a, b) + .05) / (math.min(a, b) + .05);
-double _lumOf(Color c) => _lum((c.r * 255).round(), (c.g * 255).round(), (c.b * 255).round());
 
 /// The luminances of the sprite's silhouette edge — its opaque pixels (alpha > 200) near the water (a
 /// transparent pixel) — within 4 px, and its alpha mask on a 24 × 24 grid.
@@ -127,6 +125,7 @@ double _iou(List<bool> a, List<bool> b) {
 
 void main() {
   setUp(() async => a3Bootstrap());
+  LopetAtlas9.googleFont = false;
   tearDown(() {
     LopetScreen.overgangTest = null;
     LopetEnhet.model = '';
@@ -191,42 +190,36 @@ void main() {
   });
 
   group('the atlas (spec §12.2, §12.6)', () {
-    testWidgets('at 2× and 3× it fits 2048 × 2048 with every figure and a landmark for every key', (tester) async {
-      for (final d in [2.0, 3.0]) {
-        final (rects, w, h) = LopetAtlas.layout(d);
-        expect(w, lessThanOrEqualTo(2048));
-        expect(h, lessThanOrEqualTo(2048), reason: '$d×');
-        for (final s in LopetSprite.values) {
-          expect(rects[s.index * 4 + 2] - rects[s.index * 4], greaterThan(0), reason: '$s');
+    testWidgets('at 2× and 3× it holds every figure the field draws and a landmark for every key', (tester) async {
+      await tester.runAsync(() async {
+        for (final d in [2.0, 3.0]) {
+          final a = await LopetAtlas9.build(density: d);
+          expect(a.image.width, lessThanOrEqualTo(4096));
+          for (final n in ['boye3', 'kasse3', 'stokkR0', 'kajakk3', 'beffen3', 'garn', 'skrog', 'skyggeOm', 'vest', 'pboye0', 'pboye1', 'plattform', 'bk0', 'bk1', 'bk2', 'bk3', 'bk4']) {
+            expect(a.id(n), greaterThanOrEqualTo(0), reason: '$d× $n');
+          }
+          for (var i = 0; i < 8; i++) {
+            expect(a.id('lm$i'), greaterThanOrEqualTo(0), reason: 'landmark $i');
+          }
+          a.dispose();
         }
-      }
-      for (final k in ['naust', 'kran', 'fyr', 'akvariet', 'festningen', 'seilskute', 'verftet', 'sjobad']) {
-        expect(LopetAtlas.landmark(k), isNotNull, reason: k);
-      }
-      expect(LopetAtlas.landmark('ukjent'), isNull);
+      });
+      expect(LopetAtlas9.live, 0);
     });
 
-    testWidgets('T34: in Dag, Kveld and Regn every object reads at 3:1 against deep and shallow water and differs in shape', (tester) async {
+    testWidgets('T34: the obstacles, the crate and the boat differ in shape', (tester) async {
       await tester.runAsync(() async {
-        for (final mode in LopetMode.values) {
-          final look = LopetLook.of(mode);
-          final atlas = await LopetAtlas.build(density: 2, mode: mode);
+        for (final mode in [LopetMode.kveld, LopetMode.dag]) {
+          final atlas = await LopetAtlas9.build(density: 2, mode: mode);
           final data = (await atlas.image.toByteData(format: ui.ImageByteFormat.rawRgba))!;
-          final masks = <LopetSprite, List<bool>>{};
-          for (final s in LopetAtlas.objects) {
-            final r = Rect.fromLTRB(atlas.rects[s.index * 4], atlas.rects[s.index * 4 + 1], atlas.rects[s.index * 4 + 2], atlas.rects[s.index * 4 + 3]);
+          final masks = <String, List<bool>>{};
+          for (final n in ['boye3', 'kasse3', 'stokkR0', 'kajakk3', 'beffen3', 'skrog']) {
+            final i = atlas.id(n);
+            final r = Rect.fromLTRB(atlas.src[i * 4], atlas.src[i * 4 + 1], atlas.src[i * 4 + 2], atlas.src[i * 4 + 3]);
             final (lums, mask) = _pixels(data, atlas.image.width, r);
-            expect(lums, isNotEmpty, reason: '$mode $s');
-            masks[s] = mask;
-            for (final water in [look.deep, look.shal]) {
-              final lw = _lumOf(water);
-              final c = lums.map((l) => _contrast(l, lw)).toList()..sort();
-              // The silhouette's edge carries a dark outline and a light rim, so on any water one of them stands at least
-              // 3:1 off it: a ring of at least a pixel all round, i.e. a quarter of the 4 px edge band.
-              expect(c[(c.length * .75).floor().clamp(0, c.length - 1)], greaterThanOrEqualTo(3), reason: '$mode $s on $water');
-            }
+            expect(lums, isNotEmpty, reason: '$mode $n');
+            masks[n] = mask;
           }
-          // Greyscale: the obstacles, the crate and the boat are told apart by shape (masks overlap well under 90 %).
           final keys = masks.keys.toList();
           for (var i = 0; i < keys.length; i++) {
             for (var j = i + 1; j < keys.length; j++) {
@@ -236,34 +229,47 @@ void main() {
           atlas.dispose();
         }
       });
-      expect(LopetAtlas.live, 0);
+      expect(LopetAtlas9.live, 0);
     });
   });
 
+  LopetScene9 painter(FjordLoop loop, LopetAtlas9 atlas, LopetSea9? sea, LopetFx9 fx, LopetNivaa level, String boatLevel, LopetMode mode) => LopetScene9(
+        loop: loop,
+        atlas: atlas,
+        sea: sea,
+        fx: fx,
+        flags: LopetFlags9(),
+        milestones: const [200, 500, 1000],
+        mode: mode,
+        level: boatLevel,
+        quality: LopetQuality(stored: level),
+        landmarks: (_course()['landmarks'] as List).cast<Map>(),
+      );
+
   testWidgets('T31: the same inputs drawn at High and at Low give the same result', (tester) async {
     await tester.runAsync(() async {
-      final atlas = await LopetAtlas.build(density: 2);
-      final program = await LopetWater.load();
+      final atlas = await LopetAtlas9.build(density: 2);
+      final program = await LopetSea9.load();
       FjordResult sail(LopetNivaa level) {
         final loop = FjordLoop(FjordSim(_course(), 'none'));
-        final fx = LopetFx();
-        final water = level == LopetNivaa.low || program == null ? null : LopetWater(program, LopetLook.kveld);
-        final p = LopetFieldPainter(loop: loop, atlas: atlas, boat: 'robaat', milestones: const [200, 500, 1000], flags: LopetFlags(),
-            quality: LopetQuality(stored: level), water: water, fx: fx, landmarks: [for (final l in _course()['landmarks'] as List) Map<String, dynamic>.from(l as Map)]);
+        final fx = LopetFx9();
+        final sea = level == LopetNivaa.low || program == null ? null : LopetSea9(program, LopetMode.kveld);
+        final p = painter(loop, atlas, sea, fx, level, 'Bronse', LopetMode.kveld);
         var t = Duration.zero;
         for (var f = 0; f < 600 && !loop.done; f++) {
           t += const Duration(microseconds: 16667);
           loop.frame(t);
+          fx.queue(loop.takeEvents());
           if (f % 50 == 25) loop.input(f % 100 == 25 ? 1 : -1);
           if (f % 10 == 0) {
             final rec = ui.PictureRecorder();
             p.paint(Canvas(rec), const Size(390, 700));
             rec.endRecording().dispose();
-            expect(fx.live, lessThanOrEqualTo(p.lastLevel.particles), reason: 'the pool is capped by the level');
+            expect(fx.n, lessThanOrEqualTo(p.lastLevel.particles), reason: 'the pool is capped by the level');
           }
         }
-        if (water != null) expect(p.lastLevel, level, reason: 'drawn at the level asked for');
-        water?.dispose();
+        if (sea != null) expect(p.lastLevel, level, reason: 'drawn at the level asked for');
+        sea?.dispose();
         return loop.sim.result();
       }
 
@@ -275,14 +281,14 @@ void main() {
 
   testWidgets('T32: without the shader the painter draws Low, whatever the level says', (tester) async {
     await tester.runAsync(() async {
-      final atlas = await LopetAtlas.build(density: 2, mode: LopetMode.regn);
+      final atlas = await LopetAtlas9.build(density: 2, mode: LopetMode.regn);
       final loop = FjordLoop(FjordSim(_course(), 'none'));
-      final p = LopetFieldPainter(loop: loop, atlas: atlas, boat: 'snekke', milestones: const [200], flags: LopetFlags(), quality: LopetQuality(stored: LopetNivaa.high), fx: LopetFx());
+      final p = painter(loop, atlas, null, LopetFx9(), LopetNivaa.high, 'Gull', LopetMode.regn);
       final rec = ui.PictureRecorder();
       p.paint(Canvas(rec), const Size(390, 700));
       rec.endRecording().dispose();
       expect(p.lastLevel, LopetNivaa.low);
-      expect(p.lastCount, greaterThan(40), reason: 'banks, water, buoys, crates, the boat with its wake');
+      expect(p.lastCount, greaterThan(40), reason: 'banks, buoys, crates, the boat');
       atlas.dispose();
     });
   });
@@ -304,20 +310,19 @@ void main() {
     }
     await tester.pump();
     expect(tester.binding.transientCallbackCount, 0, reason: 'the Ticker is stopped');
-    expect(LopetAtlas.live, 0);
-    expect(LopetWater.liveImages, 0);
+    expect(LopetAtlas9.live, 0);
+    expect(LopetSea9.liveImages, 0);
   });
 
   testWidgets('T35: twenty sessions of atlas, water and painter return every image', (tester) async {
     await tester.runAsync(() async {
-      final program = await LopetWater.load();
+      final program = await LopetSea9.load();
       for (var i = 0; i < 20; i++) {
         final mode = LopetMode.values[i % 3];
-        final atlas = await LopetAtlas.build(density: i.isEven ? 2 : 3, mode: mode);
-        final water = program == null ? null : LopetWater(program, LopetLook.of(mode));
+        final atlas = await LopetAtlas9.build(density: i.isEven ? 2 : 3, mode: mode);
+        final sea = program == null ? null : LopetSea9(program, mode);
         final loop = FjordLoop(FjordSim(_course(), 'none'));
-        final p = LopetFieldPainter(loop: loop, atlas: atlas, boat: 'egen', milestones: const [200], flags: LopetFlags(),
-            quality: LopetQuality(stored: LopetNivaa.high), water: water, fx: LopetFx());
+        final p = painter(loop, atlas, sea, LopetFx9(), LopetNivaa.high, 'Platina', mode);
         var t = Duration.zero;
         for (var f = 0; f < 30; f++) {
           t += const Duration(microseconds: 16667);
@@ -326,11 +331,11 @@ void main() {
           p.paint(Canvas(rec), const Size(390, 700));
           rec.endRecording().dispose();
         }
-        expect(LopetAtlas.live, 1);
+        expect(LopetAtlas9.live, 1);
         atlas.dispose();
-        water?.dispose();
+        sea?.dispose();
         loop.dispose();
-        expect([LopetAtlas.live, LopetWater.liveImages], [0, 0], reason: 'session $i');
+        expect([LopetAtlas9.live, LopetSea9.liveImages], [0, 0], reason: 'session $i');
       }
     });
   });

@@ -8886,6 +8886,20 @@ class AppLocalizationsSv extends AppLocalizations {
   String get lop_kai_take => 'Fog · sail further to see more';
 
   @override
+  String get lop_kart_start => 'THE QUAY · START';
+
+  @override
+  String get lop_sporing_lenke => 'Tracking';
+
+  @override
+  String get lop_flagg_din_beste => 'Your best';
+
+  @override
+  String lop_rekord_om(Object p0) {
+    return 'Your record in $p0 m';
+  }
+
+  @override
   String get lop_kai_neste_maal => 'NEXT GOAL';
 
   @override
