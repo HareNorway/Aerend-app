@@ -27,6 +27,9 @@ class CustomCountryCodePicker extends StatefulWidget {
   /// Barrier color of ModalBottomSheet
   final Color? barrierColor;
 
+  /// The dropdown arrow (the old theme's muted purple when null).
+  final Color? arrowColor;
+
   /// Background color of ModalBottomSheet
   final Color? backgroundColor;
 
@@ -104,6 +107,7 @@ class CustomCountryCodePicker extends StatefulWidget {
     this.enabled = true,
     this.textOverflow = TextOverflow.ellipsis,
     this.barrierColor,
+    this.arrowColor,
     this.backgroundColor,
     this.boxDecoration,
     this.comparator,
@@ -191,7 +195,7 @@ class CustomCountryCodePickerState extends State<CustomCountryCodePicker> {
                         : const EdgeInsets.only(right: 0.0),
                     child: Icon(
                       Icons.arrow_drop_down,
-                      color: ScSaasThemeTokens.muted,
+                      color: widget.arrowColor ?? ScSaasThemeTokens.muted,
                       size: widget.flagWidth,
                     ),
                   ),
