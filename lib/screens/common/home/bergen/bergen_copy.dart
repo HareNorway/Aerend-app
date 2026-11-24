@@ -48,6 +48,13 @@ abstract final class BergenCopy {
   static String get inCart => _t('i kurven', 'in cart');
   static String get comingSoon =>
       _t('Kommer snart til Vågen', 'Coming soon to Vågen');
+  static String get kommerSnart => _t('Kommer snart', 'Coming soon');
+  static String get kommerSnartVarsle => _t('Kommer snart · Varsle meg', 'Coming soon · Notify me');
+  static String get duFaarBeskjed => _t('Du får beskjed', "We'll let you know");
+  static String get hvaTrengerDu => _t('Hva trenger du i kveld?', 'What do you need tonight?');
+  static String get trekkOpp => _t('↑ Trekk opp for butikken', '↑ Pull up for the shops');
+  static String get bestillIgjen => _t('Bestill igjen', 'Order again');
+  static String get raskesteVei => _t('Raskeste vei', 'Fastest route');
 
   // ── Napp-kort ─────────────────────────────────────────────────────────────
   static String get bergensk => 'Bergensk';

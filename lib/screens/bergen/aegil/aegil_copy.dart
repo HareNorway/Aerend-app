@@ -25,7 +25,7 @@ abstract final class A3AegilCopy {
   static const String a3_aegil_forslag_kicker = 'FORSLAG I KVELD';
   static const String a3_aegil_bla_selv = 'ELLER BLA SELV';
   static const String a3_aegil_sok_kat = 'Søk og kategorier';
-  static const String a3_aegil_spor = 'Hva trenger du i kveld?';
+  static String get a3_aegil_spor => languages.aegil_spor;
   static const String a3_aegil_send = 'Send';
 
   // Kort (the four evening cards, fallback copy when the tray is empty)
@@ -101,5 +101,6 @@ abstract final class A3AegilCopy {
   static const String a3_aegil_brett_tom = 'Ingenting nytt akkurat nå.';
 
   // Hjem greeting
-  static const String a3_aegil_greeting = 'Hei! Hva trenger du i kveld?';
+  static String get a3_aegil_greeting => languages.aegil_greeting;
+  static String a3_aegil_hei(String name) => languages.localeName.startsWith('en') ? 'Hi, $name!' : 'Hei, $name!';
 }

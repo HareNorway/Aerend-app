@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../common/home/bergen/bergen_copy.dart' show BergenCopy;
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../common/auth/launch/lf_css.dart';
@@ -230,7 +231,7 @@ class HjemVinduLag extends StatelessWidget {
                               child: GestureDetector(
                                 behavior: HitTestBehavior.opaque,
                                 onTap: onSok,
-                                child: Text('Hva trenger du i kveld?', style: jakarta(14, weight: FontWeight.w700, color: const Color(0xFF57534B))),
+                                child: Text(BergenCopy.hvaTrengerDu, style: jakarta(14, weight: FontWeight.w700, color: const Color(0xFF57534B))),
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -442,7 +443,7 @@ class HjemVinduStripe extends StatelessWidget {
                 children: [
                   Container(width: 44, height: 5, decoration: BoxDecoration(color: const Color.fromRGBO(35, 32, 29, .28), borderRadius: BorderRadius.circular(3))),
                   const SizedBox(height: 3),
-                  Text('↑ Trekk opp for butikken', style: inter(9.5, weight: FontWeight.w800, color: const Color(0xFF1E4F5C))),
+                  Text(BergenCopy.trekkOpp, style: inter(9.5, weight: FontWeight.w800, color: const Color(0xFF1E4F5C))),
                 ],
               ),
             ),
@@ -453,9 +454,9 @@ class HjemVinduStripe extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Text('Bestill igjen', style: inter(12, weight: FontWeight.w800, color: const Color(0xFF23201D))),
+              Text(BergenCopy.bestillIgjen, style: inter(12, weight: FontWeight.w800, color: const Color(0xFF23201D))),
               const Spacer(),
-              Text('Raskeste vei', style: inter(10.5, weight: FontWeight.w700, color: const Color(0xFF8C847C))),
+              Text(BergenCopy.raskesteVei, style: inter(10.5, weight: FontWeight.w700, color: const Color(0xFF8C847C))),
             ],
           ),
           const SizedBox(height: 8),

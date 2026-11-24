@@ -1,4 +1,5 @@
 import '../lopet/lopet_copy.dart';
+import '../../../utils/shared_pref_utill.dart' show resolveSelectedLanguage;
 import '../lopet/lopet_data.dart';
 import 'dart:async';
 import 'dart:math' as math;
@@ -777,15 +778,27 @@ class _HjemHeroState extends State<HjemHero> {
   }
 }
 
+/// T3 (Vivo, English mode): these were Norwegian-only constants, so Ægil's bubble and the napp card stayed Norwegian.
 abstract final class HjemHeroCopy {
-  static const intro = 'Jeg har funnet spesialtilbudene dine her i Vågen. Trykk på dem, så fisker jeg dem opp for deg.';
+  static bool get _en {
+    try {
+      return resolveSelectedLanguage() == 'en';
+    } catch (_) {
+      return false; // prefs not set up (tests): Norwegian, as before
+    }
+  }
+
+  static String _t(String no, String en) => _en ? en : no;
+
+  static String get intro => _t('Jeg har funnet spesialtilbudene dine her i Vågen. Trykk på dem, så fisker jeg dem opp for deg.',
+      "I've found your special offers here in Vågen. Tap them and I'll fish them up for you.");
   static const fjordfiske = 'Fjordfiske';
-  static const fjordfiskeSub = 'Kast ut · vinn premier';
-  static const poseType = 'FORUNDRINGSPOSE';
+  static String get fjordfiskeSub => _t('Kast ut · vinn premier', 'Cast out · win prizes');
+  static String get poseType => _t('FORUNDRINGSPOSE', 'SURPRISE BAG');
   static const posePris = '99 kr';
-  static const leggIKurven = 'Legg i kurven';
-  static const ikkeNaa = 'Ikke nå';
-  static const aldri = 'Aldri dette';
+  static String get leggIKurven => _t('Legg i kurven', 'Add to cart');
+  static String get ikkeNaa => _t('Ikke nå', 'Not now');
+  static String get aldri => _t('Aldri dette', 'Never this');
 }
 
 /// `repeating-linear-gradient(90deg, transparent 0 18px, rgba(0,0,0,.22)
@@ -1321,11 +1334,11 @@ class _PoseFlate extends StatelessWidget {
                         child: LfLoop(
                           builder: (context, t, child) => Transform(alignment: const FractionalOffset(.5, 1.2), transform: _flagg(t, 5200, -600), child: child),
                           // Perf plan: as the floats' flags — one raster sways.
-                          child: const BergenBakt(
-                            margin: EdgeInsets.fromLTRB(16, 16, 22, 32),
+                          child: BergenBakt(
+                            margin: const EdgeInsets.fromLTRB(16, 16, 22, 32),
                             child: _Flagg(
                               type: HjemHeroCopy.poseType,
-                              bg: [Color(0xFFFFE7A8), Color(0xFFE9AC3C)],
+                              bg: const [Color(0xFFFFE7A8), Color(0xFFE9AC3C)],
                               pris: HjemHeroCopy.posePris,
                               forPris: '',
                               tx: Color(0xFF5A3C10),

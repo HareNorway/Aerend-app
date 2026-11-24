@@ -24,7 +24,7 @@ Widget aegilGreeting(BuildContext context) {
         const SizedBox(width: 8),
         Expanded(
           child: Text(
-            name.isEmpty ? A3AegilCopy.a3_aegil_greeting : 'Hei, $name! ${A3AegilCopy.a3_aegil_spor}',
+            name.isEmpty ? A3AegilCopy.a3_aegil_greeting : '${A3AegilCopy.a3_aegil_hei(name)} ${A3AegilCopy.a3_aegil_spor}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: BergenTokens.text(BergenTokens.textBody, weight: FontWeight.w700, color: A3Ink.sub),

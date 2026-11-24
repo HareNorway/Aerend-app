@@ -1693,7 +1693,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                     ? vinduTop + 34 * s - safeTop
                     : (kHjemHeroH + (_dragY > 0 ? _dragY : 0)) * s;
                 final restLive = stores.isNotEmpty && focused == slots[0]
-                    ? '${stores.where((e) => e.open).length} åpne nå'
+                    ? BergenCopy.openNow(stores.where((e) => e.open).length)
                     : _liveTekst(slots[0]);
 
                 return OnbTimeline(
@@ -2006,7 +2006,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                     live: [
                                       restLive,
                                       for (var k = 1; k < 5; k++)
-                                        'Kommer snart',
+                                        BergenCopy.kommerSnart,
                                     ],
                                     opacity: (1 + _stripeDy / 90).clamp(
                                       0.0,
@@ -2178,7 +2178,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                   HjemHjulKat(
                     navn: kHjemKatNavn[k],
                     live: k == 0 && stores.isNotEmpty && focused == slots[0]
-                        ? '$openCount åpne nå'
+                        ? BergenCopy.openNow(openCount)
                         : _liveTekst(slots[k]),
                     ikon: k,
                     snart: _erSnart(k),
