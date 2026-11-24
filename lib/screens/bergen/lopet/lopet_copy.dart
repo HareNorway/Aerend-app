@@ -137,6 +137,7 @@ abstract final class LopetCopy {
   static String get altTake => languages.lop_kai_alt_take;
   static String get styrHint => languages.lop_styr_hint;
   static String get take => languages.lop_kai_take;
+  static String get kartStart => languages.lop_kart_start;
   static String get nesteMaal => languages.lop_kai_neste_maal;
   static String igjen(int m) => languages.lop_kai_igjen(tallTekst(m));
   static String get ingenForan => languages.lop_kai_ingen_foran;

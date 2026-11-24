@@ -26,6 +26,7 @@ import '../../../game/fjordlopet/sim/engine.dart';
 import '../kit/bergen_kit.dart';
 import '../../../services/lopet_utboks.dart';
 import 'lopet_copy.dart';
+import 'lopet_kart9.dart';
 import 'lopet_liste.dart';
 import 'lopet_vibrasjon.dart';
 import 'lopet_kai.dart';
@@ -209,6 +210,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _ticker.dispose();
     _perf.stop();
     _loop?.dispose();
+    if (LopetSjokortStor.atlas == _atlas) LopetSjokortStor.atlas = null;
     _atlas?.dispose();
     _water?.dispose();
     _sVn.dispose();
@@ -330,6 +332,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       } else {
         _water ??= LopetSea9(program, _mode);
       }
+      LopetSjokortStor.atlas = a;
       setState(() => _atlas = a);
     } catch (_) {
       // Without an atlas the field draws only the water (the run itself does not depend on it).
@@ -1655,149 +1658,91 @@ class _Stripe extends StatelessWidget {
 
 /// Sjøkortet in full screen (spec §5.2): the landmarks by name, the gates, and where each of this week's runs ended.
 class LopetSjokortStor {
+  /// The session's atlas (the landmarks' figures); set by the game screen while it has one.
+  static LopetAtlas9? atlas;
+
+  /// Design (9) 1:1 plan Step 4: «Fjordløpet · Sjøkortet» — title and week, the close button, the legend, and the
+  /// vertical chart (the design's `tegnStorKart`, 2 200 px high) scrolled so the best distance sits at 58 %.
   static void vis(BuildContext context, LopetState s, int besteM) {
+    const h = 2200.0;
+    final ctrl = ScrollController();
     showDialog<void>(
       context: context,
       useSafeArea: true,
-      builder: (ctx) => Dialog.fullscreen(
-        backgroundColor: const Color(0xFF0C2A38),
-        child: Column(
-          key: const Key('lopet-sjokort-stor'),
-          children: [
-            Row(
-              children: [
-                const SizedBox(width: 16),
-                Expanded(child: Text(LopetCopy.sjokort, style: BergenTokens.display(20, weight: FontWeight.w800, color: Colors.white))),
-                TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(LopetCopy.kartLukk, style: BergenTokens.text(13, weight: FontWeight.w700, color: const Color(0xFF7FF0CB)))),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                child: CustomPaint(
-                  size: Size.infinite,
-                  painter: LopetSjokortMaler(s: s, besteM: besteM, merker: [for (final r in s.myRuns) r.distanceM], navn: true),
+      builder: (ctx) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!ctrl.hasClients) return;
+          final yb = LopetStorKart9Maler.bestY(s, besteM, h);
+          ctrl.jumpTo((yb - ctrl.position.viewportDimension * .58).clamp(0.0, ctrl.position.maxScrollExtent));
+        });
+        Widget prikk(Color c) => Container(width: 9, height: 9, decoration: BoxDecoration(shape: BoxShape.circle, color: c));
+        final legend = BergenTokens.text(12, weight: FontWeight.w700, color: const Color(0xFFD5E3E7));
+        final rv = s.rival != null && !s.rival!.me ? s.rival : null;
+        return Dialog.fullscreen(
+          backgroundColor: const Color(0xFF123A45),
+          child: Column(
+            key: const Key('lopet-sjokort-stor'),
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 14, 14, 8),
+                child: Row(children: [
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(LopetCopy.sjokort, style: BergenTokens.display(21, weight: FontWeight.w800, color: const Color(0xFFF5F3EF))),
+                      Text(LopetCopy.kaiUke(s.week), style: BergenTokens.text(12.5, weight: FontWeight.w600, color: const Color(0xFFB9CDD4))),
+                    ]),
+                  ),
+                  Semantics(
+                    button: true,
+                    label: LopetCopy.kartLukk,
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(ctx).pop(),
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .1)),
+                        child: const Icon(Icons.close_rounded, size: 18, color: Color(0xFFF5F3EF)),
+                      ),
+                    ),
+                  ),
+                ]),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 0, 18, 10),
+                child: Wrap(spacing: 14, runSpacing: 6, children: [
+                  Row(mainAxisSize: MainAxisSize.min, children: [prikk(const Color(0xFF5CE0B8)), const SizedBox(width: 6), Text(LopetCopy.dinBeste, style: legend)]),
+                  if (rv != null) Row(mainAxisSize: MainAxisSize.min, children: [prikk(const Color(0xFFF5F3EF)), const SizedBox(width: 6), Text(rv.name, style: legend)]),
+                  Row(mainAxisSize: MainAxisSize.min, children: [prikk(const Color(0xFFF2C14E)), const SizedBox(width: 6), Text(LopetCopy.ukensBeste, style: legend)]),
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    Container(
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFF23201D), border: Border.all(color: const Color(0xFFF5F3EF), width: 1.5)),
+                      child: const Icon(Icons.close_rounded, size: 9, color: Color(0xFFF5F3EF)),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(LopetCopy.herGikkDetGalt, style: legend),
+                  ]),
+                ]),
+              ),
+              Expanded(
+                child: DecoratedBox(
+                  decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .1)))),
+                  child: SingleChildScrollView(
+                    controller: ctrl,
+                    child: CustomPaint(size: const Size(double.infinity, h), painter: LopetStorKart9Maler(s: s, bestM: besteM, atlas: atlas)),
+                  ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.close_rounded, size: 14, color: Color(0xFFFF6B5A)),
-                  const SizedBox(width: 6),
-                  Text(LopetCopy.herGikkDetGalt, style: BergenTokens.text(12, weight: FontWeight.w700, color: Colors.white70)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
-class LopetSjokortMaler extends CustomPainter {
-  LopetSjokortMaler({required this.s, required this.besteM, this.merker = const [], this.navn = false, this.visM});
-
-  final LopetState s;
-  final int besteM;
-
-  /// Distances where runs ended («Her gikk det galt»).
-  final List<int> merker;
-
-  /// Full screen: the landmarks by name.
-  final bool navn;
-
-  /// The metres shown (Design 21 Nov: the quay's card shows 1 200 m, turned on its side).
-  final int? visM;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Full screen (T3 Vivo): scale to what was sailed and the next gate. A fixed 400 m minimum put a 40 m run in the
-    // bottom tenth, so the chart read as an empty grey box with the ✕ under it.
-    final ende = merker.isEmpty ? 0 : merker.reduce(math.max);
-    final naadd = math.max(besteM, ende);
-    final nesteGate = s.milestones.where((g) => g > naadd).fold<int?>(null, (a, g) => a == null || g < a ? g : a);
-    final visM = this.visM?.toDouble() ?? (navn ? (math.max(naadd, nesteGate ?? naadd) * 1.15).clamp(120, 5000).toDouble() : 1200.0);
-    double y(num m) => size.height - 10 - (m / visM) * (size.height - 20);
-    final seen = besteM.clamp(0, visM.toInt());
-    // In full screen also what stopped you, just past the ✕.
-    final synlig = navn ? math.max(seen, ende) + 8 : seen;
-    final rows = (s.course['rows'] as List?) ?? const [];
-    for (final r in rows) {
-      final m = ((r as Map)['d'] as num) / 1000;
-      if (m > visM) break;
-      if (m > synlig) continue;
-      final lanes = [for (final l in ((r['l'] as List?) ?? const [])) (l as num).toInt()];
-      final lane = lanes.isNotEmpty ? lanes.first : ((((r['p'] as Map?)?['lane']) as num?)?.toInt() ?? 1);
-      final x = size.width * (lane + .5) / 3;
-      canvas.drawCircle(Offset(x, y(m)), navn ? 3.4 : 2.6, Paint()..color = r['t'] == 'boye' ? const Color(0xFFE5532D) : Colors.white70);
-    }
-    final gates = [...s.milestones]..sort();
-    for (var i = 0; i < gates.length; i++) {
-      final g = gates[i];
-      if (g > visM) continue;
-      canvas.drawLine(Offset(6, y(g)), Offset(size.width - 6, y(g)), Paint()..color = const Color(0xFFF2C14E)..strokeWidth = 2);
-      if (navn) {
-        // The gate's name and distance above its line (it was an unlabelled gold line).
-        final tp = TextPainter(
-          text: TextSpan(text: '${LopetCopy.porter[i.clamp(0, 2)]} · $g m', style: const TextStyle(color: Color(0xFFF2C14E), fontSize: 11.5, fontWeight: FontWeight.w800)),
-          textDirection: TextDirection.ltr,
-        )..layout(maxWidth: size.width / 2);
-        tp.paint(canvas, Offset((size.width - tp.width) / 2, y(g) - tp.height - 3));
-      }
-    }
-    if (navn) {
-      for (final lm in s.landmarks) {
-        final m = ((lm['d'] as num) / 1000);
-        if (m > seen || m > visM) continue;
-        final tp = TextPainter(
-          text: TextSpan(text: s.landmarkName('${lm['k']}'), style: const TextStyle(color: Color(0xFFB8E6F0), fontSize: 11, fontWeight: FontWeight.w700)),
-          textDirection: TextDirection.ltr,
-        )..layout(maxWidth: size.width / 3);
-        final right = (lm['s'] as num? ?? 1) > 0;
-        tp.paint(canvas, Offset(right ? size.width - tp.width - 2 : 2, y(m) - tp.height / 2));
-      }
-    }
-    // The ✕ in the lane of what stopped the run (the first row just past it), not always mid-chart.
-    double xFor(int m) {
-      if (!navn) return size.width / 2;
-      for (final r in rows) {
-        final d = ((r as Map)['d'] as num) / 1000;
-        if (d < m) continue;
-        if (d > m + 8) break;
-        final lanes = [for (final l in ((r['l'] as List?) ?? const [])) (l as num).toInt()];
-        final lane = lanes.isNotEmpty ? lanes.first : ((((r['p'] as Map?)?['lane']) as num?)?.toInt() ?? 1);
-        return size.width * (lane + .5) / 3;
-      }
-      return size.width / 2;
-    }
-    final x = Paint()..color = const Color(0xFFFF6B5A)..strokeWidth = 2.2;
-    for (final m in merker) {
-      if (m > visM) continue;
-      final c = Offset(xFor(m), y(m) + (navn ? 9 : 0));
-      canvas.drawLine(c + const Offset(-5, -5), c + const Offset(5, 5), x);
-      canvas.drawLine(c + const Offset(-5, 5), c + const Offset(5, -5), x);
-    }
-    // Fog above the best distance.
-    final fog = Rect.fromLTRB(0, 0, size.width, y(seen));
-    canvas.drawRect(fog, Paint()..shader = LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Colors.white.withValues(alpha: .08), Colors.white.withValues(alpha: .45)]).createShader(fog));
-    if (navn && fog.height > 60) {
-      // Say what the grey is, as the small card does.
-      final tp = TextPainter(
-        text: TextSpan(text: LopetCopy.take, style: const TextStyle(color: Color(0xCCFFFFFF), fontSize: 13, fontWeight: FontWeight.w700)),
-        textDirection: TextDirection.ltr,
-        textAlign: TextAlign.center,
-      )..layout(maxWidth: size.width - 40);
-      tp.paint(canvas, Offset((size.width - tp.width) / 2, fog.bottom - fog.height * .45));
-    }
-  }
-
-  @override
-  bool shouldRepaint(LopetSjokortMaler old) => old.besteM != besteM || old.merker.length != merker.length;
-}
 
 class _Chip extends StatelessWidget {
   const _Chip({super.key, required this.tekst, required this.farge});

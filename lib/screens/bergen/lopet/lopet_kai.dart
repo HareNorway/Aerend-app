@@ -7,8 +7,9 @@ import '../../../game/fjordlopet/haptics/haptikk_moenster.dart';
 import '../kit/ae_primitiver.dart' show aeMyk;
 import '../kit/bergen_kit.dart';
 import 'lopet_copy.dart';
+import 'lopet_kart9.dart';
 import 'lopet_data.dart';
-import 'lopet_screen.dart' show LopetSjokortMaler, LopetSjokortStor;
+import 'lopet_screen.dart' show LopetSjokortStor;
 
 /// Design 21 Nov plan Step 7 (design `Fjordløpet · Start`): the quay's pieces and its two sheets.
 ///
@@ -98,33 +99,20 @@ class LopetKaiSjokort extends StatelessWidget {
   /// The end card (Design 21 Nov Step 8): where this run stopped — «STOPPET VED 317 M» and the cross on the chart.
   final int? stoppM;
 
-  static const int _visM = 1200;
-
-  /// T3 GAM-B02: the gate chips overlapped («Bu», «Bø», «Bryggen +12») when gates lie close on the chart. The next
-  /// gate not yet reached gets its chip first, then the others only where they do not collide (a chip is ~76 px).
-  List<int> _synligePorter(List<int> ms, double Function(int) x, double w) {
-    final ks = [for (var k = 0; k < ms.length && k < 3; k++) if (ms[k] <= _visM) k];
-    final neste = ks.where((k) => besteM < ms[k]).firstOrNull;
-    final rekke = [if (neste != null) neste, ...ks.reversed.where((k) => k != neste)];
-    final valgt = <int>[];
-    double venstre(int k) => (x(ms[k]) - 34).clamp(0.0, w - 72);
-    for (final k in rekke) {
-      if (valgt.every((v) => (venstre(v) - venstre(k)).abs() >= 76)) valgt.add(k);
-    }
-    return valgt..sort();
-  }
 
   @override
   Widget build(BuildContext context) {
-    final ms = s.milestones;
-    final pts = [s.rewards['buoy1'], s.rewards['buoy2'], s.rewards['quay']].map((v) => (v as num?)?.toInt() ?? 0).toList();
     return GestureDetector(
       key: stoppM == null ? const Key('lopet-sjokort') : const Key('lopet-slutt-sjokort'),
       behavior: HitTestBehavior.opaque,
       onTap: () => LopetSjokortStor.vis(context, s, besteM),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        decoration: lopetKort(),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(6, 26, 33, .52), Color.fromRGBO(6, 26, 33, .34)]),
+          border: Border.all(color: const Color.fromRGBO(255, 255, 255, .1)),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -139,42 +127,17 @@ class LopetKaiSjokort extends StatelessWidget {
               const Icon(Icons.open_in_full_rounded, size: 15, color: _mint),
             ]),
             const SizedBox(height: 10),
+            // Design (9) 1:1 plan Step 4: the design's chart (`tegnKart`): the week's obstacles, the best run's path, the
+            // gates, the flags and the fog, 98 px high.
             SizedBox(
-              height: 100,
-              child: LayoutBuilder(builder: (context, box) {
-                final w = box.maxWidth;
-                double x(int m) => (m / _visM).clamp(0.0, 1.0) * w;
-                return Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Positioned.fill(
-                      top: 18,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: DecoratedBox(
-                          decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF2E5A55), Color(0xFF1F4A4E)])),
-                          // A quarter turn clockwise: the chart's start (its bottom) on the left, the fog to the right, as the design.
-                          child: RotatedBox(quarterTurns: 1, child: CustomPaint(painter: LopetSjokortMaler(s: s, besteM: besteM, visM: _visM, merker: [if (stoppM != null) stoppM!]))),
-                        ),
-                      ),
-                    ),
-                    if (besteM < _visM)
-                      Positioned(
-                        left: x(besteM) + 8,
-                        right: 6,
-                        top: 18,
-                        bottom: 0,
-                        child: Center(child: Text(LopetCopy.take, maxLines: 1, overflow: TextOverflow.fade, softWrap: false, style: BergenTokens.text(11, weight: FontWeight.w700, color: const Color(0xFF2A4C55)))),
-                      ),
-                    for (final k in _synligePorter(ms, x, w))
-                      Positioned(
-                        left: (x(ms[k]) - 34).clamp(0.0, w - 72),
-                        top: 0,
-                        child: _PortChip(navn: LopetCopy.porter[k], poeng: pts[k], naadd: besteM >= ms[k]),
-                      ),
-                  ],
-                );
-              }),
+              height: 98,
+              child: DecoratedBox(
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), boxShadow: const [BoxShadow(color: Color.fromRGBO(255, 255, 255, .08), spreadRadius: 1)]),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: CustomPaint(size: Size.infinite, painter: LopetKart9Maler(s: s, bestM: besteM, stoppM: stoppM)),
+                ),
+              ),
             ),
             const SizedBox(height: 10),
             FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Row(children: [
@@ -195,28 +158,6 @@ class LopetKaiSjokort extends StatelessWidget {
       ),
     );
   }
-}
-
-class _PortChip extends StatelessWidget {
-  const _PortChip({required this.navn, required this.poeng, required this.naadd});
-  final String navn;
-  final int poeng;
-  final bool naadd;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    height: 22,
-    padding: const EdgeInsets.symmetric(horizontal: 8),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(999),
-      color: naadd ? const Color.fromRGBO(127, 240, 203, .9) : const Color.fromRGBO(10, 30, 36, .85),
-      border: Border.all(color: naadd ? _mint : _gull),
-    ),
-    child: Row(mainAxisSize: MainAxisSize.min, children: [
-      if (naadd) ...[const Icon(Icons.check_rounded, size: 12, color: Color(0xFF0F3540)), const SizedBox(width: 3)],
-      Text('$navn +$poeng', style: BergenTokens.text(10.5, weight: FontWeight.w800, color: naadd ? const Color(0xFF0F3540) : _gullLys)),
-    ]),
-  );
 }
 
 class _Prikk extends StatelessWidget {

@@ -8901,6 +8901,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get lop_kai_take => 'Fog · sail further to see more';
 
   @override
+  String get lop_kart_start => 'THE QUAY · START';
+
+  @override
   String get lop_kai_neste_maal => 'NEXT GOAL';
 
   @override

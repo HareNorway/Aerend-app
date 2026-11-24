@@ -15722,6 +15722,12 @@ abstract class AppLocalizations {
   /// **'Fog · sail further to see more'**
   String get lop_kai_take;
 
+  /// No description provided for @lop_kart_start.
+  ///
+  /// In en, this message translates to:
+  /// **'THE QUAY · START'**
+  String get lop_kart_start;
+
   /// No description provided for @lop_kai_neste_maal.
   ///
   /// In en, this message translates to:
