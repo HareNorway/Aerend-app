@@ -13,13 +13,28 @@ import 'lopet_look.dart';
 /// water in world coordinates; each frame the old map fades (`max(t − 0.0055·dt, 0) · 0.985^dt`, the design's `pF`) and
 /// the frame's stamps are added on top (`stp`: soft dots, rings and streaks from the atlas, red channel only).
 class LopetSea9 {
-  LopetSea9(ui.FragmentProgram program, this.mode) : _shader = program.fragmentShader();
+  LopetSea9(ui.FragmentProgram program, this.mode, {ui.FragmentProgram? lav}) : _shader = program.fragmentShader(), _lav = lav?.fragmentShader();
 
   final LopetMode mode;
   final ui.FragmentShader _shader;
 
-  static ui.FragmentProgram? _program;
-  static bool _failed = false;
+  /// Lav: the design's `LAV_FS` (null when it did not load: then a flat sea).
+  final ui.FragmentShader? _lav;
+  ui.Image? _lavTex;
+
+  static ui.FragmentProgram? _program, _lavProgram;
+  static bool _failed = false, _lavFailed = false;
+
+  /// The Lav program (loaded once; null if it cannot load).
+  static Future<ui.FragmentProgram?> loadLav() async {
+    if (_lavProgram != null || _lavFailed) return _lavProgram;
+    try {
+      return _lavProgram = await ui.FragmentProgram.fromAsset('shaders/lopet_lav9.frag');
+    } catch (_) {
+      _lavFailed = true;
+      return null;
+    }
+  }
   static int liveImages = 0;
 
   static Future<ui.FragmentProgram?> load() async {
@@ -35,6 +50,101 @@ class LopetSea9 {
   static void resetForTest() {
     _program = null;
     _failed = false;
+    _lavProgram = null;
+    _lavFailed = false;
+  }
+
+  /// The design's `lavTex`: a seamless 256 × 256 water texture for the mode (three octaves of periodic value noise,
+  /// the deep–shallow mix and a faint ridge of sky). Made once per session, before «Sett seil».
+  Future<void> makeLavTex() async {
+    if (_lavTex != null || _lav == null) return;
+    const n = 256;
+    int h(int x, int y, int sd) {
+      var v = ((x * 374761393 + y * 668265263 + sd * 2654435761) & 0xFFFFFFFF).toSigned(32);
+      v = ((v * 1274126177) & 0xFFFFFFFF).toSigned(32);
+      v = (((v ^ (v.toUnsigned(32) >> 13)) * 1103515245) & 0xFFFFFFFF).toSigned(32);
+      return (v ^ (v.toUnsigned(32) >> 16)).toUnsigned(32);
+    }
+
+    double hf(int x, int y, int sd) => h(x, y, sd) / 4294967296;
+    double vn(double x, double y, int p, int sd) {
+      final xi = x.floor(), yi = y.floor(), fx = x - xi, fy = y - yi, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
+      final x0 = ((xi % p) + p) % p, y0 = ((yi % p) + p) % p, x1 = (x0 + 1) % p, y1 = (y0 + 1) % p;
+      final a = hf(x0, y0, sd), b = hf(x1, y0, sd), c = hf(x0, y1, sd), d = hf(x1, y1, sd);
+      return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+    }
+
+    final px = Uint8List(n * n * 4);
+    for (var y = 0; y < n; y++) {
+      for (var x = 0; x < n; x++) {
+        final xx = x / n, yy = y / n;
+        final nz = .5 * vn(xx * 6, yy * 6, 6, 1) + .3 * vn(xx * 12, yy * 12, 12, 2) + .2 * vn(xx * 24, yy * 24, 24, 3);
+        final rg = math.pow(1 - (2 * ((nz * 3.2) % 1) - 1).abs(), 6).toDouble(), t = .3 + .45 * nz, o = (y * n + x) * 4;
+        for (var c = 0; c < 3; c++) {
+          px[o + c] = ((shal[c] + (deep[c] - shal[c]) * t + skyLo[c] * .2 * rg) * 255).clamp(0, 255).round();
+        }
+        px[o + 3] = 255;
+      }
+    }
+    final buf = await ui.ImmutableBuffer.fromUint8List(px);
+    final desc = ui.ImageDescriptor.raw(buf, width: n, height: n, pixelFormat: ui.PixelFormat.rgba8888);
+    final codec = await desc.instantiateCodec();
+    _lavTex = (await codec.getNextFrame()).image;
+    codec.dispose();
+    desc.dispose();
+    buf.dispose();
+  }
+
+  /// Draws Lav water over [size] (the design's `lavVann`), at half resolution. False when Lav cannot draw.
+  bool paintLav(Canvas canvas, Size size, {required double t, required double m, required double by, required double vf, required double zF, required double fr, required double baat, required double dod, required double edge, required Float32List trail, required Float32List obs}) {
+    final s = _lav, tex = _lavTex;
+    if (s == null || tex == null) return false;
+    final w = size.width, hh = size.height;
+    final iw = math.max(1, (w * .5).round()), ih = math.max(1, (hh * .5).round());
+    var i = 0;
+    void f(double v) => s.setFloat(i++, v);
+    void v3(List<double> v) {
+      f(v[0]);
+      f(v[1]);
+      f(v[2]);
+    }
+
+    f(iw.toDouble());
+    f(ih.toDouble());
+    f(0);
+    f(0);
+    f(iw / w);
+    f(t);
+    f(m);
+    f(by);
+    f(vf);
+    f(w);
+    f(hh);
+    f(edge);
+    f(fr);
+    f(baat);
+    f(dod);
+    f(zF % 128);
+    v3(grunn);
+    v3(mur);
+    v3(skum);
+    f(w * .24);
+    f(w * .5);
+    f(w * .76);
+    for (var k = 0; k < 8; k++) {
+      f(trail[k]);
+    }
+    for (var k = 0; k < 48; k++) {
+      f(obs[k]);
+    }
+    s.setImageSampler(0, tex);
+    _waterPaint.shader = s;
+    final rec = ui.PictureRecorder();
+    Canvas(rec).drawRect(Rect.fromLTWH(0, 0, iw.toDouble(), ih.toDouble()), _waterPaint);
+    final img = rec.endRecording().toImageSync(iw, ih);
+    canvas.drawImageRect(img, Rect.fromLTWH(0, 0, iw.toDouble(), ih.toDouble()), Offset.zero & size, _blit);
+    img.dispose();
+    return true;
   }
 
   // ── the design's palette (sjoPalL, sjCol) ─────────────────────────────────
@@ -270,6 +380,8 @@ class LopetSea9 {
     }
     _blank?.dispose();
     _blank = null;
+    _lavTex?.dispose();
+    _lavTex = null;
   }
 }
 

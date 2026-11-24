@@ -261,9 +261,11 @@ void main() {
     expect(find.text(LopetCopy.fortsettOm(3)), findsOneWidget);
     t.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
     await t.pump(const Duration(seconds: 3));
-    expect(find.byKey(const Key('lopet-fortsett')), findsOneWidget, reason: 'back on the pause screen, not playing');
+    // Nothing is drawn while the app is in the background; what the customer sees on return is the pause screen.
     t.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await t.pump();
+    expect(find.byKey(const Key('lopet-fortsett')), findsOneWidget, reason: 'back on the pause screen, not playing');
+    expect(find.text(LopetCopy.fortsettOm(1)), findsNothing, reason: 'the countdown did not run on');
     // Engine events reach the phone as haptics (smoke: no platform error).
     expect(SystemChannels.platform, isNotNull);
   });

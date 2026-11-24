@@ -165,6 +165,7 @@ class LopetFx9 {
     recordSaid = false;
     ringA = 0;
     dod = 0;
+    dodStartMs = 0; // a new run never starts in the last run's capsize
     vestT = 0;
     gullSplashed.clear();
     lastTick = -1;
@@ -739,7 +740,7 @@ class LopetScene9 extends CustomPainter with LopetSprBatch9 {
           trail: fx.trail,
           obs: _ob,
           rip: _rpU);
-    } else {
+    } else if (s == null || !s.paintLav(canvas, size, t: T, m: m, by: by, vf: vf, zF: d / 1000, fr: fr, baat: 1 - dod, dod: dod, edge: kant * k, trail: fx.trail, obs: _ob)) {
       canvas.drawRect(Offset.zero & size, Paint()..color = Color(_lowDeep[mode] ?? 0xFF19434F));
     }
     lastCount = spriteCount;

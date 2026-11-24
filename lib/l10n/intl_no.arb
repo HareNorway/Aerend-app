@@ -2862,6 +2862,8 @@
   "lop_kai_take": "Tåke · seil lenger for å se mer",
   "lop_kart_start": "KAIEN · START",
   "lop_sporing_lenke": "Sporing",
+  "lop_flagg_din_beste": "Din beste",
+  "lop_rekord_om": "Rekorden din om {p0} m",
   "lop_kai_neste_maal": "NESTE MÅL",
   "lop_kai_igjen": "{p0} m igjen",
   "@lop_kai_igjen": {"placeholders": {"p0": {"type": "Object"}}},

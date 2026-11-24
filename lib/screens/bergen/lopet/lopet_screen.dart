@@ -321,8 +321,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         mode: _mode,
         level: _nivaa(s.boat),
         labels: LopetCopy.porter,
-        flags: [LopetCopy.dinBeste, s.rival?.name ?? '', LopetCopy.ukensBeste],
-        ghost: LopetCopy.dinBeste,
+        flags: [LopetCopy.dinBesteKort, s.rival?.name ?? '', LopetCopy.ukensBeste],
+        ghost: LopetCopy.dinBesteKort,
         name: s.boatName ?? '',
         landmarks: lm,
       );
@@ -334,7 +334,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       if (program == null) {
         _q?.markShaderFailed();
       } else {
-        _water ??= LopetSea9(program, _mode);
+        final w = _water ??= LopetSea9(program, _mode, lav: await LopetSea9.loadLav());
+        await w.makeLavTex();
       }
       LopetSjokortStor.atlas = a;
       setState(() => _atlas = a);
@@ -346,6 +347,46 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   }
 
   static const Map<String, int> _lmId = {'naust': 0, 'kran': 1, 'fyr': 2, 'akvariet': 3, 'festningen': 4, 'seilskute': 5, 'verftet': 6, 'sjobad': 7};
+
+  /// The play field for [loop] (Design (9) 1:1: the design's scene); also behind the end of a run, frozen.
+  LopetScene9 _felt(FjordLoop loop, LopetAtlas9 atlas, LopetState s, bool rolig) => LopetScene9(
+        loop: loop,
+        atlas: atlas,
+        sea: _water,
+        fx: _fx,
+        flags: _flags,
+        milestones: s.milestones,
+        mode: _mode,
+        level: _nivaa(s.boat),
+        vimpel: _pyntId(s.equipped['pennant']),
+        kjol: _pyntId(s.equipped['wake']),
+        figur: _pyntId(s.equipped['figurehead']),
+        rolig: rolig,
+        quality: _q,
+        landmarks: s.landmarks,
+      );
+
+  /// Design (9) 1:1 plan Step 5 («Fjordløpet · Slutt på seilas»): the end of the run over the frozen field, under the
+  /// design's veil (rgba(8,26,33) .5 → .84 → .95).
+  Widget _sluttOverFelt() {
+    final loop = _loop, atlas = _atlas, s = _s;
+    return Stack(
+      children: [
+        if (loop != null && atlas != null && s != null)
+          Positioned.fill(child: IgnorePointer(child: RepaintBoundary(child: CustomPaint(painter: _felt(loop, atlas, s, true))))),
+        const Positioned.fill(
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(8, 26, 33, .5), Color.fromRGBO(8, 26, 33, .84), Color.fromRGBO(8, 26, 33, .95)], stops: [0, .4, 1]),
+              ),
+            ),
+          ),
+        ),
+        Positioned.fill(child: Padding(padding: const EdgeInsets.only(top: 58), child: _slutt())),
+      ],
+    );
+  }
 
   /// The level boats (spec §5.7) as the design's levels: robåt Bronse, robåt med vimpel Sølv, snekke Gull, egen båt Platina.
   static String _nivaa(String boat) => switch (boat) { 'vimpel' => 'Sølv', 'snekke' => 'Gull', 'egen' => 'Platina', _ => 'Bronse' };
@@ -930,7 +971,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                   : switch (_fase) {
                       _Fase.start => _start(),
                       _Fase.spill || _Fase.pause => _spill(),
-                      _Fase.slutt => Padding(padding: const EdgeInsets.only(top: 64), child: _slutt()),
+                      _Fase.slutt => _sluttOverFelt(),
                     },
             ),
             Positioned(
@@ -1056,7 +1097,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       });
     }
     // Short screens (the iPhone SE, T24) keep the quay as a band behind the strip and the sheet right under it.
-    final arkTopp = kort ? 64.0 : 302.0 - 12;
+    final arkTopp = kort ? 64.0 : 302.0;
     return ClipRect(
       child: TweenAnimationBuilder<double>(
         key: const Key('lopet-kai'),
@@ -1083,7 +1124,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                 child: ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(28)), child: liste),
               ),
             ),
-            if (!kort) Positioned(right: 14, top: 72 - 12, child: LopetPyntKnapp(onTap: _pynt)),
+            if (!kort) Positioned(right: 14, top: 72, child: LopetPyntKnapp(onTap: _pynt)),
           ],
         ),
       ),
@@ -1124,21 +1165,32 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         ],
       );
     }
+    // Design (9) 1:1 plan Step 4: the design's quay is Home's scene with its 73 px offset (`uOff −73`): Bryggen from 73 to
+    // 200, Vågen under it, and the hill's colour above (Bryggen's top row) behind the strip.
+    final vaer = _hjemVaer();
     return Stack(
       children: [
         Positioned.fill(
           child: LfFrame(
-            child: HjemHero(
-              key: const Key('lopet-kai-scene'),
-              vaer: _hjemVaer(),
-              floats: const [],
-              onFloatAdd: (_) {},
-              onFloatSink: (_) {},
-              onFloatNever: (_) {},
-              onPose: () {},
-              onFjordfiske: () {},
-              nappAvailable: false,
-              vindu: true,
+            child: Column(
+              children: [
+                SizedBox(height: 73, child: ColoredBox(color: _bryggenTopp[vaer] ?? const Color(0xFF969997))),
+                Expanded(
+                  child: HjemHero(
+                    key: const Key('lopet-kai-scene'),
+                    vaer: vaer,
+                    floats: const [],
+                    onFloatAdd: (_) {},
+                    onFloatSink: (_) {},
+                    onFloatNever: (_) {},
+                    onPose: () {},
+                    onFjordfiske: () {},
+                    nappAvailable: false,
+                    vindu: true,
+                    utenAegil: true,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -1146,6 +1198,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       ],
     );
   }
+
+  /// The top row of each Bryggen picture (`assets/images/bryggen/hjem_*.jpg`): the hill continues above it on the quay.
+  static const Map<HjemVaer, Color> _bryggenTopp = {HjemVaer.regn: Color(0xFF969997), HjemVaer.sol: Color(0xFF6C7370), HjemVaer.solnedgang: Color(0xFF694D33), HjemVaer.natt: Color(0xFF0C151E)};
 
   /// Home's weather for the scene: the same choice Home makes (the harness, else the hour).
   HjemVaer _hjemVaer() => switch (_mode) {
@@ -1184,24 +1239,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                 builder: (_, z, child) => Transform.scale(scale: z, child: child),
                 child: atlas == null
                     ? const ColoredBox(color: Color(0xFF155A70))
-                    : CustomPaint(
-                        painter: LopetScene9(
-                          loop: loop,
-                          atlas: atlas,
-                          sea: _water,
-                          fx: _fx,
-                          flags: _flags,
-                          milestones: s.milestones,
-                          mode: _mode,
-                          level: _nivaa(s.boat),
-                          vimpel: _pyntId(s.equipped['pennant']),
-                          kjol: _pyntId(s.equipped['wake']),
-                          figur: _pyntId(s.equipped['figurehead']),
-                          rolig: rolig,
-                          quality: _q,
-                          landmarks: s.landmarks,
-                        ),
-                      ),
+                    : CustomPaint(painter: _felt(loop, atlas, s, rolig)),
               ),
             ),
           ),
@@ -1217,18 +1255,28 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                 ValueListenableBuilder<int>(
                   valueListenable: loop.metres,
                   builder: (_, m, __) {
+                    // Design (9) 1:1 plan Step 5 (design `nesteTx`): the record within 80 m in gold, else the next gate in
+                    // pale mint.
                     String? neste;
-                    for (var k = 0; k < s.milestones.length && k < 3; k++) {
-                      if (m < s.milestones[k]) {
-                        neste = LopetCopy.omMeter(LopetCopy.porter[k], s.milestones[k] - m);
-                        break;
+                    var nesteFarge = const Color(0xFFD4FBEB);
+                    final til = (_forBesteRun ?? 0) - m;
+                    if (til > 0 && til <= 80) {
+                      neste = LopetCopy.rekordOm(til);
+                      nesteFarge = const Color(0xFFF2C14E);
+                    } else {
+                      for (var k = 0; k < s.milestones.length && k < 3; k++) {
+                        if (m < s.milestones[k]) {
+                          neste = LopetCopy.omMeter(LopetCopy.porter[k], s.milestones[k] - m);
+                          break;
+                        }
                       }
                     }
+                    const skygge = [Shadow(color: Color.fromRGBO(4, 18, 26, .8), blurRadius: 12, offset: Offset(0, 2))];
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('$m m', key: const Key('lopet-meter'), style: BergenTokens.display(30, weight: FontWeight.w800, color: Colors.white)),
-                        if (neste != null) Text(neste, style: BergenTokens.text(12.5, weight: FontWeight.w700, color: const Color(0xFFF7D57E))),
+                        Text('${LopetCopy.tallTekst(m)} m', key: const Key('lopet-meter'), style: BergenTokens.display(40, weight: FontWeight.w800, color: const Color(0xFFF5F3EF), letterSpacingEm: -.03).copyWith(height: 1.02, shadows: skygge, fontFeatures: const [FontFeature.tabularFigures()])),
+                        if (neste != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(neste, style: BergenTokens.display(13, weight: FontWeight.w800, color: nesteFarge).copyWith(shadows: const [Shadow(color: Color.fromRGBO(4, 18, 26, .9), blurRadius: 6, offset: Offset(0, 1))]))),
                         const SizedBox(height: 6),
                         _Maaler(loop: loop),
                         ValueListenableBuilder<bool>(
@@ -1242,10 +1290,19 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                   },
                 ),
                 const Spacer(),
-                IconButton(
-                  key: const Key('lopet-pause-knapp'),
-                  onPressed: () => _pause('manuell'),
-                  icon: const Icon(Icons.pause_circle_filled_rounded, color: Colors.white, size: 36),
+                Semantics(
+                  button: true,
+                  label: LopetCopy.pause,
+                  child: GestureDetector(
+                    key: const Key('lopet-pause-knapp'),
+                    onTap: () => _pause('manuell'),
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: const Color.fromRGBO(10, 33, 40, .74), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2))),
+                      child: const Icon(Icons.pause_rounded, color: Color(0xFFF5F3EF), size: 22),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -1603,27 +1660,87 @@ class _Maaler extends StatelessWidget {
 
   final FjordLoop loop;
 
+  /// Design (9) 1:1 plan Step 5 (design «Måler»): a glass pill with the crate, the eight fields (mint with a glow when
+  /// filled) and the life ring that lights when the meter is full.
   @override
   Widget build(BuildContext context) => ValueListenableBuilder<int>(
         valueListenable: loop.meter,
         builder: (_, m, __) {
           final full = loop.sim.full;
-          return Row(
+          return Container(
             key: const Key('lopet-maaler'),
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (var i = 0; i < full; i++)
-                Container(
-                  width: 10,
-                  height: 8,
-                  margin: const EdgeInsets.only(right: 3),
-                  decoration: BoxDecoration(color: i < m ? const Color(0xFFE5532D) : Colors.white24, borderRadius: BorderRadius.circular(2)),
-                ),
-              if (m >= full) const Icon(Icons.radio_button_checked_rounded, key: Key('lopet-livboye'), size: 16, color: Color(0xFFE5532D)),
-            ],
+            padding: const EdgeInsets.fromLTRB(9, 5, 7, 5),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(10, 33, 40, .76), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .18))),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CustomPaint(size: Size(13, 13), painter: _KasseIkon()),
+                const SizedBox(width: 7),
+                for (var i = 0; i < full; i++)
+                  Container(
+                    width: 13,
+                    height: 10,
+                    margin: EdgeInsets.only(right: i == full - 1 ? 0 : 3),
+                    decoration: BoxDecoration(
+                      color: i < m ? const Color(0xFF5CE0B8) : const Color.fromRGBO(255, 255, 255, .16),
+                      borderRadius: BorderRadius.circular(3),
+                      boxShadow: i < m ? const [BoxShadow(color: Color.fromRGBO(92, 224, 184, .85), blurRadius: 8)] : null,
+                    ),
+                  ),
+                const SizedBox(width: 7),
+                // Always there (dim until full), as the design.
+                CustomPaint(key: m >= full ? const Key('lopet-livboye') : null, size: const Size(18, 18), painter: _Livring(paa: m >= full)),
+              ],
+            ),
           );
         },
       );
+}
+
+/// The crate in the meter (the design's icon: a box with two slats).
+class _KasseIkon extends CustomPainter {
+  const _KasseIkon();
+
+  @override
+  void paint(Canvas c, Size z) {
+    final k = z.width / 24;
+    final p = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.4 * k
+      ..strokeJoin = StrokeJoin.round
+      ..color = const Color(0xFFE7BE82);
+    c.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(4 * k, 4 * k, 16 * k, 16 * k), Radius.circular(2 * k)), p);
+    c.drawLine(Offset(4 * k, 10 * k), Offset(20 * k, 10 * k), p);
+    c.drawLine(Offset(4 * k, 15 * k), Offset(20 * k, 15 * k), p);
+  }
+
+  @override
+  bool shouldRepaint(_KasseIkon old) => false;
+}
+
+/// The life ring (cream with four mint quarters), dim until the meter is full.
+class _Livring extends CustomPainter {
+  const _Livring({required this.paa});
+  final bool paa;
+
+  @override
+  void paint(Canvas c, Size z) {
+    final k = z.width / 32, o = Offset(16 * k, 16 * k), r = 10 * k, a = paa ? 1.0 : .36;
+    c.drawCircle(o, r, Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 7 * k
+      ..color = Color.fromRGBO(245, 243, 239, a));
+    final mint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 7 * k
+      ..color = Color.fromRGBO(92, 224, 184, a);
+    for (var i = 0; i < 4; i++) {
+      c.drawArc(Rect.fromCircle(center: o, radius: r), (22.5 + 90 * i) * math.pi / 180, math.pi / 4, false, mint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_Livring old) => old.paa != paa;
 }
 
 /// The delivery strip (game spec §7): stage, window, the courier's minutes; a tap pauses and opens Sporing.
