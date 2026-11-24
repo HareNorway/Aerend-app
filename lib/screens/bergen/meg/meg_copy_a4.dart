@@ -19,6 +19,8 @@ abstract final class A4MegCopy {
   static String a4_meg_premie(String navn) => 'Premie: ${navn.isEmpty ? navn : navn[0].toLowerCase() + navn.substring(1)}';
   static const String a4_meg_gullbilletten = 'Gullbilletten';
   static String a4_meg_gi_faa(int give, int get) => 'Gi $give · få $get poeng';
+  // With points off there is no reward to promise (T3 PTS-A12).
+  static const String a4_meg_del_uten_poeng = 'Del Ærend med en venn';
   static String a4_meg_gi_faa_kode(int give, int get, String code) => 'Gi $give poeng, få $get poeng · $code';
   static const String a4_meg_del = 'Del';
   static String a4_meg_del_tekst(int points, String code, String? link) => 'Her er en gullbillett til Ærend: bruk koden $code, så får vi $points poeng hver når din første bestilling er levert.${link == null ? '' : ' $link'}';
@@ -482,6 +484,15 @@ abstract final class A4MegCopy {
   static const String a4_hylla_chip_angret = 'Angret';
   static const String a4_hylla_chip_gitt = 'Gitt';
   static const String a4_hylla_chip_feilet = 'Feilet';
+  static const String a4_hylla_chip_ferdig_tid = 'Ferdig';
+  // A finished premie's line (T3: a used kode card still said «Kode vises her · vis den i butikken»).
+  static String a4_hylla_ferdig(String status) => switch (status) {
+        'brukt' => 'Premien er brukt',
+        'angret' => 'Angret · poengene er tilbake',
+        'gitt' => 'Gitt til klubben',
+        'feilet' => 'Kunne ikke leveres · poengene er tilbake',
+        _ => 'Utløpt · kan ikke brukes lenger',
+      };
   static String a4_hylla_saldo(int n) => 'Saldo ${nf(n)}';
   static String a4_hylla_etter(int n) => 'Etter: ${nf(n)} poeng';
   static const String a4_hylla_hold = 'Hold for å hente';
@@ -511,6 +522,8 @@ abstract final class A4MegCopy {
   static const String a4_hylla_er_maal = 'Er allerede målet ditt';
   static String a4_hylla_satt_maal(int igjen) => 'Satt som mål · ${_nf(igjen < 0 ? 0 : igjen)} poeng igjen';
   static const String a4_hylla_utsolgt_mnd = 'Utsolgt denne måneden';
+  static const String a4_hylla_hentet_mnd = 'Hentet denne måneden';
+  static const String a4_hylla_hent_kupong = 'Hent med kupong';
   static String a4_hylla_utsolgt_toast(String name) => '$name er utsolgt denne måneden';
   static String a4_hylla_igjen(int n) => '${_nf(n)} poeng igjen';
   static const String a4_hylla_velger = 'Ægil velger';
