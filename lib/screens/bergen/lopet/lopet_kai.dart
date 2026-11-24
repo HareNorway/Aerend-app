@@ -100,6 +100,20 @@ class LopetKaiSjokort extends StatelessWidget {
 
   static const int _visM = 1200;
 
+  /// T3 GAM-B02: the gate chips overlapped («Bu», «Bø», «Bryggen +12») when gates lie close on the chart. The next
+  /// gate not yet reached gets its chip first, then the others only where they do not collide (a chip is ~76 px).
+  List<int> _synligePorter(List<int> ms, double Function(int) x, double w) {
+    final ks = [for (var k = 0; k < ms.length && k < 3; k++) if (ms[k] <= _visM) k];
+    final neste = ks.where((k) => besteM < ms[k]).firstOrNull;
+    final rekke = [if (neste != null) neste, ...ks.reversed.where((k) => k != neste)];
+    final valgt = <int>[];
+    double venstre(int k) => (x(ms[k]) - 34).clamp(0.0, w - 72);
+    for (final k in rekke) {
+      if (valgt.every((v) => (venstre(v) - venstre(k)).abs() >= 76)) valgt.add(k);
+    }
+    return valgt..sort();
+  }
+
   @override
   Widget build(BuildContext context) {
     final ms = s.milestones;
@@ -152,13 +166,12 @@ class LopetKaiSjokort extends StatelessWidget {
                         bottom: 0,
                         child: Center(child: Text(LopetCopy.take, maxLines: 1, overflow: TextOverflow.fade, softWrap: false, style: BergenTokens.text(11, weight: FontWeight.w700, color: const Color(0xFF2A4C55)))),
                       ),
-                    for (var k = 0; k < ms.length && k < 3; k++)
-                      if (ms[k] <= _visM)
-                        Positioned(
-                          left: (x(ms[k]) - 34).clamp(0.0, w - 72),
-                          top: 0,
-                          child: _PortChip(navn: LopetCopy.porter[k], poeng: pts[k], naadd: besteM >= ms[k]),
-                        ),
+                    for (final k in _synligePorter(ms, x, w))
+                      Positioned(
+                        left: (x(ms[k]) - 34).clamp(0.0, w - 72),
+                        top: 0,
+                        child: _PortChip(navn: LopetCopy.porter[k], poeng: pts[k], naadd: besteM >= ms[k]),
+                      ),
                   ],
                 );
               }),
