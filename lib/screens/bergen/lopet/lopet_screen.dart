@@ -1649,22 +1649,39 @@ class LopetSjokortMaler extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final visM = this.visM?.toDouble() ?? (navn ? (besteM + 200).clamp(400, 5000).toDouble() : 1200.0);
+    // Full screen (T3 Vivo): scale to what was sailed and the next gate. A fixed 400 m minimum put a 40 m run in the
+    // bottom tenth, so the chart read as an empty grey box with the ✕ under it.
+    final ende = merker.isEmpty ? 0 : merker.reduce(math.max);
+    final naadd = math.max(besteM, ende);
+    final nesteGate = s.milestones.where((g) => g > naadd).fold<int?>(null, (a, g) => a == null || g < a ? g : a);
+    final visM = this.visM?.toDouble() ?? (navn ? (math.max(naadd, nesteGate ?? naadd) * 1.15).clamp(120, 5000).toDouble() : 1200.0);
     double y(num m) => size.height - 10 - (m / visM) * (size.height - 20);
     final seen = besteM.clamp(0, visM.toInt());
+    // In full screen also what stopped you, just past the ✕.
+    final synlig = navn ? math.max(seen, ende) + 8 : seen;
     final rows = (s.course['rows'] as List?) ?? const [];
     for (final r in rows) {
       final m = ((r as Map)['d'] as num) / 1000;
       if (m > visM) break;
-      if (m > seen) continue;
+      if (m > synlig) continue;
       final lanes = [for (final l in ((r['l'] as List?) ?? const [])) (l as num).toInt()];
       final lane = lanes.isNotEmpty ? lanes.first : ((((r['p'] as Map?)?['lane']) as num?)?.toInt() ?? 1);
       final x = size.width * (lane + .5) / 3;
       canvas.drawCircle(Offset(x, y(m)), navn ? 3.4 : 2.6, Paint()..color = r['t'] == 'boye' ? const Color(0xFFE5532D) : Colors.white70);
     }
-    for (final g in s.milestones) {
+    final gates = [...s.milestones]..sort();
+    for (var i = 0; i < gates.length; i++) {
+      final g = gates[i];
       if (g > visM) continue;
       canvas.drawLine(Offset(6, y(g)), Offset(size.width - 6, y(g)), Paint()..color = const Color(0xFFF2C14E)..strokeWidth = 2);
+      if (navn) {
+        // The gate's name and distance above its line (it was an unlabelled gold line).
+        final tp = TextPainter(
+          text: TextSpan(text: '${LopetCopy.porter[i.clamp(0, 2)]} · $g m', style: const TextStyle(color: Color(0xFFF2C14E), fontSize: 11.5, fontWeight: FontWeight.w800)),
+          textDirection: TextDirection.ltr,
+        )..layout(maxWidth: size.width / 2);
+        tp.paint(canvas, Offset((size.width - tp.width) / 2, y(g) - tp.height - 3));
+      }
     }
     if (navn) {
       for (final lm in s.landmarks) {
@@ -1678,16 +1695,38 @@ class LopetSjokortMaler extends CustomPainter {
         tp.paint(canvas, Offset(right ? size.width - tp.width - 2 : 2, y(m) - tp.height / 2));
       }
     }
+    // The ✕ in the lane of what stopped the run (the first row just past it), not always mid-chart.
+    double xFor(int m) {
+      if (!navn) return size.width / 2;
+      for (final r in rows) {
+        final d = ((r as Map)['d'] as num) / 1000;
+        if (d < m) continue;
+        if (d > m + 8) break;
+        final lanes = [for (final l in ((r['l'] as List?) ?? const [])) (l as num).toInt()];
+        final lane = lanes.isNotEmpty ? lanes.first : ((((r['p'] as Map?)?['lane']) as num?)?.toInt() ?? 1);
+        return size.width * (lane + .5) / 3;
+      }
+      return size.width / 2;
+    }
     final x = Paint()..color = const Color(0xFFFF6B5A)..strokeWidth = 2.2;
     for (final m in merker) {
       if (m > visM) continue;
-      final c = Offset(size.width / 2, y(m));
+      final c = Offset(xFor(m), y(m) + (navn ? 9 : 0));
       canvas.drawLine(c + const Offset(-5, -5), c + const Offset(5, 5), x);
       canvas.drawLine(c + const Offset(-5, 5), c + const Offset(5, -5), x);
     }
     // Fog above the best distance.
     final fog = Rect.fromLTRB(0, 0, size.width, y(seen));
     canvas.drawRect(fog, Paint()..shader = LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Colors.white.withValues(alpha: .08), Colors.white.withValues(alpha: .45)]).createShader(fog));
+    if (navn && fog.height > 60) {
+      // Say what the grey is, as the small card does.
+      final tp = TextPainter(
+        text: TextSpan(text: LopetCopy.take, style: const TextStyle(color: Color(0xCCFFFFFF), fontSize: 13, fontWeight: FontWeight.w700)),
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.center,
+      )..layout(maxWidth: size.width - 40);
+      tp.paint(canvas, Offset((size.width - tp.width) / 2, fog.bottom - fog.height * .45));
+    }
   }
 
   @override
