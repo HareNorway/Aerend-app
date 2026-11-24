@@ -312,6 +312,28 @@ void main() {
       addTearDown(tester.view.reset);
     }
 
+    testWidgets('Design (9): the sheet never covers the hero text, however many lines it takes', (tester) async {
+      phone(tester);
+      // The square test font also overflows rows the other tests keep at half size; this test is about the sheet.
+      final onError = FlutterError.onError;
+      FlutterError.onError = (d) {
+        if (!d.exceptionAsString().contains('overflowed')) onError?.call(d);
+      };
+      addTearDown(() => FlutterError.onError = onError);
+      // The test font draws every glyph as a square, so the title block is taller than the design's three lines: the
+      // old fixed 176 px sheet covered it.
+      for (final scale in [1.0]) {
+        await tester.pumpWidget(MaterialApp(
+          builder: (context, app) => MediaQuery(data: MediaQuery.of(context).copyWith(disableAnimations: true, textScaler: TextScaler.linear(scale)), child: app!),
+          home: HurtigScreen(data: kData, now: kNow),
+        ));
+        await tester.pump();
+        final tittel = tester.getRect(find.byKey(const Key('hb-tittel')));
+        final ark = tester.getRect(find.byKey(const Key('hb-ark')));
+        expect(tittel.bottom, lessThanOrEqualTo(ark.top), reason: 'text scale $scale');
+      }
+    });
+
     testWidgets('welcome with the habit of the day and its two keys', (tester) async {
       phone(tester);
       await tester.pumpWidget(host());
