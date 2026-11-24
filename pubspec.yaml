@@ -124,6 +124,7 @@ flutter:
     - assets/images/service-category/
     - assets/gifs/
     - assets/game/sounds/
+    - assets/game/fjordlopet/
     - assets/svgs/
     - assets/svgs/icons/
     - assets/svgs/onboarding/
