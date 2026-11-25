@@ -45,6 +45,7 @@ import '../kasse/kurv_sync.dart';
 import '../kasse/kasse_copy.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 import '../../../theme/lys/lys_palett.dart';
+import '../kit/kurv_fly.dart';
 import '../../../theme/lys/modus_scope.dart';
 
 /// The restaurant page (`erButikk` ≈L3035–3520 in `Ærend Kunde Bergen.dc.html`).
@@ -3169,7 +3170,7 @@ class _Grid extends StatelessWidget {
   Widget _card(BergenMenuItem item, int n) => _KortInn(anim: inn, i: n, child: _card0(item, n));
 
   Widget _card0(BergenMenuItem item, int n) {
-    final kort = _MenuCard(
+    final kort = KurvFlyKort(child: _MenuCard(
     key: Key('a1_butikk_menu_${item.id}'),
     item: item,
     mostOrdered: item.id == mostOrderedId,
@@ -3179,7 +3180,7 @@ class _Grid extends StatelessWidget {
     onOpen: () => onOpen(item, mostOrdered: item.id == mostOrderedId),
     onPlus: () => onPlus(item),
     onMinus: () => onMinus(item),
-  );
+  ));
     // Onboarding: the tour's «Trykk + på retten» marks this one dish (the
     // most ordered, else the first), not the whole panel.
     final legg = mostOrderedId != null ? item.id == mostOrderedId : n == 0;
@@ -3244,6 +3245,13 @@ class _MenuCard extends StatelessWidget {
   final VoidCallback onOpen;
   final VoidCallback onPlus;
   final VoidCallback onMinus;
+
+  /// TestFlight 6 (design `plussP*`: `flyTilKurv()` then `endre`): the dish flies into the basket bar's cart, on the
+  /// round key and on the stepper's + alike.
+  void _pluss(BuildContext context) {
+    kurvFly(context);
+    onPlus();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -3334,7 +3342,8 @@ class _MenuCard extends StatelessWidget {
                       height: 128 * s,
                       child: GestureDetector(
                         onTap: onOpen,
-                        child: _MenuBilde(item: item, mostOrdered: mostOrdered),
+                        // TestFlight 6: the picture `flyTilKurv` copies.
+                        child: KurvFlyKilde(url: item.imageUrl, child: _MenuBilde(item: item, mostOrdered: mostOrdered)),
                       ),
                     ),
                   ],
@@ -3390,9 +3399,9 @@ class _MenuCard extends StatelessWidget {
                   ),
                   SizedBox(width: 8 * s),
                   if (qty == 0)
-                    _SvevKnapp(key: Key('a1_butikk_legg_${item.id}'), size: 44, ikonPx: 17, fase: fase, onTap: onPlus)
+                    _SvevKnapp(key: Key('a1_butikk_legg_${item.id}'), size: 44, ikonPx: 17, fase: fase, onTap: () => _pluss(context))
                   else
-                    _GridStepper(id: item.id, qty: qty, onMinus: onMinus, onPlus: onPlus),
+                    _GridStepper(id: item.id, qty: qty, onMinus: onMinus, onPlus: () => _pluss(context)),
                 ],
               ),
             ],
@@ -4159,7 +4168,8 @@ class ButikkKurvBar extends StatelessWidget {
                           bottom: 0,
                           width: 64 * s,
                           height: 48 * s,
-                          child: _Cart(recent: recent, pulse: pulse),
+                          // TestFlight 6: where `flyTilKurv` lands (and the cart's bounce when it does).
+                          child: KurvFlyMaal(child: _Cart(recent: recent, pulse: pulse)),
                         ),
                       ],
                     ),

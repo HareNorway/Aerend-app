@@ -1151,6 +1151,8 @@ class LfPillCta extends StatelessWidget {
     this.height = 52,
     this.phaseMs = -800,
     this.pulse = false,
+    this.s = 1,
+    this.skygge = const Color.fromRGBO(8, 26, 32, .5),
   });
 
   final Widget child;
@@ -1158,6 +1160,12 @@ class LfPillCta extends StatelessWidget {
   final double height;
   final double phaseMs;
   final bool pulse;
+
+  /// The frame scale (`context.bs`) for the float, the shadow and the insets; 1 in the launch screens.
+  final double s;
+
+  /// The ground shadow (`--knSk`: `rgba(0,10,14,.55)` over dark, `rgba(30,79,92,.36)` over light).
+  final Color skygge;
 
   @override
   Widget build(BuildContext context) {
@@ -1168,7 +1176,7 @@ class LfPillCta extends StatelessWidget {
         child: LfLoop(
           builder: (context, t, _) {
             final p = ((t - phaseMs) / 3400) % 1.0;
-            final y = kf(p, const [0, .5, 1], const [0, -5, 0], cssEaseInOut);
+            final y = kf(p, const [0, .5, 1], const [0, -5, 0], cssEaseInOut) * s;
             final shS = kf(p, const [0, .5, 1], const [1, .82, 1], cssEaseInOut);
             final shO = kf(p, const [0, .5, 1], const [1, .6, 1], cssEaseInOut);
             double ring = 0, ringA = 0;
@@ -1187,8 +1195,8 @@ class LfPillCta extends StatelessWidget {
                   Positioned(
                     left: 0,
                     right: 0,
-                    top: height + 1,
-                    height: 15,
+                    top: height + 1 * s,
+                    height: 15 * s,
                     child: FractionallySizedBox(
                       widthFactor: .8,
                       child: Opacity(
@@ -1198,11 +1206,11 @@ class LfPillCta extends StatelessWidget {
                           // `translate` on the pill and the opposite move on
                           // its ::after cancel out: the shadow only breathes.
                           transform: Matrix4.diagonal3Values(shS, 1, 1),
-                          child: const CssBox(
+                          child: CssBox(
                             bg: [
                               CssRadial.closestSide(
-                                [Color.fromRGBO(8, 26, 32, .5), Color.fromRGBO(0, 0, 0, 0)],
-                                stops: [0, .72],
+                                [skygge, const Color.fromRGBO(0, 0, 0, 0)],
+                                stops: const [0, .72],
                               ),
                             ],
                           ),
@@ -1220,8 +1228,8 @@ class LfPillCta extends StatelessWidget {
                       bg: const [CssLinear(180, [Color(0xFFF68450), Color(0xFFE65A28)])],
                       shadows: [
                         if (ringA > 0) CssShadow(0, 0, 0, ring, Color.fromRGBO(92, 224, 184, ringA)),
-                        const CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .4)),
-                        const CssShadow.inset(0, -3, 6, 0, Color.fromRGBO(150, 40, 10, .3)),
+                        CssShadow.inset(0, 1.5 * s, 0, 0, const Color.fromRGBO(255, 255, 255, .4)),
+                        CssShadow.inset(0, -3 * s, 6 * s, 0, const Color.fromRGBO(150, 40, 10, .3)),
                       ],
                       child: Center(child: child),
                     ),
