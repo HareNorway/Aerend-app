@@ -515,6 +515,8 @@ class _ProduktSheetState extends State<ProduktSheet> {
                     controller: _rull,
                     s: s,
                     bobler: false,
+                    // TestFlight 6: the design's `boblerFri` — air bubbles rise in the sheet while it scrolls.
+                    boblerFri: true,
                     bunn: false,
                     flate: (st) {
                       if (st <= 2) return null;
