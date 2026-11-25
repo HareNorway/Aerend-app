@@ -134,8 +134,8 @@ class _KurvFlyMaalState extends State<KurvFlyMaal> with SingleTickerProviderStat
     animation: _dunk,
     child: widget.child,
     builder: (context, child) {
-      if (!_dunk.isAnimating) return child!;
-      final p = _kurve.transform(_dunk.value);
+      // Always the same Transform (identity at rest), so the cart is never rebuilt (its own `kurvDunk` would replay).
+      final p = _dunk.isAnimating ? _kurve.transform(_dunk.value) : 0.0;
       final sk = kf(p, const [0, .35, .65, 1], const [1, 1.28, .94, 1]);
       final rot = kf(p, const [0, .35, .65, 1], const [0, -6, 3, 0]);
       return Transform(

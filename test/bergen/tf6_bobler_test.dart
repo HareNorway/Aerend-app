@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:aerend_customer/screens/bergen/hjem/hjem_vann.dart';
 
 /// TestFlight 6 feedback: «the bubble water droplets animation is missing in the product detail screen» — the
-/// prototype's `boblerFri`: while a big scroll area scrolls, a bubble or two every ~90 px (at most five), rising
+/// prototype's `boblerFri`: while a big scroll area scrolls, a bubble or two every ~90 px (no new batch once five are alive), rising
 /// and fading; never in the top 120 px; not in small areas; not with reduced motion.
 
 Widget _ark({double hoyde = 640, bool rolig = false, int rader = 60}) {
@@ -44,12 +44,13 @@ Future<void> _rull(WidgetTester tester, int ganger) async {
 void main() {
   setUp(() => HjemVann.debugBobler.value = const []);
 
-  testWidgets('scrolling the sheet: bubbles rise, never more than five, all below the top 120 px; they clear', (tester) async {
+  testWidgets('scrolling the sheet: bubbles rise, at most six (no batch once five live), all below the top 120 px; they clear', (tester) async {
     await tester.pumpWidget(_ark());
     await _rull(tester, 8);
     final b = HjemVann.debugBobler.value;
     expect(b, isNotEmpty, reason: 'bubbles while it scrolls');
-    expect(b.length, lessThanOrEqualTo(5));
+    // `bbSpawn`: no new batch once five are alive; a batch of two on top of four makes six.
+    expect(b.length, lessThanOrEqualTo(6));
     for (final o in b) {
       expect(o.dy, greaterThanOrEqualTo(120 + 40 - .01), reason: 'a bubble rose into the top band: $o');
       expect(o.dx, inInclusiveRange(18, 390 - 18));

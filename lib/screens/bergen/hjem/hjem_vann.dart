@@ -184,7 +184,7 @@ class _HjemVannState extends State<HjemVann> with SingleTickerProviderStateMixin
 
   double get _px => widget.controller.hasClients ? widget.controller.position.pixels : 0;
 
-  /// `vannBobler`: every ~90 px scrolled, one or two bubbles (at most five).
+  /// `vannBobler`: every ~90 px scrolled, one or two bubbles (no new batch once five are alive).
   void _scroll() {
     _vurder();
     final st0 = _px / widget.s;

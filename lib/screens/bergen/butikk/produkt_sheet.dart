@@ -26,6 +26,7 @@ import '../../common/auth/launch/lf_css.dart' show CssShadow;
 import '../../../theme/lys/lys_palett.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPillCta;
 import '../kit/kurv_fly.dart';
+import '../kit/kn_trykk.dart';
 import '../../../theme/lys/modus_scope.dart';
 
 /// Lys plan: a design shadow list (outer shadows only) as [BoxShadow]s at
@@ -1009,7 +1010,12 @@ class _BottomBar extends StatelessWidget {
                       child: OnbPressable(
                       key: const Key('a1_butikk_produkt_legg'),
                       onTap: onAdd,
-                      pressDy: 2,
+                      // TestFlight 6: the press is the design's `knTrykk` (squash + ground rings), not a 2 px nudge.
+                      pressDy: 0,
+                      child: KnTrykk(
+                      hoyde: 52 * s,
+                      lys: lys,
+                      s: s,
                       child: IgnorePointer(
                         // TestFlight 6: the design's `data-kn="o"` pill — `linear-gradient(#F68450,#E65A28)`, the insets,
                         // `aeKnSvev 3.4s -2.3s` over its `aeKnSkygge` shadow (`--knSk`: dark over the night sheet, fjord
@@ -1062,6 +1068,7 @@ class _BottomBar extends StatelessWidget {
                             ),
                           ),
                         ),
+                      ),
                       ),
                     )),
                   ),
