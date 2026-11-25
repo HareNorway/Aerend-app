@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../data/aegil/aegil_app_models.dart';
@@ -523,9 +524,25 @@ class _AdrArkState extends State<_AdrArk> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 14),
-        Text('Hvor skal ærendet?', style: jakarta(18, em: -.02, color: lys ? LysPalett.tittel : Colors.white)),
-        const SizedBox(height: 2),
-        Text('Butikker og priser følger adressen.', style: inter(11.5, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .66))),
+        // TestFlight 6 feedback (design 25 Nov `sheetAdresse`): the title row carries the 44 px «Lukk» key,
+        // top-aligned with margin -4 -4 0 0, so the row keeps the titles' height.
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(right: 50),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Hvor skal ærendet?', style: jakarta(18, em: -.02, color: lys ? LysPalett.tittel : Colors.white)),
+                  const SizedBox(height: 2),
+                  Text('Butikker og priser følger adressen.', style: inter(11.5, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .66))),
+                ],
+              ),
+            ),
+            Positioned(top: -4, right: -4, child: _LukkKnapp(onTap: () => Navigator.of(context).maybePop())),
+          ],
+        ),
         const SizedBox(height: 12),
         if (v != null) ...[
           AdrGatescene(
@@ -537,8 +554,10 @@ class _AdrArkState extends State<_AdrArk> {
             tekst: ny ? 'Nytt sted på kartet! Nå vet jeg hvor jeg skal.' : (_kAegTx[merke] ?? _kAegTx['Annet']!),
             ny: ny,
           ),
-          Transform.translate(
-            offset: const Offset(0, -26),
+          // Design `margin:-26px 14px 0`: the sign rides 26 px up onto the scene and what follows moves up
+          // with it (a Transform only moved the paint: the pill and the list sat 12 px low, the sheet ran long).
+          _OppMargin(
+            dy: 26,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: AdrDorskilt(
@@ -550,93 +569,90 @@ class _AdrArkState extends State<_AdrArk> {
               ),
             ),
           ),
-          Transform.translate(offset: const Offset(0, -14), child: _dekningVis(d, v)),
+          _dekningVis(d, v),
         ],
-        Transform.translate(
-          offset: Offset(0, v == null ? 0 : -14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Text('DINE STEDER', style: inter(10.5, weight: FontWeight.w800, em: .08, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .66))),
-                  const Spacer(),
-                  for (var j = 0; j < maal; j++) ...[
-                    if (j > 0) const SizedBox(width: 3),
-                    SvgPicture.string(
-                      j < synlig.length
-                          ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 11L12 3.5 21 11v10H3z" fill="#5CE0B8" stroke="#5CE0B8" stroke-width="2" stroke-linejoin="round"/></svg>'
-                          : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 11L12 3.5 21 11v10H3z" fill="none" stroke="${lys ? 'rgba(30,79,92,.35)' : 'rgba(255,255,255,.42)'}" stroke-width="2" stroke-linejoin="round" stroke-dasharray="3 2.2"/></svg>',
-                      width: 13,
-                      height: 13,
-                    ),
-                  ],
-                  const SizedBox(width: 7),
-                  Text(
-                    '${synlig.length} av $maal steder',
-                    style: inter(11, weight: FontWeight.w800, color: lys ? LysPalett.mintTekst : const Color(0xFF9FF0D4)).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Text('DINE STEDER', style: inter(10.5, weight: FontWeight.w800, em: .08, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .66))),
+                const Spacer(),
+                for (var j = 0; j < maal; j++) ...[
+                  if (j > 0) const SizedBox(width: 3),
+                  SvgPicture.string(
+                    j < synlig.length
+                        ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 11L12 3.5 21 11v10H3z" fill="#5CE0B8" stroke="#5CE0B8" stroke-width="2" stroke-linejoin="round"/></svg>'
+                        : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 11L12 3.5 21 11v10H3z" fill="none" stroke="${lys ? 'rgba(30,79,92,.35)' : 'rgba(255,255,255,.42)'}" stroke-width="2" stroke-linejoin="round" stroke-dasharray="3 2.2"/></svg>',
+                    width: 13,
+                    height: 13,
                   ),
                 ],
-              ),
-              const SizedBox(height: 8),
-              for (var j = 0; j < synlig.length; j++) ...[
-                if (j > 0) const SizedBox(height: 8),
-                _AdrRad(
-                  key: ValueKey('rad-${synlig[j].addressId}'),
-                  a: synlig[j],
-                  valgt: synlig[j].addressId == v?.addressId,
-                  indeks: j,
-                  ut: _sletter == synlig[j].addressId,
-                  onTap: () => _velg(synlig[j], v),
-                  onSlett: () => _slett(synlig[j], synlig, v),
+                const SizedBox(width: 7),
+                Text(
+                  '${synlig.length} av $maal steder',
+                  style: inter(11, weight: FontWeight.w800, color: lys ? LysPalett.mintTekst : const Color(0xFF9FF0D4)).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
                 ),
               ],
-              if (_angre != null) ...[
-                const SizedBox(height: 8),
-                _AngreRad(key: ValueKey('angre-${_angre!.id}'), tekst: '${_angre!.navn} er slettet', onAngre: _angreSlett),
-              ],
-              const SizedBox(height: 8),
-              _LeggTilRad(onTap: () => setState(() => _ny = true)),
-              if (v != null) _dorbeskjed(v),
-              const SizedBox(height: 14),
-              _GlassKnapp(
-                hoyde: 50,
-                onTap: () {
-                  if (_posisjon) return;
-                  setState(() => _posisjon = true);
-                  k.minPosisjon(() {
-                    if (!mounted) return;
-                    setState(() => _posisjon = false);
-                    Navigator.of(context).maybePop();
-                  });
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 28,
-                      height: 28,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(decoration: BoxDecoration(shape: BoxShape.circle, color: lys ? LysPalett.mintDis : const Color.fromRGBO(92, 224, 184, .18))),
-                          _Puls(farge: const Color.fromRGBO(127, 240, 203, .7), ms: _posisjon ? 900 : 2000),
-                          SvgPicture.string(
-                            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${lys ? '#0B6B57' : '#7FF0CB'}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>',
-                            width: 15,
-                            height: 15,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 9),
-                    Text('Bruk posisjonen min', style: inter(13.5, weight: FontWeight.w800, color: lys ? LysPalett.tittel : Colors.white)),
-                  ],
-                ),
+            ),
+            const SizedBox(height: 8),
+            for (var j = 0; j < synlig.length; j++) ...[
+              if (j > 0) const SizedBox(height: 8),
+              _AdrRad(
+                key: ValueKey('rad-${synlig[j].addressId}'),
+                a: synlig[j],
+                valgt: synlig[j].addressId == v?.addressId,
+                indeks: j,
+                ut: _sletter == synlig[j].addressId,
+                onTap: () => _velg(synlig[j], v),
+                onSlett: () => _slett(synlig[j], synlig, v),
               ),
             ],
-          ),
+            if (_angre != null) ...[
+              const SizedBox(height: 8),
+              _AngreRad(key: ValueKey('angre-${_angre!.id}'), tekst: '${_angre!.navn} er slettet', onAngre: _angreSlett),
+            ],
+            const SizedBox(height: 8),
+            _LeggTilRad(onTap: () => setState(() => _ny = true)),
+            if (v != null) _dorbeskjed(v),
+            const SizedBox(height: 14),
+            _GlassKnapp(
+              hoyde: 50,
+              onTap: () {
+                if (_posisjon) return;
+                setState(() => _posisjon = true);
+                k.minPosisjon(() {
+                  if (!mounted) return;
+                  setState(() => _posisjon = false);
+                  Navigator.of(context).maybePop();
+                });
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(decoration: BoxDecoration(shape: BoxShape.circle, color: lys ? LysPalett.mintDis : const Color.fromRGBO(92, 224, 184, .18))),
+                        _Puls(farge: const Color.fromRGBO(127, 240, 203, .7), ms: _posisjon ? 900 : 2000),
+                        SvgPicture.string(
+                          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${lys ? '#0B6B57' : '#7FF0CB'}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>',
+                          width: 15,
+                          height: 15,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 9),
+                  Text('Bruk posisjonen min', style: inter(13.5, weight: FontWeight.w800, color: lys ? LysPalett.tittel : Colors.white)),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -1113,6 +1129,101 @@ class _AdrArkState extends State<_AdrArk> {
   }
 }
 
+/// A negative top margin (CSS `margin-top: -dy`): the child paints [dy] px
+/// higher and the layout below it moves up by the same amount.
+class _OppMargin extends SingleChildRenderObjectWidget {
+  const _OppMargin({required this.dy, required super.child});
+
+  final double dy;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderOppMargin(dy);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderOppMargin r) => r.dy = dy;
+}
+
+class _RenderOppMargin extends RenderShiftedBox {
+  _RenderOppMargin(this._dy) : super(null);
+
+  double _dy;
+  set dy(double v) {
+    if (v == _dy) return;
+    _dy = v;
+    markNeedsLayout();
+  }
+
+  @override
+  void performLayout() {
+    final c = child;
+    if (c == null) {
+      size = constraints.smallest;
+      return;
+    }
+    c.layout(constraints.loosen(), parentUsesSize: true);
+    size = constraints.constrain(Size(c.size.width, (c.size.height - _dy).clamp(0, double.infinity)));
+    (c.parentData! as BoxParentData).offset = Offset(0, -_dy);
+  }
+
+  // The child reaches [dy] above this box: hit-test it there too.
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) {
+    if (!hitTestChildren(result, position: position)) return false;
+    result.add(BoxHitTestEntry(this, position));
+    return true;
+  }
+}
+
+/// The sheet's «Lukk» key (design 25 Nov `.mkbm`): a 44 px round glass key.
+/// Dark: rgba(15,31,43,.5) with a white inset line and ring, white ✕; Lys:
+/// `--lys-dis-ull`, no shadow, a fjord ✕ (`.mku`).
+class _LukkKnapp extends StatelessWidget {
+  const _LukkKnapp({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final lys = context.lys;
+    return Semantics(
+      button: true,
+      label: 'Lukk',
+      child: LfPress(
+        key: const Key('adr-lukk'),
+        onTap: onTap,
+        scale: .92,
+        ms: 140,
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: lys ? LysPalett.disUll : const Color.fromRGBO(15, 31, 43, .5),
+            border: lys ? null : Border.all(color: const Color.fromRGBO(255, 255, 255, .28)),
+          ),
+          foregroundDecoration: lys
+              ? null
+              : const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color.fromRGBO(255, 255, 255, .25), Color.fromRGBO(255, 255, 255, 0)],
+                    stops: [0, .06],
+                  ),
+                ),
+          alignment: Alignment.center,
+          child: SvgPicture.string(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${lys ? '#1E4F5C' : '#FFFFFF'}" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+            width: 13,
+            height: 13,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// The coverage pill with its live dot.
 class _DekChip extends StatelessWidget {
   const _DekChip({required this.tekst, this.liten = false});
@@ -1386,7 +1497,9 @@ class _AdrRad extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text(merke, style: jakarta(14, em: -.01, color: lys ? LysPalett.tittel : Colors.white)),
+                      // TestFlight 6: CSS `line-height: normal` (Jakarta 1.26, Inter 1.21) — the fonts' own taller
+                      // leading made a three-line place 72 px instead of the design's 64.
+                      Text(merke, style: jakarta(14, em: -.01, height: 1.26, color: lys ? LysPalett.tittel : Colors.white)),
                       if (valgt) ...[
                         const SizedBox(width: 6),
                         _Inn(
@@ -1397,15 +1510,15 @@ class _AdrRad extends StatelessWidget {
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(color: lys ? const Color(0x00000000) : const Color.fromRGBO(92, 224, 184, .45)),
                             ),
-                            child: Text('LEVERES HIT', style: inter(8.5, weight: FontWeight.w800, em: .1, color: lys ? LysPalett.mintTekst : const Color(0xFF9FF0D4))),
+                            child: Text('LEVERES HIT', style: inter(8.5, weight: FontWeight.w800, em: .1, height: 1.21, color: lys ? LysPalett.mintTekst : const Color(0xFF9FF0D4))),
                           ),
                         ),
                       ],
                     ],
                   ),
                   const SizedBox(height: 1),
-                  Text(nr == null ? gate : '$gate $nr', maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w700, color: lys ? LysPalett.tittel : const Color(0xFFE7F2F4))),
-                  Text(adrUnder(a), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(10.5, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .64))),
+                  Text(nr == null ? gate : '$gate $nr', maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w700, height: 1.21, color: lys ? LysPalett.tittel : const Color(0xFFE7F2F4))),
+                  Text(adrUnder(a), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(10.5, height: 1.21, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .64))),
                 ],
               ),
             ),
