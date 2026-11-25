@@ -198,6 +198,9 @@ class SpPanel extends StatelessWidget {
     this.noeGaltUnder,
     this.onIkkeLost,
     this.pilleOppe = false,
+    this.maksHoyde,
+    this.rull,
+    this.onApne,
   });
 
   /// Bug-8b (TestFlight feedback 2026-11-14): how far the courier's pill (42 high) sits into the panel when it rides on
@@ -238,6 +241,18 @@ class SpPanel extends StatelessWidget {
   /// so the pill clears the slot below).
   final bool pilleOppe;
 
+  /// TestFlight 6 feedback (Levert «all blocked by the module»): the most the panel may take, safe area included,
+  /// so the scene's key part stays in view on every screen. Past it the body scrolls under a fixed grab bar.
+  /// Null: the panel takes its content's height.
+  final double? maksHoyde;
+  final ScrollController? rull;
+
+  /// The grab bar dragged (true = up, open; false = down, back to the scene's line) or tapped (null: toggle).
+  final ValueChanged<bool?>? onApne;
+
+  /// The panel's own frame around the body: top padding, grab bar, its gap (12 + 5 + 12); 20 under it.
+  static const double ramme = 29, rammeUnder = 20;
+
   static const Color _fyll1 = Color(0xFFE95C2C);
   static const Color _fyll2 = Color(0xFFF58A55);
 
@@ -263,21 +278,20 @@ class SpPanel extends StatelessWidget {
             CssLinear(180, [rgba(42, 98, 114, .92), rgba(23, 62, 72, .96)]),
           ],
           shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28)), CssShadow(0, -20, 46, -20, rgba(4, 18, 26, .8))],
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (pilleOppe)
-                const SizedBox(height: 5)
-              else
-                Center(
-                  child: Container(
-                    width: 44,
-                    height: 5,
-                    decoration: BoxDecoration(color: rgba(255, 255, 255, .3), borderRadius: BorderRadius.circular(3)),
+          child: _PanelKropp(
+            maks: maksHoyde == null ? null : (maksHoyde! - ramme - rammeUnder - bunn).clamp(0.0, double.infinity),
+            rull: rull,
+            onApne: onApne,
+            grep: pilleOppe
+                ? const SizedBox(height: 5)
+                : Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(color: rgba(255, 255, 255, .3), borderRadius: BorderRadius.circular(3)),
+                    ),
                   ),
-                ),
-              const SizedBox(height: 12),
+            children: [
               if (slotVerv) ...[
                 _Vervebillett(kode: vervKode, gi: vervGi, faa: vervFaa, onLukk: onLukkVerv, onDel: onDelBillett, onKopier: onKopierBillett),
                 const SizedBox(height: 14),
@@ -414,6 +428,93 @@ class SpPanel extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The panel's grab bar over its body. With [maks] the body is a scroll view no taller than that (a fade at its foot
+/// while more is below); the grab zone opens / closes the panel ([onApne]) by drag or tap.
+class _PanelKropp extends StatefulWidget {
+  const _PanelKropp({required this.grep, required this.children, this.maks, this.rull, this.onApne});
+
+  final Widget grep;
+  final List<Widget> children;
+  final double? maks;
+  final ScrollController? rull;
+  final ValueChanged<bool?>? onApne;
+
+  @override
+  State<_PanelKropp> createState() => _PanelKroppState();
+}
+
+class _PanelKroppState extends State<_PanelKropp> {
+  double _dy = 0;
+  bool _mer = false;
+
+  bool _sjekk(ScrollMetrics m) {
+    final mer = m.extentAfter > .5;
+    if (mer != _mer) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? setState(() => _mer = mer) : null);
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final kropp = Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: widget.children);
+    final maks = widget.maks;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        GestureDetector(
+          key: const Key('a1_sporing_panel_grep'),
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onApne == null ? null : () => widget.onApne!(null),
+          onVerticalDragStart: (_) => _dy = 0,
+          onVerticalDragUpdate: (d) => _dy += d.delta.dy,
+          onVerticalDragEnd: (d) {
+            final v = d.primaryVelocity ?? 0;
+            if (_dy < -10 || v < -250) widget.onApne?.call(true);
+            if (_dy > 10 || v > 250) widget.onApne?.call(false);
+          },
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [widget.grep, const SizedBox(height: 12)]),
+        ),
+        if (maks == null)
+          kropp
+        else
+          ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maks),
+            child: Stack(
+              children: [
+                NotificationListener<ScrollMetricsNotification>(
+                  onNotification: (n) => _sjekk(n.metrics),
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: (n) => _sjekk(n.metrics),
+                    child: SingleChildScrollView(
+                      key: const Key('a1_sporing_panel_rull'),
+                      controller: widget.rull,
+                      physics: const ClampingScrollPhysics(),
+                      child: kropp,
+                    ),
+                  ),
+                ),
+                if (_mer)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: 28,
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [rgba(23, 62, 72, 0), rgba(23, 62, 72, .96)]),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }

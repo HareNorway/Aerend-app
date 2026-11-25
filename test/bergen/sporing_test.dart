@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:aerend_customer/screens/bergen/lopet/lopet_copy.dart';
@@ -785,6 +786,9 @@ void main() {
     ('iPhone 17e', Size(390, 844), 47, 34),
     ('iPhone 17 Pro Max', Size(440, 956), 62, 34),
     ('Vivo V40 frame', Size(390, 867), 33, 16),
+    // TestFlight 6 (Levert «all blocked by the module»): the short phones.
+    ('iPhone 13 mini', Size(375, 812), 50, 34),
+    ('iPhone SE', Size(375, 667), 20, 0),
   ]) {
     for (final (String state, int stage, String label, String key, double hoyde, double linje) st in const <(String, int, String, String, double, double)>[
       // The hull's foot (scene 326).
@@ -813,6 +817,68 @@ void main() {
         expect(y, lessThanOrEqualTo(dekke + 1), reason: 'scene $scene: its point at $y, covered from $dekke');
       });
     }
+  }
+
+  // TestFlight 6 feedback (Levert «all blocked by the module», «responsive in all the mobile screens»): the panel stops
+  // at the house's line (scene 365, the design's panel top) and scrolls; the grab bar opens it; the delivery code
+  // always shows whole.
+  for (final (String navn, Size size, double topp, double bunn) d in const <(String, Size, double, double)>[
+    ('iPhone SE', Size(375, 667), 20, 0),
+    ('iPhone 13 mini', Size(375, 812), 50, 34),
+    ('iPhone 17', Size(402, 874), 62, 34),
+  ]) {
+    testWidgets('TestFlight 6 · Levert with the Fjordløpet row on ${d.$1}: the door shows, the rest scrolls, the bar opens it', (tester) async {
+      tester.view.physicalSize = d.$2;
+      tester.view.devicePixelRatio = 1;
+      tester.view.padding = FakeViewPadding(top: d.$3, bottom: d.$4);
+      addTearDown(tester.view.reset);
+      final p = payload(
+        state: 'delivered',
+        stage: 3,
+        label: 'Levert',
+        deliveredAt: DateTime.now().toIso8601String(),
+        game: {'open': false, 'runs_left': 0, 'best_m': 540, 'gate': 1, 'points': 9, 'place': 4, 'losgrad': 'Lettmatros', 'goal': null},
+      );
+      await tester.pumpWidget(_app(SporingScreen(key: UniqueKey(), orderId: 4471, api: _FakeApi(payload: p), preloaded: OpsTracking.fromJson(p), poll: false, showMap: false)));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 2));
+      final scene = tester.getRect(find.byKey(const Key('a1_sporing_kort_levert')));
+      final skala = scene.width / 390;
+      final panel = tester.getRect(find.byType(SpPanel));
+      // The door's foot (scene 306) above the courier's pill; the panel no higher than the house's line (365).
+      expect(scene.top + 306 * skala, lessThanOrEqualTo(tester.getRect(find.byType(BudIdentitetPill).first).top + 1), reason: '${d.$1}: door covered');
+      // (On the SE the line leaves less than the panel's floor — grab bar, first card, a key — so the floor wins there.)
+      final linje = math.min(scene.top + 365 * skala, d.$2.height - SporingScreen.panelGulv * skala);
+      expect(panel.top, greaterThanOrEqualTo(linje - 1), reason: '${d.$1}: panel $panel over the house\'s line $linje');
+      // «Avslutt bestillingen» is always reachable: on screen, or by scrolling the panel.
+      final avslutt = find.byKey(const Key('a1_sporing_avslutt'));
+      await tester.dragUntilVisible(avslutt, find.byKey(const Key('a1_sporing_panel_rull')), const Offset(0, -80));
+      await tester.pump();
+      expect(tester.getRect(avslutt).bottom, lessThanOrEqualTo(d.$2.height + .5), reason: '${d.$1}: «Avslutt» off screen');
+      expect(avslutt.hitTestable(), findsOneWidget, reason: '${d.$1}: «Avslutt» not tappable');
+      // The grab bar opens the panel up to under the clock, and back.
+      await tester.tap(find.byKey(const Key('a1_sporing_panel_grep')));
+      await tester.pump();
+      final apen = tester.getRect(find.byType(SpPanel));
+      expect(apen.top, lessThanOrEqualTo(panel.top), reason: '${d.$1}: opened $apen, closed $panel');
+      await tester.tap(find.byKey(const Key('a1_sporing_panel_grep')));
+      await tester.pump();
+      expect(tester.getRect(find.byType(SpPanel)).top, closeTo(panel.top, 1));
+    });
+
+    testWidgets('TestFlight 6 · the delivery code on the way on ${d.$1}: the whole code card shows', (tester) async {
+      tester.view.physicalSize = d.$2;
+      tester.view.devicePixelRatio = 1;
+      tester.view.padding = FakeViewPadding(top: d.$3, bottom: d.$4);
+      addTearDown(tester.view.reset);
+      final p = payload(state: 'arrived_customer', stage: 2, label: 'På vei', code: {'pin': '4827', 'qr_payload': 'aerend:code:abc', 'reason_copy_key': 'a1_sporing_kode_reason_default'});
+      await tester.pumpWidget(_app(SporingScreen(key: UniqueKey(), orderId: 4471, api: _FakeApi(payload: p), preloaded: OpsTracking.fromJson(p), poll: false, showMap: false)));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 2));
+      final kort = tester.getRect(find.byType(LeveringskodeCard));
+      expect(kort.top, greaterThanOrEqualTo(0));
+      expect(kort.bottom, lessThanOrEqualTo(d.$2.height - d.$4), reason: '${d.$1}: code card $kort cut off');
+    });
   }
 
   testWidgets('Levert: the courier\'s pill sits on the panel\'s edge and «Takk» shares the row with «Avslutt»', (tester) async {
