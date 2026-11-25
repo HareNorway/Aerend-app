@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 
 import '../../../ui/kit/ae_haptic.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../../data/feed/feed_config.dart';
 import '../../../data/feed/feed_tab_item.dart';
@@ -33,6 +32,7 @@ import 'utforsk_bits.dart';
 import 'utforsk_copy.dart';
 import '../kit/bergen_motion.dart' show BergenOnce;
 import '../../../theme/lys/lys_palett.dart';
+import '../kit/del_trygt.dart';
 import '../../../theme/lys/modus_scope.dart';
 
 /// The Feed segment of Utforsk (`utfFeed`, L5466–5590 in `Ærend Kunde
@@ -327,14 +327,8 @@ class UtforskFeedTabState extends State<UtforskFeedTab> {
     openScreen(context, PostDetailScreen(postId: item.id));
   }
 
-  void _share(FeedTabItem item) {
-    // iOS 26 refuses a share sheet without an anchor (sharePositionOrigin).
-    final box = context.findRenderObject() as RenderBox?;
-    Share.share(
-      UtforskCopy.a1_feed_share_text(item.title, item.publisherName),
-      sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
-    );
-  }
+  /// TestFlight 6: anchored on the tapped share key (the whole tab, taller than the screen, made iOS 26 refuse it).
+  void _share(BuildContext anker, FeedTabItem item) => delTrygt(anker, UtforskCopy.a1_feed_share_text(item.title, item.publisherName));
 
   void _cta(FeedTabItem item) {
     final store = item.store;
@@ -474,7 +468,7 @@ class UtforskFeedTabState extends State<UtforskFeedTab> {
           onOpen: () => _open(item),
           onProfil: item.store == null ? null : () => BergenRoutes.push<dynamic>(context, '/bergen/butikkprofil/${item.store!.id}'),
           onLike: () => _toggleLike(item),
-          onShare: () => _share(item),
+          onShare: (anker) => _share(anker, item),
           onReport: () => reportFeedPost(context, item.id, repo: _repo),
           onFollow: () => _toggleFollow(item),
           onCta: () => _cta(item),

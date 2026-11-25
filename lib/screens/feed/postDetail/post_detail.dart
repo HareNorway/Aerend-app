@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../../data/feed/feed_comment.dart';
 import '../../../data/feed/feed_config.dart';
@@ -15,6 +14,7 @@ import '../components/feed_post_kebab_sheet.dart';
 import '../storeProfile/store_profile.dart';
 import 'post_detail_bloc.dart';
 import 'post_detail_event.dart';
+import '../../bergen/kit/del_trygt.dart';
 import 'post_detail_state.dart';
 
 /// The logged-in customer wrote [comment]: the feed sends the monolith user
@@ -125,14 +125,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     );
   }
 
-  void _share(FeedPost post) {
-    // iOS 26 refuses a share sheet without an anchor (sharePositionOrigin).
-    final box = context.findRenderObject() as RenderBox?;
+  /// TestFlight 6: anchored on the tapped share key (iOS 26 refuses an anchor outside the screen).
+  void _share(BuildContext anker, FeedPost post) {
     final item = feedInnleggItem(post);
-    Share.share(
-      UtforskCopy.a1_feed_share_text(item.title, item.publisherName),
-      sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
-    );
+    delTrygt(anker, UtforskCopy.a1_feed_share_text(item.title, item.publisherName));
   }
 
   Widget _loaded(FeedPost post, {List<FeedComment> comments = const [], bool sending = false, bool rateLimited = false, bool commentsOn = true, bool likeCounts = true, bool sharing = true}) {
@@ -154,7 +150,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         onLike: () => bloc?.handleEvent(const PostDetailLikeToggleRequested()),
         // Ærend's own post without a shop: nothing to open (Step 13).
         onStore: post.hasStore ? () => _openStore(post.store.id) : null,
-        onShare: sharing ? () => _share(post) : null,
+        onShare: sharing ? (anker) => _share(anker, post) : null,
         onReport: () => reportFeedPost(context, post.id),
         onCommentLongPress: _showCommentSheet,
         showLikeCount: likeCounts,

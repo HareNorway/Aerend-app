@@ -86,7 +86,9 @@ class FeedPostCard extends StatefulWidget {
   final VoidCallback? onProfil;
   final VoidCallback? onLike;
   final VoidCallback? onComments;
-  final VoidCallback? onShare;
+
+  /// The share key, with its own context as the share sheet's anchor (iOS 26: `delTrygt`).
+  final ValueChanged<BuildContext>? onShare;
 
   /// «Rapporter»: the flag beside share; hidden when null.
   final VoidCallback? onReport;
@@ -834,9 +836,10 @@ class _FeedPostCardState extends State<FeedPostCard>
               Semantics(
                 button: true,
                 label: UtforskCopy.a1_feed_share,
-                child: LfPress(
+                child: Builder(
+                  builder: (anker) => LfPress(
                   key: Key('a1_feed_share_${item.id}'),
-                  onTap: widget.onShare,
+                  onTap: widget.onShare == null ? null : () => widget.onShare!(anker),
                   dy: 1.5,
                   scale: .96,
                   ms: 140,
@@ -849,6 +852,7 @@ class _FeedPostCardState extends State<FeedPostCard>
                     shadows: lys ? const [] : _keyShadow,
                     child: Center(child: feedIcon(FeedIcons.shareLaunch, 16, color: lys ? LysPalett.fjord : null)),
                   ),
+                ),
                 ),
               ),
               ],

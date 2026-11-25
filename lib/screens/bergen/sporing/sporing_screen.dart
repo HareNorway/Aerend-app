@@ -49,6 +49,7 @@ import '../aegil/aegil_entry.dart' show kAegilRoute;
 import '../../common/homeMainV1/home_main_v1.dart';
 import '../../../ui/kit/ae_haptic.dart';
 import '../onboarding/onb_tips.dart';
+import '../kit/del_trygt.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// `sporing` (Launch L6400–7277) at `/bergen/sporing/{id}`.
@@ -519,8 +520,8 @@ class _SporingScreenState extends State<SporingScreen> {
   Future<void> _delBillett() async {
     final code = _vervKode;
     if (code == null) return;
-    final box = context.findRenderObject() as RenderBox?;
-    await Share.share(code, sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size);
+    // TestFlight 6: the whole screen as the anchor; iOS 26 wants it inside the screen (`delTrygt` keeps it there).
+    await delTrygt(context, code);
   }
 
   Future<void> _kopierBillett() async {
