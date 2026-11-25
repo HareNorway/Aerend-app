@@ -15,6 +15,7 @@ import 'package:aerend_customer/screens/bergen/hurtig/hurtig_utkast.dart';
 import 'package:aerend_customer/screens/bergen/kasse/kurv_screen.dart' show KurvScreen;
 import 'package:aerend_customer/screens/bergen/hurtig/hurtig_screen.dart';
 import 'package:aerend_customer/screens/common/manageAddress/manage_address_dl.dart';
+import 'package:aerend_customer/services/customer/client_flags.dart';
 
 import '../layout/reduced_motion_harness.dart';
 
@@ -332,6 +333,25 @@ void main() {
         final ark = tester.getRect(find.byKey(const Key('hb-ark')));
         expect(tittel.bottom, lessThanOrEqualTo(ark.top), reason: 'text scale $scale');
       }
+    });
+
+    testWidgets('TestFlight 6: with «Bestill med en annen AI» in the dock, the draft\'s end stays above it', (tester) async {
+      phone(tester);
+      ClientFlags.flags = {ClientFlags.aiLinking: true};
+      addTearDown(() => ClientFlags.flags = const {});
+      await tester.pumpWidget(host());
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tap(find.text('Ja, det vanlige · 486 kr'));
+      await svar(tester);
+
+      const note = 'Ingenting bestilles før du bekrefter i kassen';
+      final liste = tester.state<ScrollableState>(find.ancestor(of: find.text(note), matching: find.byType(Scrollable)).first);
+      liste.position.jumpTo(liste.position.maxScrollExtent);
+      await tester.pump();
+      final ai = tester.getRect(find.text('Bestill med en annen AI'));
+      final slutt = tester.getRect(find.text(note));
+      // The AI row's chip is 50 px; its text sits mid-chip, so the chip's top is ~19 px above the text's top.
+      expect(slutt.bottom, lessThanOrEqualTo(ai.top - 19), reason: 'the last line of the draft must not slide under the dock');
     });
 
     testWidgets('welcome with the habit of the day and its two keys', (tester) async {

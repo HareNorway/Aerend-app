@@ -875,11 +875,14 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
                     ),
                   ),
                 ),
+                // TestFlight 6 feedback: the list ended at 132 px, sized before the «Bestill med en annen AI»
+                // row joined the dock, so the dock covered the draft's last lines («Ingenting bestilles før …»).
+                // Design (25 Nov, `data-hbscroll`): bottom 192 with the AI row (dock 208, its top 16 px fade).
                 Positioned(
                   left: 0,
                   right: 0,
                   top: 22,
-                  bottom: 132 + bunn,
+                  bottom: (_harAiRad ? 192 : 132) + bunn,
                   child: _liste(context),
                 ),
                 Positioned(left: 0, right: 0, bottom: 0, child: _bunn(context, bunn)),
@@ -1215,6 +1218,9 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     );
   }
 
+  /// Customer Step 14: the dock carries «Bestill med en annen AI» (the list ends higher then).
+  bool get _harAiRad => ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness;
+
   Widget _bunn(BuildContext context, double bunn) {
     final harTekst = _tekst.text.trim().isNotEmpty;
     // Lys: `.mk31` the fade into `--lys-ull`.
@@ -1235,7 +1241,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Customer Step 14: «Bestill med en annen AI» (design L4563–4567, `hbAiSub`).
-          if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness) ...[_aiRad(context), const SizedBox(height: 9)],
+          if (_harAiRad) ...[_aiRad(context), const SizedBox(height: 9)],
           Row(
             children: [
               for (final (i, (k, ikon, tekst)) in [('oftest', HbIkoner.modOftest, HurtigCopy.modOftest), ('forrige', HbIkoner.modForrige, HurtigCopy.modForrige), ('pref', HbIkoner.modPref, HurtigCopy.modPref)].indexed) ...[
@@ -1532,7 +1538,17 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
               child: Center(child: HbIkon(ikon, size: 15, stroke: a ? const Color(0xFF0F3A40) : context.aeM(Colors.white, LysPalett.fjord), width: 2.4)),
             ),
             const SizedBox(width: 7),
-            Expanded(child: Text(tekst, style: hbI(11, weight: FontWeight.w800, height: 1.15, color: context.aeM(Colors.white, LysPalett.tittel)))),
+            // Three lines («Bestilt / forrige / gang») fill the 50 px chip; a larger system text size is capped
+            // so the label never runs out of it.
+            Expanded(
+              child: Text(
+                tekst,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.3),
+                style: hbI(11, weight: FontWeight.w800, height: 1.15, color: context.aeM(Colors.white, LysPalett.tittel)),
+              ),
+            ),
           ],
         ),
       ),
