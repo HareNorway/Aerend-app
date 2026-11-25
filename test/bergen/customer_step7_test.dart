@@ -76,6 +76,45 @@ void main() {
     expect(find.text('Ægil la Laksefilet i kurven · 149 kr'), findsOneWidget, reason: 'the receipt stays readable');
   });
 
+  testWidgets('TestFlight 6: «Mens du var borte» shows once (marked seen) and folds identical receipts', (tester) async {
+    final api = FakeAegilApi();
+    A3Services.aegil = () => api;
+    const roll = 'Ægil la Tempura Scampi Roll i kurven · 5 kr';
+    // ignore: invalid_use_of_visible_for_testing_member
+    setMensDuVarBorteForTest(const [
+      AwayItem(id: 21, text: roll, action: 'cart.merged', undoable: true),
+      AwayItem(id: 22, text: roll, action: 'cart.merged', undoable: true),
+      AwayItem(id: 23, text: roll, action: 'cart.merged', undoable: true),
+    ]);
+    await tester.pumpWidget(_app(Builder(builder: (context) => mensDuVarBorteCard(context) ?? const Text('ingen'))));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(api.awaySeenCalls, 1, reason: 'shown once: the server marks the lines seen, the next start has nothing');
+    expect(find.text('Ægil la Tempura Scampi Roll i kurven · 3\u00a0×\u00a05\u00a0kr'), findsOneWidget);
+    expect(find.text(roll), findsNothing);
+    expect(find.text('Én ting fra Ægil'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('borte-angre-21')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(api.undoneActions, [21, 22, 23], reason: 'the folded line undoes every receipt in it');
+    expect(find.byKey(const Key('borte-angret-21')), findsOneWidget);
+
+    await tester.tap(find.text('✕'));
+    await tester.pump();
+    expect(find.byKey(const Key('borte-card')), findsNothing);
+    expect(mensDuVarBorteCard(tester.element(find.byType(Scaffold))), isNull);
+    expect(api.awaySeenCalls, 1, reason: 'already marked: ✕ does not call again');
+
+    // Distinct lines stay apart; a line without a price folds as «· 2 ×».
+    // ignore: invalid_use_of_visible_for_testing_member
+    expect(borteLinjerForTest(const [
+      AwayItem(id: 1, text: 'Fant reker på tilbud', action: 'suggestion.open'),
+      AwayItem(id: 2, text: roll, action: 'cart.merged'),
+      AwayItem(id: 3, text: 'Fant reker på tilbud', action: 'suggestion.open'),
+    ]), ['Fant reker på tilbud · 2\u00a0×', roll]);
+  });
+
   testWidgets('the push invitation card asks once; «Ja takk» / «Nei takk» answer the server', (tester) async {
     final api = FakeAegilApi();
     A3Services.aegil = () => api;

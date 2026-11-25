@@ -57,9 +57,48 @@ void setMensDuVarBorteForTest(List<AwayItem> items) => _away = items;
 
 /// The cold-start "Mens du var borte" card at the top of the Hjem sheet
 /// (seam, design `borte` ≈L2010). Returns null when Ægil has nothing to say.
+///
+/// TestFlight 6 feedback: the card is a one-time receipt. The first time it
+/// shows, its actions are marked seen (`agent/me/away/seen`), so the next
+/// cold start or resume does not bring the same lines back; it stays until
+/// ✕ or until the app goes to the background. Everything is still in
+/// «Se de siste 30 dagene» (and Varsler) with «Angre».
 Widget? mensDuVarBorteCard(BuildContext context) {
   if (_away.isEmpty) return null;
   return _BorteCard(items: _away);
+}
+
+/// One line on the card: identical receipts (the same product merged twice
+/// or more) read once, «… · 3 × 5 kr».
+class _BorteLinje {
+  _BorteLinje(this.items);
+
+  final List<AwayItem> items;
+
+  AwayItem get first => items.first;
+
+  String get text {
+    final n = items.length;
+    if (n == 1) return first.text;
+    final kr = RegExp(r'^(.*) · (\d+) kr$').firstMatch(first.text);
+    // Non-breaking spaces: «3 × 5 kr» never splits over two lines.
+    return kr == null ? '${first.text} · $n\u00a0×' : '${kr.group(1)} · $n\u00a0×\u00a0${kr.group(2)}\u00a0kr';
+  }
+
+  bool undone(Set<int> angret) => items.every((a) => a.undone || angret.contains(a.id));
+
+  bool get undoable => items.any((a) => a.undoable && !a.undone);
+}
+
+@visibleForTesting
+List<String> borteLinjerForTest(List<AwayItem> items) => _grupper(items).map((l) => l.text).toList();
+
+List<_BorteLinje> _grupper(List<AwayItem> items) {
+  final linjer = <String, _BorteLinje>{};
+  for (final a in items) {
+    (linjer[a.text] ??= _BorteLinje([])).items.add(a);
+  }
+  return linjer.values.toList();
 }
 
 class _BorteCard extends StatefulWidget {
@@ -72,24 +111,42 @@ class _BorteCard extends StatefulWidget {
 }
 
 class _BorteCardState extends State<_BorteCard> {
-  late List<AwayItem> _items = widget.items;
+  late List<_BorteLinje> _items = _grupper(widget.items);
 
   /// Customer Step 7: the receipts undone from here (`agent/me/agent_actions/{id}/undo`).
   final Set<int> _angret = {};
 
+  /// TestFlight 6 feedback: the server knows these were seen.
+  bool _sett = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _merkSett();
+  }
+
+  Future<void> _merkSett() async {
+    if (_sett) return;
+    _sett = await A3Services.aegil().awaySeen();
+  }
+
   void _lukk() {
     setState(() => _items = const []);
     _away = const [];
+    _merkSett();
   }
 
-  Future<void> _angre(AwayItem a) async {
-    final ok = await A3Services.aegil().undoAgentAction(a.id);
+  Future<void> _angre(_BorteLinje l) async {
+    final ids = [for (final a in l.items) if (!a.undone && !_angret.contains(a.id)) a.id];
+    // A grouped line undoes every receipt in it; the first one may take the
+    // shared cart line with it, so one success is enough.
+    final svar = await Future.wait(ids.map(A3Services.aegil().undoAgentAction));
     if (!mounted) return;
-    if (!ok) {
+    if (!svar.contains(true)) {
       showBergenToast(context, CusLevel3Copy.cus_angre_feil);
       return;
     }
-    setState(() => _angret.add(a.id));
+    setState(() => _angret.addAll(ids));
     showBergenToast(context, CusLevel3Copy.cus_angret_toast);
   }
 
@@ -135,7 +192,12 @@ class _BorteCardState extends State<_BorteCard> {
                     children: [
                       Text(A3MegCopy.a3_meg_borte_kicker, style: inter(11, weight: FontWeight.w800, color: const Color(0xFFB9CBD5))),
                       Text(
-                        _items.length == 3 ? A3MegCopy.a3_meg_borte_title : '${_items.length} ting fra Ægil',
+                        switch (_items.length) {
+                          3 => A3MegCopy.a3_meg_borte_title,
+                          1 => 'Én ting fra Ægil',
+                          2 => 'To ting fra Ægil',
+                          final n => '$n ting fra Ægil',
+                        },
                         style: jakarta(16, color: hvit),
                       ),
                     ],
@@ -153,7 +215,7 @@ class _BorteCardState extends State<_BorteCard> {
                 ),
               ],
             ),
-            for (final a in _items)
+            for (final l in _items)
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 7),
                 decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .14)))),
@@ -161,15 +223,15 @@ class _BorteCardState extends State<_BorteCard> {
                 // undone, the line stays with «Angret» so the receipt is still readable.
                 child: Row(
                   children: [
-                    Expanded(child: Text(a.text, style: inter(13, color: a.undone || _angret.contains(a.id) ? const Color.fromRGBO(245, 243, 239, .55) : hvit))),
-                    if (a.undone || _angret.contains(a.id)) ...[
+                    Expanded(child: Text(l.text, style: inter(13, color: l.undone(_angret) ? const Color.fromRGBO(245, 243, 239, .55) : hvit))),
+                    if (l.undone(_angret)) ...[
                       const SizedBox(width: 8),
-                      Text(CusLevel3Copy.cus_angret, key: Key('borte-angret-${a.id}'), style: inter(11.5, weight: FontWeight.w800, color: const Color.fromRGBO(245, 243, 239, .55))),
-                    ] else if (a.undoable) ...[
+                      Text(CusLevel3Copy.cus_angret, key: Key('borte-angret-${l.first.id}'), style: inter(11.5, weight: FontWeight.w800, color: const Color.fromRGBO(245, 243, 239, .55))),
+                    ] else if (l.undoable) ...[
                       const SizedBox(width: 8),
                       LfPress(
-                        key: Key('borte-angre-${a.id}'),
-                        onTap: () => _angre(a),
+                        key: Key('borte-angre-${l.first.id}'),
+                        onTap: () => _angre(l),
                         scale: .94,
                         ms: 140,
                         child: Container(
