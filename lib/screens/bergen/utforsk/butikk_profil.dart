@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 
 import '../../../ui/kit/ae_haptic.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../../data/feed/feed_post.dart';
 import '../../../data/feed/feed_store_profile.dart';
@@ -30,6 +29,7 @@ import '../kit/laster_skjerm.dart';
 import '../kit/laster_dra.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 import '../../../theme/lys/lys_palett.dart';
+import '../kit/del_trygt.dart';
 import '../../../theme/lys/modus_scope.dart';
 
 /// Butikkprofil (new Bergen L10189–10290, `bpVals` L16721): the store's
@@ -135,9 +135,8 @@ class _ButikkProfilScreenState extends State<ButikkProfilScreen> {
   void _del(BuildContext anker) {
     final p = _profil;
     if (p == null) return;
-    // iOS 26 refuses a share sheet without an anchor.
-    final box = anker.findRenderObject() as RenderBox?;
-    Share.share('https://aerend.no/${p.slug}', subject: p.name, sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size);
+    // iOS 26 refuses a share sheet without an anchor inside the screen (`delTrygt`).
+    delTrygt(anker, 'https://aerend.no/${p.slug}', emne: p.name);
   }
 
   void _meny() => BergenRoutes.push<dynamic>(context, '/bergen/butikk/$_id', arguments: {'name': _profil?.name ?? ''});
@@ -1266,10 +1265,7 @@ class _PostViserState extends State<_PostViser> {
     await BergenRoutes.push<dynamic>(context, '/bergen/butikk/$butikk', arguments: {'name': widget.profil.name});
   }
 
-  void _del(BuildContext anker, FeedPost p) {
-    final box = anker.findRenderObject() as RenderBox?;
-    Share.share('https://aerend.no/${widget.profil.slug}', subject: widget.profil.name, sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size);
-  }
+  void _del(BuildContext anker, FeedPost p) => delTrygt(anker, 'https://aerend.no/${widget.profil.slug}', emne: widget.profil.name);
 
   @override
   Widget build(BuildContext context) {

@@ -21,6 +21,7 @@ import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 import '../../common/auth/launch/lf_css.dart' show CssShadow;
 import '../../../theme/lys/lys_palett.dart';
 import '../../../theme/lys/modus_scope.dart';
+import '../kit/kurv_fly.dart';
 import '../../../theme/lys/mk_stil.g.dart' show mk6l;
 
 /// Lys plan: a design shadow list (outer shadows only) as [BoxShadow]s at
@@ -108,7 +109,12 @@ class ProduktHero extends StatelessWidget {
                           children: [
                             // «Produktfoto» `.mkck` light: `--lys-ull`.
                             ColoredBox(color: lys ? LysPalett.ull : const Color(0xFF1B4A57)),
-                            _KenBurns(rolig: rolig, child: Image.network(cacheWidth: BergenPerf.decodeWidth, imageUrl!, fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox.shrink())),
+                            // TestFlight 6: the picture «Legg til» sends flying into the basket (`flyTilKurv`).
+                            KurvFlyKilde(
+                              url: imageUrl,
+                              radius: 0,
+                              child: _KenBurns(rolig: rolig, child: Image.network(cacheWidth: BergenPerf.decodeWidth, imageUrl!, fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox.shrink())),
+                            ),
                             Positioned(
                               left: 0,
                               right: 0,
@@ -173,7 +179,7 @@ class ProduktHero extends StatelessWidget {
                         alignment: Alignment.center,
                         transform: Matrix4.translationValues((58 * s - w / 2) * e, -38 * s * e, 0)
                           ..scaleByDouble(1 - .66 * e, 1 - .66 * e, 1, 1),
-                        child: _Rett(url: imageUrl, ikon: ikon, aktiv: e < .01),
+                        child: KurvFlyKilde(url: imageUrl, child: _Rett(url: imageUrl, ikon: ikon, aktiv: e < .01)),
                       ),
                     ),
                   ),

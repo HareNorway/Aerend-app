@@ -49,6 +49,7 @@ import '../aegil/aegil_entry.dart' show kAegilRoute;
 import '../../common/homeMainV1/home_main_v1.dart';
 import '../../../ui/kit/ae_haptic.dart';
 import '../onboarding/onb_tips.dart';
+import '../kit/del_trygt.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// `sporing` (Launch L6400–7277) at `/bergen/sporing/{id}`.
@@ -64,6 +65,12 @@ import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 /// store record. The app never maps states — the stage, its label, who
 /// delivers and whether a courier is being found all come from the payload.
 class SporingScreen extends StatefulWidget {
+  /// TestFlight 6: the least the panel keeps (frame pt, safe area in) — its grab bar, the first card's top and a key.
+  static const double panelGulv = 220;
+
+  /// With the delivery code in the slot: the grab bar, the whole code card and the stepper.
+  static const double kodeGulv = 380;
+
   // (Customer Step 10: `cus` is the issue / inbox client, replaced in tests.)
   const SporingScreen({super.key, this.orderId, this.api, this.cus, this.preloaded, this.poll = true, this.showMap = true, this.fersk = false});
 
@@ -137,6 +144,12 @@ class _SporingScreenState extends State<SporingScreen> {
   double? _panelH;
   final GlobalKey _panelKey = GlobalKey();
 
+  /// TestFlight 6 (Levert «all blocked by the module»): the panel stops at the scene's line and scrolls; dragged up
+  /// it opens to just under the clock. Closed again on every stage.
+  bool _panelApen = false;
+  int? _panelFor;
+  final ScrollController _panelRull = ScrollController();
+
   /// The map's «Ankommer om» card as last laid out (its lines vary), so it can rise clear of the panel.
   double _ankommerH = SpSceneKart.ankommerHoyde;
   final GlobalKey _ankommerKey = GlobalKey();
@@ -205,6 +218,7 @@ class _SporingScreenState extends State<SporingScreen> {
     OnbTips.instance.sett('sporing', null);
     _timer?.cancel();
     _conn?.cancel();
+    _panelRull.dispose();
     super.dispose();
   }
 
@@ -506,8 +520,8 @@ class _SporingScreenState extends State<SporingScreen> {
   Future<void> _delBillett() async {
     final code = _vervKode;
     if (code == null) return;
-    final box = context.findRenderObject() as RenderBox?;
-    await Share.share(code, sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size);
+    // TestFlight 6: the whole screen as the anchor; iOS 26 wants it inside the screen (`delTrygt` keeps it there).
+    await delTrygt(context, code);
   }
 
   Future<void> _kopierBillett() async {
@@ -906,6 +920,29 @@ class _SporingScreenState extends State<SporingScreen> {
     // v3 T1 IOS-01: the referral ticket gives way to the code — a customer who stayed on Sporing since paying never
     // saw «VIS DENNE TIL BUDET» at the door (the ticket held the slot until closed).
     final slotVerv = !slotKode && _fersk && !_vervLukket && _vervKode != null && !t.isCancelled;
+    // TestFlight 6 feedback (Levert «all blocked by the module», every phone size): the panel may reach up to the
+    // scene's line — the part of each picture that tells the stage — and no higher; past it its body scrolls (a fade
+    // says more is below) and the grab bar opens it up to just under the clock. The lines are the design's: at Levert
+    // its panel starts at the house's 365 (the door, the number, the courier's pill on the edge); the harbour keeps
+    // its boat and a strip of river (346, lifted up to 20 by kaiLoft), the kitchen 400, the counter 360. The map runs
+    // on under the panel by design (its arrival card rises instead). The delivery code always shows whole: the
+    // courier scans it at the door, so it wins over the picture on a short screen.
+    if (_panelFor != s) {
+      _panelFor = s;
+      _panelApen = false;
+    }
+    final double? sceneLinje = kart
+        ? null
+        : switch (s) {
+            0 => 346,
+            1 => klarLev ? 360 : 400,
+            _ when hent => 360,
+            _ => 365,
+          };
+    final double maksApen = rammeH - (topp + 140);
+    final double? panelMaks = sceneLinje == null
+        ? null
+        : (_panelApen ? maksApen : math.max(rammeH - ((s == 0 ? sceneTop - 20 : sceneTop) + sceneLinje), slotKode ? SporingScreen.kodeGulv : SporingScreen.panelGulv)).clamp(0.0, maksApen);
     final stadieNavn = t.isCancelled
         ? SporingCopy.a1_sporing_avbestilt
         : t.findingCourier
@@ -1124,6 +1161,13 @@ class _SporingScreenState extends State<SporingScreen> {
                 onNoeGalt: _issueWindow && (_issue == null || _issue!.open) ? _noeGalt : null,
                 noeGaltUnder: CusIssueCopy.cus_sak_rad_under(_issueSla),
                 onIkkeLost: _ikkeLost,
+                maksHoyde: panelMaks,
+                rull: _panelRull,
+                onApne: (opp) {
+                  final apen = opp ?? !_panelApen;
+                  if (!apen && _panelRull.hasClients) _panelRull.jumpTo(0);
+                  setState(() => _panelApen = apen);
+                },
               ),
               ),
               if (visBud && s >= 3) IgnorePointer(child: BudIdentitetPill(tracking: t)),

@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart' show kReleaseMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -70,6 +70,7 @@ class HjemVann extends StatefulWidget {
     required this.child,
     this.bunnLuft = 0,
     this.bobler = true,
+    this.boblerFri = false,
     this.bunn = true,
     this.flate,
   });
@@ -80,6 +81,11 @@ class HjemVann extends StatefulWidget {
 
   /// Air bubbles while scrolling (`vannBobler`).
   final bool bobler;
+
+  /// TestFlight 6 (product sheet «bubbles missing»): the prototype's `boblerFri` instead — the same bubbles on the
+  /// other big scroll areas (the product sheet over the store): no water surface needed, only a viewport ≥ 420 px
+  /// with ≥ 60 px to scroll; the top 120 px stay free (they start ≥ 260 down and stop 40 short of it).
+  final bool boblerFri;
 
   /// The waterline at the content's end (`vannBunn`).
   final bool bunn;
@@ -94,6 +100,10 @@ class HjemVann extends StatefulWidget {
   /// Empty water after the waterline at the content's end (design px) —
   /// what lets Under kaien show through below it.
   final double bunnLuft;
+
+  /// Tests: the live bubbles' start points (design px), as last spawned / cleared.
+  @visibleForTesting
+  static final ValueNotifier<List<Offset>> debugBobler = ValueNotifier(const []);
 
   @override
   State<HjemVann> createState() => _HjemVannState();
@@ -159,29 +169,42 @@ class _HjemVannState extends State<HjemVann> with SingleTickerProviderStateMixin
     if (e == Duration.zero) _base = _naa;
     final ms = _base + e.inMicroseconds / 1000;
     _naa = ms;
+    final for0 = _bobler.length;
     _bobler.removeWhere((b) => ms - b.t0 > b.dur + 400);
+    if (_bobler.length != for0) _meldBobler();
     _t.value = ms;
     if (_bobler.isEmpty) _vurder();
     // Heat ladder / idle: the surface waits for the next takt frame.
     if (PerfTakt.paa) PerfTakt.etter(_ticker, TickerMode.getNotifier(context));
   }
 
+  void _meldBobler() {
+    if (kDebugMode) HjemVann.debugBobler.value = [for (final b in _bobler) Offset(b.x, b.y0 - b.reise)];
+  }
+
   double get _px => widget.controller.hasClients ? widget.controller.position.pixels : 0;
 
-  /// `vannBobler`: every ~90 px scrolled, one or two bubbles (at most five).
+  /// `vannBobler`: every ~90 px scrolled, one or two bubbles (no new batch once five are alive).
   void _scroll() {
     _vurder();
     final st0 = _px / widget.s;
     final f = math.min(40.0, st0 * .4);
     final dy = (st0 - _sist).abs();
     _sist = st0;
-    if (f < 1 || _rolig || !widget.bobler) return;
+    final fri = widget.boblerFri;
+    if (_rolig || !(widget.bobler || fri)) return;
+    final w = _size.width / widget.s, h = _size.height / widget.s;
+    if (fri) {
+      final c = widget.controller;
+      if (h < 420 || !c.hasClients || !c.position.hasContentDimensions || c.position.maxScrollExtent / widget.s < 60 || dy == 0) return;
+    } else if (f < 1) {
+      return;
+    }
     _akk += math.min(dy, 60);
     if (_akk < 90) return;
     _akk = 0;
     if (_bobler.length >= 5) return;
-    final w = _size.width / widget.s, h = _size.height / widget.s;
-    final flate = f + 4;
+    final flate = fri ? 120.0 : f + 4;
     final n = _r.nextDouble() < .35 ? 2 : 1;
     for (var i = 0; i < n; i++) {
       final sz = 3 + _r.nextDouble() * (i > 0 ? 3 : 6);
@@ -192,6 +215,7 @@ class _HjemVannState extends State<HjemVann> with SingleTickerProviderStateMixin
       final ww = (_r.nextBool() ? -1 : 1) * (4 + _r.nextDouble() * 6);
       _bobler.add(_Boble(x, y0, sz, reise, ww, 2200 + _r.nextDouble() * 1400, _t.value + i * 180));
     }
+    _meldBobler();
     _vurder();
   }
 
@@ -350,11 +374,11 @@ class _Skum extends CustomPainter {
       canvas.restore();
     }
 
-    // Bubbles, only below the surface.
-    if (v._bobler.isNotEmpty && o != null) {
-      final flate = o.y;
+    // Bubbles, only below the surface (`vannBobler`); free in the scroll area (`boblerFri`).
+    final fri = v.widget.boblerFri;
+    if (v._bobler.isNotEmpty && (o != null || fri)) {
       canvas.save();
-      canvas.clipRect(Rect.fromLTRB(0, (flate + 24) * s, w, size.height));
+      canvas.clipRect(fri ? Offset.zero & size : Rect.fromLTRB(0, (o!.y + 24) * s, w, size.height));
       const ease = Cubic(.3, .1, .4, 1);
       for (final bb in v._bobler) {
         final p = ((t - bb.t0) / bb.dur).clamp(0.0, 1.0);
@@ -394,6 +418,19 @@ class _Skum extends CustomPainter {
             ..strokeWidth = 1 * s
             ..color = Color.fromRGBO(214, 242, 250, .55 * o),
         );
+        // `box-shadow: inset 0 -1px 2px rgba(92,224,184,.25)`: a mint glow along the inside of the lower rim.
+        canvas.save();
+        canvas.clipPath(Path()..addOval(Rect.fromCircle(center: c, radius: r)));
+        canvas.drawCircle(
+          c.translate(0, -1 * s),
+          r + 1 * s,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2 * s
+            ..maskFilter = MaskFilter.blur(BlurStyle.normal, 1 * s)
+            ..color = Color.fromRGBO(92, 224, 184, .25 * o),
+        );
+        canvas.restore();
       }
       canvas.restore();
     }

@@ -71,7 +71,9 @@ abstract final class UtforskCopy {
 
   /// The flag beside share (backend plan Step 9).
   static const String a1_feed_report = 'Rapporter innlegget';
-  static String a1_feed_share_text(String title, String store) => languages.ops_feed_share_text(title, store);
+  // TestFlight 6: gen-l10n orders the parameters by the ARB metadata (`store`, `title`), not by the text — passed as
+  // (title, store) the sheet read «Torgboden hos Fiskekaker …».
+  static String a1_feed_share_text(String title, String store) => languages.ops_feed_share_text(store, title);
   static String get a1_feed_published_by_aerend => languages.ops_feed_published_by_aerend;
   static String a1_feed_distance_m(int m) => languages.ops_feed_distance_m(m);
   static String a1_feed_distance_km(String km) => languages.ops_feed_distance_km(km);

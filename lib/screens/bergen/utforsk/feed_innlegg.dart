@@ -197,7 +197,7 @@ class FeedInnleggInnhold extends StatefulWidget {
   final List<FeedComment> comments;
   final VoidCallback onLike;
   final VoidCallback? onStore;
-  final VoidCallback? onShare;
+  final ValueChanged<BuildContext>? onShare;
   final VoidCallback onReport;
   final void Function(FeedComment comment) onCommentLongPress;
   final bool showLikeCount;

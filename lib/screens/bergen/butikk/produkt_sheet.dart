@@ -24,6 +24,9 @@ import '../kit/vann_overganger.dart';
 import 'kategori_modul.dart' show katVareIkon;
 import '../../common/auth/launch/lf_css.dart' show CssShadow;
 import '../../../theme/lys/lys_palett.dart';
+import '../../common/auth/launch/lf_widgets.dart' show LfPillCta;
+import '../kit/kurv_fly.dart';
+import '../kit/kn_trykk.dart';
 import '../../../theme/lys/modus_scope.dart';
 
 /// Lys plan: a design shadow list (outer shadows only) as [BoxShadow]s at
@@ -74,7 +77,8 @@ Future<void> showProduktSheet(
       reverseTransitionDuration: kBolgeUt,
       pageBuilder: (context, animation, _) => _ProduktRoute(
         animation: animation,
-        child: ProduktSheet(
+        // TestFlight 6: «Legg til» sends the hero picture flying into the basket (`flyTilKurv`).
+        child: KurvFlyKort(child: ProduktSheet(
           item: item,
           api: api ?? OpsButikkApi(),
           customerApi: customerApi ?? OpsCustomerApi(),
@@ -82,7 +86,7 @@ Future<void> showProduktSheet(
           mostOrdered: mostOrdered,
           allergens: allergens,
           med: med,
-        ),
+        )),
       ),
     ),
   );
@@ -365,6 +369,8 @@ class _ProduktSheetState extends State<ProduktSheet> {
       }
     }
     final name = widget.item.name;
+    // Design `leggTilProdukt` → `leggTil` → `flyTilKurv()`: the dish flies at once, the sheet closes.
+    kurvFly(context);
     final ok = await BergenCart.add(
       context,
       storeId: widget.item.storeId,
@@ -510,6 +516,8 @@ class _ProduktSheetState extends State<ProduktSheet> {
                     controller: _rull,
                     s: s,
                     bobler: false,
+                    // TestFlight 6: the design's `boblerFri` — air bubbles rise in the sheet while it scrolls.
+                    boblerFri: true,
                     bunn: false,
                     flate: (st) {
                       if (st <= 2) return null;
@@ -518,7 +526,10 @@ class _ProduktSheetState extends State<ProduktSheet> {
                     },
                     child: SingleChildScrollView(
                       controller: _rull,
-                      padding: EdgeInsets.fromLTRB(20 * s, 4 * s, 20 * s, 14 * s),
+                      // TestFlight 6: a real photo fills the hero to its edge, so the name and price card sat on
+                      // it; with a photo the body starts 16 px down (the design's 4 px is for the cut-out dishes,
+                      // which float inside the hero with room under them).
+                      padding: EdgeInsets.fromLTRB(20 * s, ((item.imageUrl ?? d?.imageUrl ?? '').isNotEmpty ? 16 : 4) * s, 20 * s, 14 * s),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -1002,44 +1013,51 @@ class _BottomBar extends StatelessWidget {
                       child: OnbPressable(
                       key: const Key('a1_butikk_produkt_legg'),
                       onTap: onAdd,
-                      pressDy: 2,
-                      child: Container(
-                        height: 52 * s,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(999),
-                          gradient: cssLinear(
-                            180,
-                            const [
-                              Color(0xFFF9A273),
-                              Color(0xFFF26D3D),
-                              Color(0xFFDD5A25),
-                            ],
-                            const [0, .56, 1],
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: rgba(233, 92, 44, .9),
-                              offset: Offset(0, 14 * s),
-                              blurRadius: onbBlur(26 * s),
-                              spreadRadius: -10 * s,
-                            ),
-                            BoxShadow(
-                              color: const Color(0xFFC4491A),
-                              offset: Offset(0, 2 * s),
-                            ),
-                          ],
-                        ),
-                        child: Stack(
-                          children: [
-                            bergenInsetTop(radius: 999, alpha: .45),
-                            Center(
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      ButikkCopy.a1_butikk_prod_legg_kort,
+                      // TestFlight 6: the press is the design's `knTrykk` (squash + ground rings), not a 2 px nudge.
+                      pressDy: 0,
+                      child: KnTrykk(
+                      hoyde: 52 * s,
+                      lys: lys,
+                      s: s,
+                      child: IgnorePointer(
+                        // TestFlight 6: the design's `data-kn="o"` pill — `linear-gradient(#F68450,#E65A28)`, the insets,
+                        // `aeKnSvev 3.4s -2.3s` over its `aeKnSkygge` shadow (`--knSk`: dark over the night sheet, fjord
+                        // over Lys).
+                        child: LfPillCta(
+                          onTap: onAdd,
+                          height: 52 * s,
+                          phaseMs: -2300,
+                          s: s,
+                          skygge: lys ? const Color.fromRGBO(30, 79, 92, .36) : const Color.fromRGBO(0, 10, 14, .55),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  ButikkCopy.a1_butikk_prod_legg_kort,
+                                  style: bText(
+                                    context,
+                                    14.5,
+                                    weight: FontWeight.w800,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(width: 8 * s),
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minWidth: 56 * s,
+                                  ),
+                                  child: _PrisTikk(
+                                    tick: tick,
+                                    child: Text(
+                                      ButikkCopy.a1_butikk_prod_sum(
+                                        ButikkCopy.kr(sum),
+                                      ),
+                                      key: const Key(
+                                        'a1_butikk_produkt_sum',
+                                      ),
+                                      textAlign: TextAlign.right,
                                       style: bText(
                                         context,
                                         14.5,
@@ -1047,36 +1065,13 @@ class _BottomBar extends StatelessWidget {
                                         color: Colors.white,
                                       ),
                                     ),
-                                    SizedBox(width: 8 * s),
-                                    ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        minWidth: 56 * s,
-                                      ),
-                                      child: _PrisTikk(
-                                        tick: tick,
-                                        child: Text(
-                                          ButikkCopy.a1_butikk_prod_sum(
-                                            ButikkCopy.kr(sum),
-                                          ),
-                                          key: const Key(
-                                            'a1_butikk_produkt_sum',
-                                          ),
-                                          textAlign: TextAlign.right,
-                                          style: bText(
-                                            context,
-                                            14.5,
-                                            weight: FontWeight.w800,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
+                      ),
                       ),
                     )),
                   ),

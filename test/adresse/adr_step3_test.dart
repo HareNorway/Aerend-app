@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:aerend_customer/screens/common/auth/launch/lf_widgets.dart' show LfPress;
 
 import 'package:aerend_customer/data/aegil/aegil_app_models.dart';
 import 'package:rxdart/rxdart.dart';
@@ -200,6 +201,29 @@ void main() {
     expect(find.text('HER JOBBER DU'), findsOneWidget);
     await tester.pump(const Duration(seconds: 2));
     await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Hvor skal ærendet?'), findsNothing);
+  });
+
+  testWidgets('TestFlight 6: «Lukk» closes; the place rows are the design\'s 64 px; the list follows the sign up', (tester) async {
+    phone(tester);
+    final k = _Kilde(
+      [_adr(1, 'Jobb', 'Solheimsgaten 7, Danmarksplass'), _adr(2, 'Hjemme', 'Nygårdsgaten 5, Møhlenpris')],
+      dek: const AdrDekning(dekket: true, butikker: 6, gebyrKr: 29, eta: '25–35 min'),
+    );
+    await open(tester, k);
+    final lukk = find.byKey(const Key('adr-lukk'));
+    expect(tester.getSize(lukk), const Size(44, 44));
+    // Design: the pill sits 12 px under the sign (margin -26 on the sign, +12 on the pill).
+    final skilt = tester.getRect(find.text('HER BOR DU'));
+    final pille = tester.getRect(find.text('6 butikker leverer hit · 29 kr · 25–35 min'));
+    expect(pille.top - skilt.top, lessThan(74), reason: 'a Transform-only shift left the pill 12 px low (80.5)');
+    // A three-line place: 9 + 46 + 9.
+    final rad = find.ancestor(of: find.text('Solheimsgaten 7'), matching: find.byType(LfPress)).first;
+    expect(tester.getSize(rad).height, closeTo(64, 1.5));
+
+    await tester.tap(lukk);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
     expect(find.text('Hvor skal ærendet?'), findsNothing);
   });
 
