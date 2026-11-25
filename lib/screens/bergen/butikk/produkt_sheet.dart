@@ -526,7 +526,10 @@ class _ProduktSheetState extends State<ProduktSheet> {
                     },
                     child: SingleChildScrollView(
                       controller: _rull,
-                      padding: EdgeInsets.fromLTRB(20 * s, 4 * s, 20 * s, 14 * s),
+                      // TestFlight 6: a real photo fills the hero to its edge, so the name and price card sat on
+                      // it; with a photo the body starts 16 px down (the design's 4 px is for the cut-out dishes,
+                      // which float inside the hero with room under them).
+                      padding: EdgeInsets.fromLTRB(20 * s, ((item.imageUrl ?? d?.imageUrl ?? '').isNotEmpty ? 16 : 4) * s, 20 * s, 14 * s),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
